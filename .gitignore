@@ -23,3 +23,6 @@ go.work
 *.db
 .envrc
 main
+node_modules
+.DS_Store
+tmp

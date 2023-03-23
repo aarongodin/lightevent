@@ -23,7 +23,7 @@ Here's a quick guide to running the project locally.
 * [go 1.19](https://go.dev/)
 * [protoc](https://grpc.io/docs/protoc-installation/) (the protobuf compiler)
 * [node 16 or higher](https://nodejs.org/en)
-* [pm2](https://pm2.keymetrics.io/) - optional for easier management of web app builds
+* [pm2](https://pm2.keymetrics.io/) - optional for easier management of web app dev servers
 
 ### Project setup
 
@@ -41,20 +41,28 @@ After that's complete, you can start the service with:
 go run cmd/server/main.go
 ```
 
-When you make changes to any protobuf documents, you can rebuild the go and typescript clients using:
+There is also an [air](https://github.com/cosmtrek/air) config in the project. After installing air you can run the go app by running `air` in the directory. This watches for file changes and restarts the server when detected.
+
+The app takes in some configuration through environment variables. You can set any of these variables however you want. One recommendation is to use [direnv](https://direnv.net/). Check out `.envrc-example` for a list of variables to set.
+
+When you make changes to any protobuf documents, you can rebuild the go and typescript code using:
 
 ```sh
 make protoc
 ```
 
-Running the client and admin apps can be done with pm2:
+Running the client and admin web apps can be done with pm2. Install the node modules in the root directory, install pm2 globally, and start the dev servers:
 
 ```sh
-# todo
+npm i
+npm i -g pm2
+pm2 start
 ```
+
+Open the admin app at [https://localhost:5500](https://localhost:5500) and the client app at [https://localhost:6500](https://localhost:6500).
 
 ## Pull Requests
 
 When you have a change to propose, follow the standard pull request workflow by forking this repo, pushing to a branch in your fork, and opening a PR in this repo using your fork and branch as the source.
 
-Please fill out the information in the default PR description as it makes it easier to scan and understand what has changed, as well as ensure that criteria for making a change have been met.
+Please fill out the information in the default PR description as it makes it easier to scan and understand what has changed, as well as ensure that criteria for making a change have been met. If you can link to relevant issues this helps with pruning any issues the PR resolves.

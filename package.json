@@ -1,0 +1,14 @@
+{
+  "name": "spectral",
+  "version": "0.0.0",
+  "description": "package for Spectral repository",
+  "author": "Aaron Godin <godinaaweb@gmail.com>",
+  "license": "MIT",
+  "workspaces": [
+    "admin"
+  ],
+  "devDependencies": {
+    "ts-proto": "^1.141.1",
+    "twirp-ts": "^2.5.0"
+  }
+}

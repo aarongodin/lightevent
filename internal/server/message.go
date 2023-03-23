@@ -5,13 +5,52 @@ import (
 
 	"github.com/aarongodin/spectral/internal/server/repository"
 	service "github.com/aarongodin/spectral/internal/service"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/twitchtv/twirp"
 )
 
+type EventDateWithID struct {
+	ID string
+	repository.EventDate
+}
+
+func eventRecordDatesToMessageEventDates(eventDates map[string]repository.EventDate) []*service.EventDate {
+	dates := make([]*EventDateWithID, 0, len(eventDates))
+	msgDates := make([]*service.EventDate, 0, len(eventDates))
+
+	lastIndex := 0
+	for dateID, d := range eventDates {
+		dates = append(dates, &EventDateWithID{
+			ID:        dateID,
+			EventDate: d,
+		})
+		for i := lastIndex; i > 0; i-- {
+			if dates[i].Value.Before(dates[i-1].Value) {
+				swap := dates[i-1]
+				dates[i-1] = dates[i]
+				dates[i] = swap
+			}
+		}
+		lastIndex += 1
+	}
+
+	for _, d := range dates {
+		msgDates = append(msgDates, &service.EventDate{
+			Id:    d.ID,
+			Value: d.Value.Format(time.RFC3339),
+		})
+	}
+
+	return msgDates
+}
+
 func eventRecordToMessage(rec *repository.EventRecord) *service.Event {
 	return &service.Event{
-		Name:  rec.Name,
-		Title: rec.Title,
+		Name:   rec.Name,
+		Title:  rec.Title,
+		Hidden: rec.Hidden,
+		Closed: rec.Closed,
+		Dates:  eventRecordDatesToMessageEventDates(rec.Dates),
 	}
 }
 
@@ -23,13 +62,32 @@ func eventRecordsToMessage(recs []repository.EventRecord) []*service.Event {
 	return events
 }
 
-func eventMessageToRecord(msg *service.Event) *repository.EventRecord {
+func eventMessageToRecord(msg *service.Event) (*repository.EventRecord, error) {
+	dates := make(map[string]repository.EventDate)
+	for _, d := range msg.Dates {
+		dateID := d.Id
+		parsed, err := time.Parse(time.RFC3339, d.Value)
+		if err != nil {
+			return nil, twirp.InvalidArgumentError("dates", "date value must be valid RFC3339 date")
+		}
+		if dateID == "" {
+			dateID, err = gonanoid.New()
+			if err != nil {
+				return nil, twirp.InternalErrorWith(err)
+			}
+		}
+		dates[dateID] = repository.EventDate{
+			Value: parsed,
+		}
+	}
+
 	return &repository.EventRecord{
 		Name:   msg.Name,
 		Title:  msg.Title,
 		Hidden: msg.Hidden,
 		Closed: msg.Closed,
-	}
+		Dates:  dates,
+	}, nil
 }
 
 func registrationKindFromString(kind string) service.RegistrationKind {

@@ -63,6 +63,12 @@ message Event {
 	string title = 2;
 	bool hidden = 3;
 	bool closed = 4;
+	repeated EventDate dates = 5;
+}
+
+message EventDate {
+	string id = 1;
+	string value = 2;
 }
 
 message ListEventRegistrationsOptions {

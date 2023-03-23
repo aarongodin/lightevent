@@ -9,14 +9,14 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
-	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-	golang.org/x/exp v0.0.0-20230314191032-db074128a8ec
-	google.golang.org/protobuf v1.29.1
+	golang.org/x/crypto v0.7.0
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
+	google.golang.org/protobuf v1.30.0
 )
 
 require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/testify v1.8.2 // indirect
-	go.etcd.io/bbolt v1.3.4 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	go.etcd.io/bbolt v1.3.7 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 )

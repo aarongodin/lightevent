@@ -190,6 +190,7 @@ func WithAuthorization(base http.Handler, repo *repository.Repository, rpcAuthor
 				scheme = AUTHZ_SCHEME_MEMBER
 				break
 			}
+			fallthrough
 		case schemes&maskUser > 0:
 			// user scheme is allowed
 			session, err := authorizeWithCookie(r, repo, COOKIE_USER_SESSION)
@@ -202,6 +203,7 @@ func WithAuthorization(base http.Handler, repo *repository.Repository, rpcAuthor
 				scheme = AUTHZ_SCHEME_USER
 				break
 			}
+			fallthrough
 		case schemes&maskAPIKey > 0:
 			// API key scheme is allowed
 			result, err := authorizeWithAPIKey(r, repo)

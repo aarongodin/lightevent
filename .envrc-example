@@ -1,0 +1,14 @@
+# .envrc-example
+# see internal/server/config/runtime.go for usage
+#
+# This file is meant for local development only.
+# Recommended workflow is to use a tool like direnv to add
+# the variables to your shell.
+
+# export PORT=8080
+# export DEBUG=true
+# export DATABASE_PATH=spectral.db
+# export SESSION_MAX_AGE=168h
+# export COOKIE_HMAC_SECRET=test
+# export ALLOW_ADMIN_USER=true
+# export ADMIN_USER_PASSWORD=admin

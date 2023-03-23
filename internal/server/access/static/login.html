@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Spectral Admin</title>
+    <style>{{.Styles}}</style>
+	</head>
+	<body>
+		<div class="flex w-screen h-screen items-center justify-center">
+			<div class="flex flex-col justify-center items-center gap-4">
+				<h1>spectral</h1>
+				<div class="bg-white drop-shadow w-96 p-4 rounded-lg">
+					<h1 class="text-lg font-bold">Login</h1>
+					<form action="/auth/login" method="POST" enctype="application/x-www-form-urlencoded">
+						<div class="mt-4 grid gap-4 grid-cols-1">
+							<label for="username">Username</label>
+							<input type="text" id="username" name="username" class="rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow" required />
+							<label for="password">Password</label>
+							<input type="password" id="password" name="password" class="rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow" required />
+							<input type="submit" name="submit" id="submit" value="Login" class="bg-slate-200 hover:bg-slate-100 transition-colors py-2 cursor-pointer rounded-md" />
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

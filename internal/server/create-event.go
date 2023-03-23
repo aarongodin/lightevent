@@ -7,7 +7,16 @@ import (
 )
 
 func (s *Server) CreateEvent(ctx context.Context, message *service.Event) (*service.Event, error) {
-	rec, err := s.Repo.Events.CreateEvent(eventMessageToRecord(message))
+	rec, err := eventMessageToRecord(message)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.Repo.Events.Validate(rec, false); err != nil {
+		return nil, errorResponse(err, "event")
+	}
+
+	rec, err = s.Repo.Events.CreateEvent(rec)
 	if err != nil {
 		return nil, errorResponse(err, "event")
 	}

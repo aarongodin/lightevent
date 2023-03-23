@@ -19,7 +19,7 @@ func main() {
 	// Configuration
 	runtimeConfig, err := config.NewRuntimeConfig()
 	if err != nil {
-		os.Exit(11)
+		os.Exit(server.EXIT_STARTUP_ERR)
 	}
 
 	// Logging config
@@ -33,8 +33,8 @@ func main() {
 	// DB connection
 	db, err := storm.Open(runtimeConfig.DatabasePath)
 	if err != nil {
-		logger.Error("unable to open db", err)
-		os.Exit(10)
+		logger.Error("failed to open db", slog.Any("err", err))
+		os.Exit(server.EXIT_STARTUP_ERR)
 	}
 	defer db.Close()
 
@@ -48,7 +48,10 @@ func main() {
 	twirpHandler := service.NewSpectralServer(s, twirp.WithServerPathPrefix("/rpc"), twirp.WithServerHooks(server.NewLoggingHooks()))
 
 	authHandler := httprouter.New()
-	access.Register(authHandler, repo, runtimeConfig)
+	if err := access.Register(authHandler, repo, runtimeConfig); err != nil {
+		logger.Error("failed to register access routes", slog.Any("err", err))
+		os.Exit(server.EXIT_STARTUP_ERR)
+	}
 	access.InitCookies(runtimeConfig)
 
 	mux := http.NewServeMux()
@@ -57,6 +60,6 @@ func main() {
 
 	logger.Info("starting http server")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
-		logger.Error("failed to start http server", err)
+		logger.Error("failed to start http server", slog.Any("err", err))
 	}
 }
