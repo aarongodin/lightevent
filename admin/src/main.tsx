@@ -6,6 +6,7 @@ import { RouterProvider } from "react-router-dom"
 import { FetchRPC, TwirpError, TwirpErrorCode } from "twirp-ts"
 
 import { ClientContext } from "./client"
+import { PromptProvider, PromptView } from "./prompt"
 import router from "./router"
 import { SpectralClientProtobuf } from "./rpc"
 
@@ -34,7 +35,10 @@ async function main() {
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>
       <ClientContext.Provider value={client}>
-        <RouterProvider router={router} />
+        <PromptProvider>
+          <RouterProvider router={router} />
+          <PromptView />
+        </PromptProvider>
       </ClientContext.Provider>
     </React.StrictMode>,
   )

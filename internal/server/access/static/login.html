@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Spectral Admin</title>
-    <style>{{.Styles}}</style>
+    <style>{{ .Styles }}</style>
 	</head>
 	<body>
 		<div class="flex w-screen h-screen items-center justify-center">
@@ -12,6 +12,9 @@
 				<h1>spectral</h1>
 				<div class="bg-white drop-shadow w-96 p-4 rounded-lg">
 					<h1 class="text-lg font-bold">Login</h1>
+					{{if .Err }}
+						<div class="mt-4 px-4 py-2 capitalize bg-red-100 border border-red-200 rounded-md">{{ .Err }}</div>
+					{{end}}
 					<form action="/auth/login" method="POST" enctype="application/x-www-form-urlencoded">
 						<div class="mt-4 grid gap-4 grid-cols-1">
 							<label for="username">Username</label>

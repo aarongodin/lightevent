@@ -2,8 +2,10 @@ package access
 
 import (
 	_ "embed"
+	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 
 	"github.com/aarongodin/spectral/internal/server/config"
 	"github.com/aarongodin/spectral/internal/server/repository"
@@ -26,6 +28,7 @@ type accessRoutes struct {
 
 type loginData struct {
 	Styles template.CSS
+	Err    string
 }
 
 // handleAuthentication processes the form post from the login page
@@ -46,7 +49,8 @@ func (ar accessRoutes) handleAuthentication(w http.ResponseWriter, r *http.Reque
 	session, err := ar.authenticateUser(username, password)
 	if err != nil {
 		slog.Debug("authenticate user error", slog.Any("err", err))
-		http.Redirect(w, r, "/login", http.StatusUnauthorized)
+		redirectPath := fmt.Sprintf("/login?err=%s", url.QueryEscape(err.Error()))
+		http.Redirect(w, r, redirectPath, http.StatusSeeOther)
 		return
 	}
 
@@ -65,9 +69,13 @@ func (ar accessRoutes) handleAuthentication(w http.ResponseWriter, r *http.Reque
 // handleLogin renders a login page to the user
 func (ar accessRoutes) handleLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// TODO(aarongodin): CSRF protection
+	data := loginData{Styles: template.CSS(loginCSS)}
+	q := r.URL.Query()
+	if q.Has("err") {
+		data.Err = q.Get("err")
+	}
 	w.Header().Add("content-type", "text/html")
 	w.WriteHeader(http.StatusOK)
-	data := loginData{Styles: template.CSS(loginCSS)}
 	if err := ar.loginTemplate.Execute(w, &data); err != nil {
 		twirp.WriteError(w, err)
 		return

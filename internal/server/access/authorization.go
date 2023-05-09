@@ -29,6 +29,7 @@ import (
 )
 
 // PUBLIC_RPCS can be requested by unauthenticated users (authorization is skipped)
+// This type is a map to ensure o(1) lookup by RPC name
 var PUBLIC_RPCS = map[string]bool{
 	"BeginVerification":    true,
 	"CompleteVerification": true,

@@ -37,6 +37,7 @@ type registrationsRepo struct {
 }
 
 func (r registrationsRepo) NewConfCode() (string, error) {
+	// At most we allow 3 tries to create a unique value
 	for t := 0; t < 3; t++ {
 		value, err := randomHexUpper(8)
 		if err != nil {

@@ -1,5 +1,4 @@
 import { DateTime } from "luxon"
-import { Link } from "react-router-dom"
 
 import { WithRequest } from "../client"
 import { eventRoute, newEventRoute } from "../router"
@@ -45,7 +44,9 @@ function EventsTable({ events }: EventsTableProps) {
           {!evt.closed && <Badge content="Open" />}
         </td>
         <td className="p-4 text-right text-xs">
-          <Link to={eventRoute(evt.name)}>Manage</Link>
+          <LinkButton color="white" to={eventRoute(evt.name)}>
+            Manage
+          </LinkButton>
         </td>
       </tr>
     )
