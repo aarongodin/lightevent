@@ -11,7 +11,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Button({ using = "button", className, color = "primary", ...p }: ButtonProps) {
-  const props = {
+  const props: any = {
     ...p,
     className: classNames(className, "transition-colors px-4 py-2 text-sm drop-shadow rounded-full", {
       // Select a background color set based on desired color string
@@ -20,7 +20,7 @@ export function Button({ using = "button", className, color = "primary", ...p }:
       "bg-neutral-700 hover:bg-neutral-600 text-white": color === "neutral",
       "bg-white hover:bg-gray-50 text-gray-900": color === "white",
     }),
-  } as any
+  }
   return createElement(using, props)
 }
 

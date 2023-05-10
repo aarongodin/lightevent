@@ -90,6 +90,41 @@ func eventMessageToRecord(msg *service.Event) (*repository.EventRecord, error) {
 	}, nil
 }
 
+func applyEventMessageDatesToRecord(msg *service.Event, rec *repository.EventRecord) error {
+	msgDateIDs := make(map[string]bool)
+
+	for _, date := range msg.Dates {
+		dateID := date.Id
+		parsed, err := time.Parse(time.RFC3339, date.Value)
+		if err != nil {
+			return twirp.InvalidArgumentError("dates", "date value must be valid RFC3339 date")
+		}
+
+		if dateID == "" {
+			dateID, err = gonanoid.New()
+			if err != nil {
+				return twirp.InternalErrorWith(err)
+			}
+		} else {
+			_, exists := rec.Dates[dateID]
+			if !exists {
+				return twirp.InvalidArgumentError("dates", "date id does not exist")
+			}
+		}
+
+		rec.Dates[dateID] = repository.EventDate{Value: parsed}
+		msgDateIDs[dateID] = true
+	}
+
+	for dateID := range rec.Dates {
+		if _, exists := msgDateIDs[dateID]; !exists {
+			return twirp.InvalidArgumentError("dates", "dates must contain all existing dates")
+		}
+	}
+
+	return nil
+}
+
 func registrationKindFromString(kind string) service.RegistrationKind {
 	switch kind {
 	case repository.KIND_ONCE:

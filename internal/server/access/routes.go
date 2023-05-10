@@ -14,7 +14,7 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-//go:embed static/login.html
+//go:embed static/login.html.tmpl
 var loginHTML string
 
 //go:embed static/login.css

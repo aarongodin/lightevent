@@ -10,7 +10,7 @@ type PageTitleProps = {
 export function PageTitle({ title, localActions, externalActions }: PageTitleProps) {
   return (
     <div className="bg-white p-4">
-      <div className="container mx-auto flex justify-between">
+      <div className="container mx-auto flex justify-between items-center">
         <div>
           <h1 className="font-bold text-lg">{title}</h1>
           {localActions}

@@ -86,7 +86,7 @@ func (e eventsRepo) CreateEvent(event *EventRecord) (*EventRecord, error) {
 
 func (e eventsRepo) UpdateEvent(event *EventRecord) (*EventRecord, error) {
 	event.UpdatedAt = time.Now()
-	if err := e.db.Update(event); err != nil {
+	if err := e.db.Save(event); err != nil {
 		return nil, err
 	}
 	return event, nil

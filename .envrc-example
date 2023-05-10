@@ -5,6 +5,7 @@
 # Recommended workflow is to use a tool like direnv to add
 # the variables to your shell.
 
+# export HOST=127.0.0.1
 # export PORT=8080
 # export DEBUG=true
 # export DATABASE_PATH=spectral.db

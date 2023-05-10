@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	service "github.com/aarongodin/spectral/internal/service"
+	"github.com/aarongodin/spectral/internal/service"
 )
 
 func (s *Server) UpdateEvent(ctx context.Context, message *service.Event) (*service.Event, error) {
@@ -15,6 +15,9 @@ func (s *Server) UpdateEvent(ctx context.Context, message *service.Event) (*serv
 	rec.Title = message.Title
 	rec.Hidden = message.Hidden
 	rec.Closed = message.Closed
+	if err := applyEventMessageDatesToRecord(message, rec); err != nil {
+		return nil, errorResponse(err, "event")
+	}
 
 	rec, err = s.Repo.Events.UpdateEvent(rec)
 	if err != nil {

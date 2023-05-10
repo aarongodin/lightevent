@@ -9,7 +9,7 @@ export default function Root() {
   return (
     <>
       <div className="bg-neutral-700 text-white p-4 text-sm">
-        <div className="container mx-auto flex justify-between">
+        <div className="container mx-auto flex justify-between items-center">
           <div className="flex">
             <nav>
               <ul className="flex gap-x-4">

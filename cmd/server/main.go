@@ -59,7 +59,7 @@ func main() {
 	mux.Handle("/", authHandler)
 
 	logger.Info("starting http server")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(runtimeConfig.ServerAddr(), mux); err != nil {
 		logger.Error("failed to start http server", slog.Any("err", err))
 	}
 }

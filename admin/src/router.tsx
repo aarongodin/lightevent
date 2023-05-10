@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom"
 import Dashboard from "./routes/dashboard"
 import ErrorPage from "./routes/error"
 import Event from "./routes/event"
+import EventEdit from "./routes/event-edit"
 import Events from "./routes/events"
 import EventsCreate from "./routes/events-create"
 import Members from "./routes/members"
@@ -32,6 +33,10 @@ export default createBrowserRouter([
       {
         path: "events/:eventName",
         element: <Event />,
+      },
+      {
+        path: "events/:eventName/_edit",
+        element: <EventEdit />,
       },
       {
         path: "events/_create",
