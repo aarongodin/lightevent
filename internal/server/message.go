@@ -147,11 +147,9 @@ func registrationKindFromEnum(kind service.RegistrationKind) string {
 
 func registrationRecordToMessage(rec *repository.RegistrationRecord, event *repository.EventRecord) (*service.Registration, error) {
 	msg := &service.Registration{
-		ConfCode:    rec.ConfCode,
-		Kind:        registrationKindFromString(rec.Kind),
-		EventName:   event.Name,
-		EventDate:   rec.EventDate.Format(time.RFC3339),
-		MemberEmail: rec.MemberEmail,
+		ConfCode:  rec.ConfCode,
+		Kind:      registrationKindFromString(rec.Kind),
+		EventName: event.Name,
 	}
 
 	if rec.EventDate != nil {
@@ -161,10 +159,11 @@ func registrationRecordToMessage(rec *repository.RegistrationRecord, event *repo
 	return msg, nil
 }
 
-func registrationRecordsToMessage(recs []*repository.RegistrationRecord, event *repository.EventRecord) ([]*service.Registration, error) {
+func registrationRecordsToMessage(recs []*repository.RegistrationRecord, members map[string]*repository.MemberRecord, event *repository.EventRecord) ([]*service.Registration, error) {
 	registrations := make([]*service.Registration, 0, len(recs))
 	for _, rec := range recs {
 		reg, err := registrationRecordToMessage(rec, event)
+		reg.Member = memberRecordToMessage(members[rec.MemberEmail])
 		if err != nil {
 			return nil, err
 		}
@@ -184,8 +183,8 @@ func writeableRegistrationMessageToRecord(msg *service.WriteableRegistration, ev
 		return nil, twirp.InvalidArgumentError("Kind", "must be one of allowed values")
 	}
 
-	if msg.EventDate != "" {
-		eventDate, err := time.Parse(time.RFC3339, msg.EventDate)
+	if msg.EventDate != nil {
+		eventDate, err := time.Parse(time.RFC3339, *msg.EventDate)
 		if err != nil {
 			return nil, twirp.InvalidArgumentError("EventDate", "must be a valid RFC3339 time")
 		}
@@ -252,6 +251,9 @@ func memberRecordToMessage(rec *repository.MemberRecord) *service.Member {
 	return &service.Member{
 		Email:     rec.Email,
 		CreatedAt: rec.CreatedAt.Format(time.RFC3339),
+		FirstName: rec.FirstName,
+		LastName:  rec.LastName,
+		Verified:  rec.Verified,
 	}
 }
 
@@ -261,4 +263,12 @@ func memberRecordsToMessage(recs []*repository.MemberRecord) []*service.Member {
 		users = append(users, memberRecordToMessage(rec))
 	}
 	return users
+}
+
+func apiKeyRecordToMessage(rec *repository.APIKeyRecord) *service.APIKeyWithSecret {
+	return &service.APIKeyWithSecret{
+		Name:      rec.Name,
+		Secret:    rec.Secret,
+		CreatedAt: rec.CreatedAt.Format(time.RFC3339),
+	}
 }

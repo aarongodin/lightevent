@@ -21,4 +21,8 @@ protoc:
     --twirp_ts_out=./generated \
 		rpc/spectral/service.proto
 	@cp ./generated/rpc/spectral/* admin/src/rpc/
+	@cp ./generated/rpc/spectral/* e2e/src/rpc/
 	@rm -rf ./generated
+
+test-api:
+	@npm -w e2e run test:api

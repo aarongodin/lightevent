@@ -12,6 +12,11 @@ func (s *Server) CreateRegistration(ctx context.Context, message *service.Writea
 		return nil, errorResponse(err, "event")
 	}
 
+	member, err := s.Repo.Members.GetMember(message.MemberEmail)
+	if err != nil {
+		return nil, errorResponse(err, "member")
+	}
+
 	payload, err := writeableRegistrationMessageToRecord(message, event)
 	if err != nil {
 		return nil, err
@@ -30,5 +35,6 @@ func (s *Server) CreateRegistration(ctx context.Context, message *service.Writea
 	if err != nil {
 		return nil, errorResponse(err, "registration")
 	}
+	reg.Member = memberRecordToMessage(member)
 	return reg, nil
 }

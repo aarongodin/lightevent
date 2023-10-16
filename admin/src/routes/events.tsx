@@ -45,7 +45,7 @@ function EventsTable({ events }: EventsTableProps) {
         </td>
         <td className="p-4 text-right text-xs">
           <LinkButton color="white" to={eventRoute(evt.name)}>
-            Manage
+            View
           </LinkButton>
         </td>
       </tr>

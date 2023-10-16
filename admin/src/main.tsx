@@ -9,6 +9,7 @@ import { ClientContext } from "./client"
 import { PromptProvider, PromptView } from "./prompt"
 import router from "./router"
 import { SpectralClientProtobuf } from "./rpc"
+import UnexpectedError from "./unexpected"
 
 const client = new SpectralClientProtobuf(
   FetchRPC({
@@ -20,7 +21,7 @@ const client = new SpectralClientProtobuf(
 async function main() {
   try {
     await client.Ping({})
-  } catch (err) {
+  } catch (err: any) {
     if (err instanceof TwirpError) {
       if (err.code === TwirpErrorCode.Unauthenticated) {
         window.location.href = "/login"
@@ -28,7 +29,7 @@ async function main() {
       }
     }
 
-    // TODO(aarongodin): render an error screen
+    ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(<UnexpectedError error={err} />)
     return
   }
 

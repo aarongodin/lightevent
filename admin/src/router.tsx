@@ -1,11 +1,14 @@
+import base64 from "base-64"
 import { createBrowserRouter } from "react-router-dom"
 
 import Dashboard from "./routes/dashboard"
 import ErrorPage from "./routes/error"
 import Event from "./routes/event"
 import EventEdit from "./routes/event-edit"
+import EventRegistrationsCreate from "./routes/event-registrations-create"
 import Events from "./routes/events"
 import EventsCreate from "./routes/events-create"
+import Member from "./routes/member"
 import Members from "./routes/members"
 import Registrations from "./routes/registrations"
 import Root from "./routes/root"
@@ -15,6 +18,15 @@ export const eventsRoute = "/events"
 export const newEventRoute = "/events/_create"
 export const eventRoute = (eventName: string) => `/events/${eventName}`
 export const editEventRoute = (eventName: string) => `/events/${eventName}/_edit`
+export const newEventRegistrationRoute = (eventName: string) => `/events/${eventName}/registrations/_create`
+
+// Member Routes
+export const memberRoute = (email: string) => {
+  return `/members/${base64.encode(email)}`
+}
+export const memberEmailFromRoute = (path: string) => {
+  return base64.decode(path.replace("/members/", ""))
+}
 
 export default createBrowserRouter([
   {
@@ -29,6 +41,10 @@ export default createBrowserRouter([
       {
         path: "registrations",
         element: <Registrations />,
+      },
+      {
+        path: "events/:eventName/registrations/_create",
+        element: <EventRegistrationsCreate />,
       },
       {
         path: "events/:eventName",
@@ -49,6 +65,10 @@ export default createBrowserRouter([
       {
         path: "members",
         element: <Members />,
+      },
+      {
+        path: "members/:emailEncoded",
+        element: <Member />,
       },
     ],
   },

@@ -2,8 +2,9 @@ import { DateTime } from "luxon"
 import { useParams } from "react-router-dom"
 
 import { WithRequest } from "../client"
-import { editEventRoute } from "../router"
-import { Event as Evt, RegistrationList } from "../rpc"
+import { formatRegistrationKind } from "../domain/registration"
+import { editEventRoute, newEventRegistrationRoute } from "../router"
+import { Event as Evt, RegistrationKind, registrationKindFromJSON, RegistrationList } from "../rpc"
 import { LinkButton } from "../units/button"
 import { Content } from "../units/content"
 import { TableLoader } from "../units/loader"
@@ -29,6 +30,7 @@ function EventView({ evt }: { evt: Evt }) {
   })
 
   return (
+    // TODO(aarongodin): fix repetition below
     <div className="grid grid-cols-2 gap-6">
       <dl className="drop-shadow">
         <div className="bg-white p-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -58,13 +60,47 @@ type EventRegistrationsViewProps = {
 }
 
 function EventRegistrationsView({ registrations }: EventRegistrationsViewProps) {
-  return <div>event registrations</div>
+  return <RegistrationsTable registrations={registrations} />
+}
+
+type RegistrationsTableProps = {
+  registrations: RegistrationList["registrations"]
+}
+
+function RegistrationsTable({ registrations }: RegistrationsTableProps) {
+  const rows = registrations.map((reg, idx) => {
+    const className = `${idx % 2 == 1 && "bg-gray-50"} p-2`
+    return (
+      <tr key={reg.confCode} className={className}>
+        <td className="p-4 text-left">
+          {reg.member?.firstName} {reg.member?.lastName}
+        </td>
+        <td className="p-4 text-left">{reg.member?.email}</td>
+        <td className="p-4 text-left text-sm">{formatRegistrationKind(registrationKindFromJSON(reg.kind))}</td>
+        <td className="p-4 text-right text-xs font-mono">{reg.confCode}</td>
+      </tr>
+    )
+  })
+
+  return (
+    <table className="bg-white w-full rounded-lg drop-shadow">
+      <thead className="text-xs bg-gray-50 text-gray-800">
+        <tr>
+          <th className="px-4 py-2 text-left w-1/3">Member Name</th>
+          <th className="px-4 py-2 text-left w-1/3">Member Email</th>
+          <th className="px-4 py-2 text-left w-1/3">Registration Kind</th>
+          <th className="px-4 py-2 text-right">Conf Code</th>
+        </tr>
+      </thead>
+      <tbody>{rows}</tbody>
+    </table>
+  )
 }
 
 function ExternalActions({ eventName }: { eventName: string }) {
   return (
     <>
-      <LinkButton color="white" to={editEventRoute(eventName)}>
+      <LinkButton color="white" to={newEventRegistrationRoute(eventName)}>
         Add Registration
       </LinkButton>
       <LinkButton to={editEventRoute(eventName)}>Edit Event</LinkButton>

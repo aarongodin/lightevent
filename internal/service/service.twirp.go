@@ -52,7 +52,11 @@ type Spectral interface {
 	CreateRegistration(context.Context, *WriteableRegistration) (*Registration, error)
 
 	// Members
+	CreateMember(context.Context, *WriteableMember) (*Member, error)
+
 	ListMembers(context.Context, *ListMembersOptions) (*MemberList, error)
+
+	GetMember(context.Context, *GetMemberOptions) (*Member, error)
 
 	// Users
 	CreateUser(context.Context, *WriteableUser) (*User, error)
@@ -61,6 +65,9 @@ type Spectral interface {
 
 	// Sessions
 	ListSessions(context.Context, *ListSessionsOptions) (*SessionList, error)
+
+	// API Keys
+	CreateAPIKey(context.Context, *WriteableAPIKey) (*APIKeyWithSecret, error)
 
 	// Settings
 	GetBoolSetting(context.Context, *ByName) (*BoolSetting, error)
@@ -80,7 +87,7 @@ type Spectral interface {
 
 type spectralProtobufClient struct {
 	client      HTTPClient
-	urls        [17]string
+	urls        [20]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -108,7 +115,7 @@ func NewSpectralProtobufClient(baseURL string, client HTTPClient, opts ...twirp.
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "", "Spectral")
-	urls := [17]string{
+	urls := [20]string{
 		serviceURL + "Ping",
 		serviceURL + "ListEvents",
 		serviceURL + "GetEvent",
@@ -117,10 +124,13 @@ func NewSpectralProtobufClient(baseURL string, client HTTPClient, opts ...twirp.
 		serviceURL + "ListEventRegistrations",
 		serviceURL + "GetRegistration",
 		serviceURL + "CreateRegistration",
+		serviceURL + "CreateMember",
 		serviceURL + "ListMembers",
+		serviceURL + "GetMember",
 		serviceURL + "CreateUser",
 		serviceURL + "ListUsers",
 		serviceURL + "ListSessions",
+		serviceURL + "CreateAPIKey",
 		serviceURL + "GetBoolSetting",
 		serviceURL + "UpdateBoolSetting",
 		serviceURL + "BeginVerification",
@@ -504,6 +514,52 @@ func (c *spectralProtobufClient) callCreateRegistration(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *spectralProtobufClient) CreateMember(ctx context.Context, in *WriteableMember) (*Member, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Spectral")
+	ctx = ctxsetters.WithMethodName(ctx, "CreateMember")
+	caller := c.callCreateMember
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *WriteableMember) (*Member, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*WriteableMember)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*WriteableMember) when calling interceptor")
+					}
+					return c.callCreateMember(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Member)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Member) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *spectralProtobufClient) callCreateMember(ctx context.Context, in *WriteableMember) (*Member, error) {
+	out := new(Member)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[8], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 func (c *spectralProtobufClient) ListMembers(ctx context.Context, in *ListMembersOptions) (*MemberList, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "")
 	ctx = ctxsetters.WithServiceName(ctx, "Spectral")
@@ -535,7 +591,53 @@ func (c *spectralProtobufClient) ListMembers(ctx context.Context, in *ListMember
 
 func (c *spectralProtobufClient) callListMembers(ctx context.Context, in *ListMembersOptions) (*MemberList, error) {
 	out := new(MemberList)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[8], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[9], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *spectralProtobufClient) GetMember(ctx context.Context, in *GetMemberOptions) (*Member, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Spectral")
+	ctx = ctxsetters.WithMethodName(ctx, "GetMember")
+	caller := c.callGetMember
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *GetMemberOptions) (*Member, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetMemberOptions)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetMemberOptions) when calling interceptor")
+					}
+					return c.callGetMember(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Member)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Member) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *spectralProtobufClient) callGetMember(ctx context.Context, in *GetMemberOptions) (*Member, error) {
+	out := new(Member)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[10], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -581,7 +683,7 @@ func (c *spectralProtobufClient) CreateUser(ctx context.Context, in *WriteableUs
 
 func (c *spectralProtobufClient) callCreateUser(ctx context.Context, in *WriteableUser) (*User, error) {
 	out := new(User)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[9], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[11], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -627,7 +729,7 @@ func (c *spectralProtobufClient) ListUsers(ctx context.Context, in *ListUsersOpt
 
 func (c *spectralProtobufClient) callListUsers(ctx context.Context, in *ListUsersOptions) (*UserList, error) {
 	out := new(UserList)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[10], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[12], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -673,7 +775,53 @@ func (c *spectralProtobufClient) ListSessions(ctx context.Context, in *ListSessi
 
 func (c *spectralProtobufClient) callListSessions(ctx context.Context, in *ListSessionsOptions) (*SessionList, error) {
 	out := new(SessionList)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[11], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[13], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *spectralProtobufClient) CreateAPIKey(ctx context.Context, in *WriteableAPIKey) (*APIKeyWithSecret, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Spectral")
+	ctx = ctxsetters.WithMethodName(ctx, "CreateAPIKey")
+	caller := c.callCreateAPIKey
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *WriteableAPIKey) (*APIKeyWithSecret, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*WriteableAPIKey)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*WriteableAPIKey) when calling interceptor")
+					}
+					return c.callCreateAPIKey(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*APIKeyWithSecret)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*APIKeyWithSecret) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *spectralProtobufClient) callCreateAPIKey(ctx context.Context, in *WriteableAPIKey) (*APIKeyWithSecret, error) {
+	out := new(APIKeyWithSecret)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[14], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -719,7 +867,7 @@ func (c *spectralProtobufClient) GetBoolSetting(ctx context.Context, in *ByName)
 
 func (c *spectralProtobufClient) callGetBoolSetting(ctx context.Context, in *ByName) (*BoolSetting, error) {
 	out := new(BoolSetting)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[12], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[15], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -765,7 +913,7 @@ func (c *spectralProtobufClient) UpdateBoolSetting(ctx context.Context, in *Bool
 
 func (c *spectralProtobufClient) callUpdateBoolSetting(ctx context.Context, in *BoolSetting) (*BoolSetting, error) {
 	out := new(BoolSetting)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[13], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[16], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -811,7 +959,7 @@ func (c *spectralProtobufClient) BeginVerification(ctx context.Context, in *Begi
 
 func (c *spectralProtobufClient) callBeginVerification(ctx context.Context, in *BeginVerificationOptions) (*BeginVerificationResult, error) {
 	out := new(BeginVerificationResult)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[14], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[17], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -857,7 +1005,7 @@ func (c *spectralProtobufClient) CompleteVerification(ctx context.Context, in *C
 
 func (c *spectralProtobufClient) callCompleteVerification(ctx context.Context, in *CompleteVerificationOptions) (*CompleteVerificationResult, error) {
 	out := new(CompleteVerificationResult)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[15], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[18], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -903,7 +1051,7 @@ func (c *spectralProtobufClient) Register(ctx context.Context, in *MemberRegistr
 
 func (c *spectralProtobufClient) callRegister(ctx context.Context, in *MemberRegistration) (*Registration, error) {
 	out := new(Registration)
-	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[16], in, out)
+	ctx, err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[19], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -924,7 +1072,7 @@ func (c *spectralProtobufClient) callRegister(ctx context.Context, in *MemberReg
 
 type spectralJSONClient struct {
 	client      HTTPClient
-	urls        [17]string
+	urls        [20]string
 	interceptor twirp.Interceptor
 	opts        twirp.ClientOptions
 }
@@ -952,7 +1100,7 @@ func NewSpectralJSONClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 	// Build method URLs: <baseURL>[<prefix>]/<package>.<Service>/<Method>
 	serviceURL := sanitizeBaseURL(baseURL)
 	serviceURL += baseServicePath(pathPrefix, "", "Spectral")
-	urls := [17]string{
+	urls := [20]string{
 		serviceURL + "Ping",
 		serviceURL + "ListEvents",
 		serviceURL + "GetEvent",
@@ -961,10 +1109,13 @@ func NewSpectralJSONClient(baseURL string, client HTTPClient, opts ...twirp.Clie
 		serviceURL + "ListEventRegistrations",
 		serviceURL + "GetRegistration",
 		serviceURL + "CreateRegistration",
+		serviceURL + "CreateMember",
 		serviceURL + "ListMembers",
+		serviceURL + "GetMember",
 		serviceURL + "CreateUser",
 		serviceURL + "ListUsers",
 		serviceURL + "ListSessions",
+		serviceURL + "CreateAPIKey",
 		serviceURL + "GetBoolSetting",
 		serviceURL + "UpdateBoolSetting",
 		serviceURL + "BeginVerification",
@@ -1348,6 +1499,52 @@ func (c *spectralJSONClient) callCreateRegistration(ctx context.Context, in *Wri
 	return out, nil
 }
 
+func (c *spectralJSONClient) CreateMember(ctx context.Context, in *WriteableMember) (*Member, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Spectral")
+	ctx = ctxsetters.WithMethodName(ctx, "CreateMember")
+	caller := c.callCreateMember
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *WriteableMember) (*Member, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*WriteableMember)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*WriteableMember) when calling interceptor")
+					}
+					return c.callCreateMember(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Member)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Member) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *spectralJSONClient) callCreateMember(ctx context.Context, in *WriteableMember) (*Member, error) {
+	out := new(Member)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[8], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
 func (c *spectralJSONClient) ListMembers(ctx context.Context, in *ListMembersOptions) (*MemberList, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "")
 	ctx = ctxsetters.WithServiceName(ctx, "Spectral")
@@ -1379,7 +1576,53 @@ func (c *spectralJSONClient) ListMembers(ctx context.Context, in *ListMembersOpt
 
 func (c *spectralJSONClient) callListMembers(ctx context.Context, in *ListMembersOptions) (*MemberList, error) {
 	out := new(MemberList)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[8], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[9], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *spectralJSONClient) GetMember(ctx context.Context, in *GetMemberOptions) (*Member, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Spectral")
+	ctx = ctxsetters.WithMethodName(ctx, "GetMember")
+	caller := c.callGetMember
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *GetMemberOptions) (*Member, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetMemberOptions)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetMemberOptions) when calling interceptor")
+					}
+					return c.callGetMember(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Member)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Member) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *spectralJSONClient) callGetMember(ctx context.Context, in *GetMemberOptions) (*Member, error) {
+	out := new(Member)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[10], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1425,7 +1668,7 @@ func (c *spectralJSONClient) CreateUser(ctx context.Context, in *WriteableUser) 
 
 func (c *spectralJSONClient) callCreateUser(ctx context.Context, in *WriteableUser) (*User, error) {
 	out := new(User)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[9], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[11], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1471,7 +1714,7 @@ func (c *spectralJSONClient) ListUsers(ctx context.Context, in *ListUsersOptions
 
 func (c *spectralJSONClient) callListUsers(ctx context.Context, in *ListUsersOptions) (*UserList, error) {
 	out := new(UserList)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[10], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[12], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1517,7 +1760,53 @@ func (c *spectralJSONClient) ListSessions(ctx context.Context, in *ListSessionsO
 
 func (c *spectralJSONClient) callListSessions(ctx context.Context, in *ListSessionsOptions) (*SessionList, error) {
 	out := new(SessionList)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[11], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[13], in, out)
+	if err != nil {
+		twerr, ok := err.(twirp.Error)
+		if !ok {
+			twerr = twirp.InternalErrorWith(err)
+		}
+		callClientError(ctx, c.opts.Hooks, twerr)
+		return nil, err
+	}
+
+	callClientResponseReceived(ctx, c.opts.Hooks)
+
+	return out, nil
+}
+
+func (c *spectralJSONClient) CreateAPIKey(ctx context.Context, in *WriteableAPIKey) (*APIKeyWithSecret, error) {
+	ctx = ctxsetters.WithPackageName(ctx, "")
+	ctx = ctxsetters.WithServiceName(ctx, "Spectral")
+	ctx = ctxsetters.WithMethodName(ctx, "CreateAPIKey")
+	caller := c.callCreateAPIKey
+	if c.interceptor != nil {
+		caller = func(ctx context.Context, req *WriteableAPIKey) (*APIKeyWithSecret, error) {
+			resp, err := c.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*WriteableAPIKey)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*WriteableAPIKey) when calling interceptor")
+					}
+					return c.callCreateAPIKey(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*APIKeyWithSecret)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*APIKeyWithSecret) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+	return caller(ctx, in)
+}
+
+func (c *spectralJSONClient) callCreateAPIKey(ctx context.Context, in *WriteableAPIKey) (*APIKeyWithSecret, error) {
+	out := new(APIKeyWithSecret)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[14], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1563,7 +1852,7 @@ func (c *spectralJSONClient) GetBoolSetting(ctx context.Context, in *ByName) (*B
 
 func (c *spectralJSONClient) callGetBoolSetting(ctx context.Context, in *ByName) (*BoolSetting, error) {
 	out := new(BoolSetting)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[12], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[15], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1609,7 +1898,7 @@ func (c *spectralJSONClient) UpdateBoolSetting(ctx context.Context, in *BoolSett
 
 func (c *spectralJSONClient) callUpdateBoolSetting(ctx context.Context, in *BoolSetting) (*BoolSetting, error) {
 	out := new(BoolSetting)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[13], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[16], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1655,7 +1944,7 @@ func (c *spectralJSONClient) BeginVerification(ctx context.Context, in *BeginVer
 
 func (c *spectralJSONClient) callBeginVerification(ctx context.Context, in *BeginVerificationOptions) (*BeginVerificationResult, error) {
 	out := new(BeginVerificationResult)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[14], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[17], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1701,7 +1990,7 @@ func (c *spectralJSONClient) CompleteVerification(ctx context.Context, in *Compl
 
 func (c *spectralJSONClient) callCompleteVerification(ctx context.Context, in *CompleteVerificationOptions) (*CompleteVerificationResult, error) {
 	out := new(CompleteVerificationResult)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[15], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[18], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1747,7 +2036,7 @@ func (c *spectralJSONClient) Register(ctx context.Context, in *MemberRegistratio
 
 func (c *spectralJSONClient) callRegister(ctx context.Context, in *MemberRegistration) (*Registration, error) {
 	out := new(Registration)
-	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[16], in, out)
+	ctx, err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[19], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
 		if !ok {
@@ -1883,8 +2172,14 @@ func (s *spectralServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 	case "CreateRegistration":
 		s.serveCreateRegistration(ctx, resp, req)
 		return
+	case "CreateMember":
+		s.serveCreateMember(ctx, resp, req)
+		return
 	case "ListMembers":
 		s.serveListMembers(ctx, resp, req)
+		return
+	case "GetMember":
+		s.serveGetMember(ctx, resp, req)
 		return
 	case "CreateUser":
 		s.serveCreateUser(ctx, resp, req)
@@ -1894,6 +2189,9 @@ func (s *spectralServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) 
 		return
 	case "ListSessions":
 		s.serveListSessions(ctx, resp, req)
+		return
+	case "CreateAPIKey":
+		s.serveCreateAPIKey(ctx, resp, req)
 		return
 	case "GetBoolSetting":
 		s.serveGetBoolSetting(ctx, resp, req)
@@ -3357,6 +3655,186 @@ func (s *spectralServer) serveCreateRegistrationProtobuf(ctx context.Context, re
 	callResponseSent(ctx, s.hooks)
 }
 
+func (s *spectralServer) serveCreateMember(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveCreateMemberJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveCreateMemberProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *spectralServer) serveCreateMemberJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "CreateMember")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(WriteableMember)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Spectral.CreateMember
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *WriteableMember) (*Member, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*WriteableMember)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*WriteableMember) when calling interceptor")
+					}
+					return s.Spectral.CreateMember(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Member)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Member) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Member
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Member and nil error while calling CreateMember. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *spectralServer) serveCreateMemberProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "CreateMember")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(WriteableMember)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Spectral.CreateMember
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *WriteableMember) (*Member, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*WriteableMember)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*WriteableMember) when calling interceptor")
+					}
+					return s.Spectral.CreateMember(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Member)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Member) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Member
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Member and nil error while calling CreateMember. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
 func (s *spectralServer) serveListMembers(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	header := req.Header.Get("Content-Type")
 	i := strings.Index(header, ";")
@@ -3514,6 +3992,186 @@ func (s *spectralServer) serveListMembersProtobuf(ctx context.Context, resp http
 	}
 	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil *MemberList and nil error while calling ListMembers. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *spectralServer) serveGetMember(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveGetMemberJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveGetMemberProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *spectralServer) serveGetMemberJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "GetMember")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(GetMemberOptions)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Spectral.GetMember
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *GetMemberOptions) (*Member, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetMemberOptions)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetMemberOptions) when calling interceptor")
+					}
+					return s.Spectral.GetMember(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Member)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Member) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Member
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Member and nil error while calling GetMember. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *spectralServer) serveGetMemberProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "GetMember")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(GetMemberOptions)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Spectral.GetMember
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *GetMemberOptions) (*Member, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*GetMemberOptions)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*GetMemberOptions) when calling interceptor")
+					}
+					return s.Spectral.GetMember(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*Member)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*Member) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *Member
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *Member and nil error while calling GetMember. nil responses are not supported"))
 		return
 	}
 
@@ -4054,6 +4712,186 @@ func (s *spectralServer) serveListSessionsProtobuf(ctx context.Context, resp htt
 	}
 	if respContent == nil {
 		s.writeError(ctx, resp, twirp.InternalError("received a nil *SessionList and nil error while calling ListSessions. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	respBytes, err := proto.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal proto response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/protobuf")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *spectralServer) serveCreateAPIKey(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	header := req.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveCreateAPIKeyJSON(ctx, resp, req)
+	case "application/protobuf":
+		s.serveCreateAPIKeyProtobuf(ctx, resp, req)
+	default:
+		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
+		twerr := badRouteError(msg, req.Method, req.URL.Path)
+		s.writeError(ctx, resp, twerr)
+	}
+}
+
+func (s *spectralServer) serveCreateAPIKeyJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "CreateAPIKey")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	d := json.NewDecoder(req.Body)
+	rawReqBody := json.RawMessage{}
+	if err := d.Decode(&rawReqBody); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+	reqContent := new(WriteableAPIKey)
+	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err = unmarshaler.Unmarshal(rawReqBody, reqContent); err != nil {
+		s.handleRequestBodyError(ctx, resp, "the json request could not be decoded", err)
+		return
+	}
+
+	handler := s.Spectral.CreateAPIKey
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *WriteableAPIKey) (*APIKeyWithSecret, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*WriteableAPIKey)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*WriteableAPIKey) when calling interceptor")
+					}
+					return s.Spectral.CreateAPIKey(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*APIKeyWithSecret)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*APIKeyWithSecret) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *APIKeyWithSecret
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *APIKeyWithSecret and nil error while calling CreateAPIKey. nil responses are not supported"))
+		return
+	}
+
+	ctx = callResponsePrepared(ctx, s.hooks)
+
+	marshaler := &protojson.MarshalOptions{UseProtoNames: !s.jsonCamelCase, EmitUnpopulated: !s.jsonSkipDefaults}
+	respBytes, err := marshaler.Marshal(respContent)
+	if err != nil {
+		s.writeError(ctx, resp, wrapInternal(err, "failed to marshal json response"))
+		return
+	}
+
+	ctx = ctxsetters.WithStatusCode(ctx, http.StatusOK)
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Header().Set("Content-Length", strconv.Itoa(len(respBytes)))
+	resp.WriteHeader(http.StatusOK)
+
+	if n, err := resp.Write(respBytes); err != nil {
+		msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+		twerr := twirp.NewError(twirp.Unknown, msg)
+		ctx = callError(ctx, s.hooks, twerr)
+	}
+	callResponseSent(ctx, s.hooks)
+}
+
+func (s *spectralServer) serveCreateAPIKeyProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+	var err error
+	ctx = ctxsetters.WithMethodName(ctx, "CreateAPIKey")
+	ctx, err = callRequestRouted(ctx, s.hooks)
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+
+	buf, err := io.ReadAll(req.Body)
+	if err != nil {
+		s.handleRequestBodyError(ctx, resp, "failed to read request body", err)
+		return
+	}
+	reqContent := new(WriteableAPIKey)
+	if err = proto.Unmarshal(buf, reqContent); err != nil {
+		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
+		return
+	}
+
+	handler := s.Spectral.CreateAPIKey
+	if s.interceptor != nil {
+		handler = func(ctx context.Context, req *WriteableAPIKey) (*APIKeyWithSecret, error) {
+			resp, err := s.interceptor(
+				func(ctx context.Context, req interface{}) (interface{}, error) {
+					typedReq, ok := req.(*WriteableAPIKey)
+					if !ok {
+						return nil, twirp.InternalError("failed type assertion req.(*WriteableAPIKey) when calling interceptor")
+					}
+					return s.Spectral.CreateAPIKey(ctx, typedReq)
+				},
+			)(ctx, req)
+			if resp != nil {
+				typedResp, ok := resp.(*APIKeyWithSecret)
+				if !ok {
+					return nil, twirp.InternalError("failed type assertion resp.(*APIKeyWithSecret) when calling interceptor")
+				}
+				return typedResp, err
+			}
+			return nil, err
+		}
+	}
+
+	// Call service method
+	var respContent *APIKeyWithSecret
+	func() {
+		defer ensurePanicResponses(ctx, resp, s.hooks)
+		respContent, err = handler(ctx, reqContent)
+	}()
+
+	if err != nil {
+		s.writeError(ctx, resp, err)
+		return
+	}
+	if respContent == nil {
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *APIKeyWithSecret and nil error while calling CreateAPIKey. nil responses are not supported"))
 		return
 	}
 
@@ -5558,70 +6396,83 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 1033 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x56, 0x5b, 0x6f, 0xe3, 0x44,
-	0x14, 0x26, 0x17, 0xa7, 0xce, 0x71, 0x1a, 0x92, 0x69, 0xb6, 0x04, 0xf7, 0x42, 0x3b, 0x80, 0x76,
-	0x97, 0x85, 0xc9, 0xd2, 0x4a, 0xf0, 0x80, 0x40, 0x22, 0x21, 0x0a, 0x68, 0x61, 0x17, 0x5c, 0x2d,
-	0x48, 0xf0, 0x10, 0x39, 0xf6, 0x34, 0x35, 0x75, 0xec, 0xc8, 0x9e, 0x14, 0xe5, 0x99, 0x3f, 0xc6,
-	0x3b, 0xaf, 0xfc, 0x20, 0x34, 0x17, 0x3b, 0xe3, 0x5c, 0x5a, 0x78, 0xd9, 0xb7, 0x9c, 0xef, 0x8c,
-	0xcf, 0x7c, 0xe7, 0x9b, 0x73, 0x09, 0xd8, 0xc9, 0xdc, 0xeb, 0xa5, 0x73, 0xea, 0xb1, 0xc4, 0x0d,
-	0x7b, 0x29, 0x4d, 0xee, 0x02, 0x8f, 0x92, 0x79, 0x12, 0xb3, 0x18, 0xef, 0x83, 0xf5, 0x63, 0x10,
-	0x4d, 0x5f, 0xcd, 0x59, 0x10, 0x47, 0x29, 0x3e, 0x05, 0xe0, 0xa6, 0x43, 0xd3, 0x45, 0xc8, 0x50,
-	0x0b, 0x2a, 0xe9, 0x62, 0xd2, 0x2d, 0x9d, 0x95, 0x9e, 0xd4, 0x1d, 0xfe, 0x13, 0x0f, 0xa0, 0xfd,
-	0x7d, 0x90, 0xb2, 0xe1, 0x1d, 0x8d, 0x58, 0xaa, 0x3e, 0x42, 0x87, 0x50, 0xbb, 0x09, 0x7c, 0x9f,
-	0x46, 0xe2, 0xa4, 0xe9, 0x28, 0x8b, 0xe3, 0x5e, 0x18, 0xa7, 0xd4, 0xef, 0x96, 0x25, 0x2e, 0x2d,
-	0x7c, 0x0c, 0xb5, 0xfe, 0xf2, 0xa5, 0x3b, 0xa3, 0x08, 0x41, 0x35, 0x72, 0x67, 0x54, 0xdd, 0x20,
-	0x7e, 0xe3, 0xa7, 0x00, 0xfd, 0xe5, 0x20, 0x8e, 0xae, 0x07, 0xb1, 0x4f, 0xd1, 0x11, 0xd4, 0xbd,
-	0x38, 0xba, 0x1e, 0x7b, 0xb1, 0x9f, 0x1d, 0x33, 0x3d, 0xe5, 0xc4, 0xcf, 0xa0, 0x2e, 0x98, 0x70,
-	0x4a, 0xe8, 0x14, 0x6a, 0x54, 0xd0, 0xea, 0x96, 0xce, 0x2a, 0x4f, 0xac, 0x8b, 0x1a, 0x11, 0x3e,
-	0x47, 0xa1, 0xf8, 0xcf, 0x12, 0x18, 0x02, 0xd9, 0x76, 0x2b, 0xea, 0x80, 0xc1, 0x02, 0x16, 0x52,
-	0x41, 0xb5, 0xee, 0x48, 0x43, 0xcb, 0xac, 0xb2, 0x23, 0xb3, 0xaa, 0x9e, 0x19, 0x3a, 0x03, 0xc3,
-	0x77, 0x19, 0x4d, 0xbb, 0x86, 0xa0, 0x00, 0x92, 0xc2, 0x37, 0x2e, 0xa3, 0x8e, 0x74, 0xe0, 0x4f,
-	0x15, 0x65, 0x8e, 0xa1, 0x26, 0x94, 0x03, 0x5f, 0xd1, 0x28, 0x07, 0x3e, 0x27, 0x71, 0xe7, 0x86,
-	0x8b, 0x9c, 0x84, 0x30, 0xf0, 0x57, 0x70, 0x92, 0x6b, 0xee, 0xd0, 0x69, 0x90, 0xb2, 0xc4, 0x15,
-	0xc2, 0x67, 0xfa, 0x9f, 0x00, 0x88, 0x1c, 0xc7, 0x5a, 0x56, 0x75, 0x81, 0x70, 0x91, 0xf1, 0x08,
-	0x5a, 0xfa, 0x67, 0x42, 0xac, 0x4b, 0xd8, 0x4f, 0xf4, 0x50, 0x4a, 0xb3, 0x7d, 0xa2, 0x9f, 0x74,
-	0x8a, 0x67, 0xf0, 0x3f, 0x25, 0x68, 0xe8, 0xfe, 0x7b, 0x1f, 0x07, 0x7d, 0x08, 0xd5, 0xdb, 0x20,
-	0x92, 0x6f, 0xdf, 0xbc, 0x68, 0x17, 0x22, 0xbf, 0x08, 0x22, 0xdf, 0x11, 0xee, 0x35, 0xf2, 0x95,
-	0x35, 0xf2, 0x2b, 0x37, 0x97, 0x4f, 0xa8, 0x9d, 0xb9, 0x85, 0x82, 0xe7, 0xd0, 0x98, 0xd1, 0xd9,
-	0x84, 0x26, 0x63, 0x3a, 0x73, 0x83, 0xb0, 0x6b, 0x88, 0x03, 0x96, 0xc4, 0x86, 0x1c, 0x42, 0xef,
-	0x81, 0x32, 0xe5, 0x0d, 0x35, 0x71, 0x02, 0x24, 0x24, 0xf4, 0xf9, 0xab, 0x04, 0x8f, 0x7e, 0x49,
-	0x02, 0x46, 0xdd, 0x49, 0x48, 0x0b, 0xf9, 0x65, 0x29, 0x94, 0xfe, 0x4f, 0x0a, 0xe5, 0xfb, 0x53,
-	0xa8, 0x3c, 0x94, 0x42, 0xf5, 0xc1, 0x14, 0x8c, 0x8d, 0x14, 0x96, 0x80, 0x7e, 0x10, 0xd6, 0x1b,
-	0xa7, 0x8f, 0x1f, 0xc1, 0x01, 0xaf, 0xa8, 0x2b, 0xca, 0x58, 0x10, 0x4d, 0xb3, 0x9a, 0xc4, 0x9f,
-	0x83, 0xd5, 0x8f, 0xe3, 0x50, 0xc1, 0xbb, 0x5a, 0x6e, 0x55, 0xed, 0x66, 0x56, 0xed, 0x79, 0xbc,
-	0x34, 0xd5, 0x6a, 0x1c, 0x5f, 0x82, 0xa5, 0x20, 0x51, 0xbf, 0x1f, 0x80, 0x99, 0xaa, 0x13, 0xaa,
-	0x74, 0x4d, 0xa2, 0xfc, 0x4e, 0xee, 0xc1, 0x37, 0xb0, 0xa7, 0x40, 0x3e, 0xca, 0x6e, 0xe9, 0x32,
-	0x1b, 0x65, 0xb7, 0x74, 0x89, 0xba, 0xb0, 0x97, 0x2e, 0x26, 0xbf, 0x53, 0x8f, 0xa9, 0x9c, 0x33,
-	0x93, 0x93, 0x15, 0xba, 0xc9, 0x5c, 0x73, 0x91, 0xbc, 0x84, 0xba, 0x8c, 0xfa, 0x63, 0x97, 0x65,
-	0x75, 0xa8, 0x90, 0xaf, 0x19, 0xfe, 0x0c, 0xaa, 0xaf, 0x53, 0x9a, 0x20, 0x1b, 0xcc, 0x45, 0x4a,
-	0x13, 0x2d, 0xd7, 0xdc, 0xce, 0x35, 0x28, 0x6b, 0xc3, 0xee, 0x37, 0xd8, 0xcf, 0x4b, 0xef, 0xc1,
-	0x00, 0x36, 0x98, 0x73, 0x37, 0x4d, 0xff, 0x88, 0x13, 0x5f, 0x05, 0xc9, 0xed, 0x3c, 0x78, 0x45,
-	0x0b, 0x8e, 0xa0, 0xc5, 0xc5, 0xe2, 0x71, 0x73, 0x1d, 0x1f, 0x83, 0xc9, 0x6d, 0x21, 0xe2, 0x11,
-	0x18, 0x3c, 0x76, 0xa6, 0xa0, 0x41, 0xb8, 0xc7, 0x91, 0x18, 0x7e, 0x0e, 0xdd, 0x3e, 0x9d, 0x06,
-	0xd1, 0xcf, 0x34, 0x09, 0xae, 0x03, 0x4f, 0x14, 0x4d, 0x36, 0x70, 0x3a, 0x60, 0xc8, 0x5a, 0x95,
-	0x0c, 0xa5, 0x81, 0x9f, 0xc1, 0x3b, 0x1b, 0x5f, 0xac, 0x16, 0x49, 0x51, 0x7d, 0xec, 0xc1, 0xd1,
-	0x20, 0x9e, 0xcd, 0x43, 0xca, 0xe8, 0x7f, 0xbe, 0x21, 0x0b, 0x53, 0x5e, 0x3d, 0xe2, 0x31, 0xd4,
-	0xbd, 0x1b, 0x37, 0x0c, 0x69, 0x34, 0xcd, 0x6b, 0x33, 0x07, 0xf0, 0x31, 0xd8, 0xdb, 0x2e, 0x91,
-	0xa4, 0x70, 0x07, 0x10, 0x97, 0x41, 0x36, 0x4e, 0x2e, 0x50, 0x0f, 0x40, 0x22, 0x42, 0xa2, 0x73,
-	0xd8, 0x93, 0x6d, 0x96, 0x89, 0xb4, 0x47, 0x54, 0xa3, 0x65, 0x38, 0xfe, 0x12, 0x6a, 0x12, 0xda,
-	0x41, 0xba, 0x58, 0x39, 0xe5, 0xb5, 0xca, 0xf9, 0xe8, 0x79, 0x71, 0x3a, 0xf3, 0xbe, 0x44, 0x0d,
-	0x30, 0x9d, 0xe1, 0x68, 0xfc, 0xea, 0xe5, 0x60, 0xd8, 0x7a, 0x0b, 0x35, 0x01, 0xb8, 0x75, 0x35,
-	0x74, 0xbe, 0x1b, 0x5e, 0xb5, 0x4a, 0x17, 0x7f, 0xd7, 0xc0, 0xbc, 0x52, 0xdb, 0x1c, 0x9d, 0x43,
-	0x95, 0x2f, 0x6c, 0xd4, 0x20, 0xda, 0x1a, 0xb7, 0x2d, 0xa2, 0x6d, 0xf1, 0x8f, 0x01, 0x56, 0x3b,
-	0x1b, 0x21, 0xb2, 0xb1, 0xc0, 0x6d, 0xb5, 0xa7, 0x54, 0x51, 0x98, 0x23, 0x2a, 0xfd, 0x68, 0x8f,
-	0xc8, 0x3d, 0x6d, 0xab, 0x5d, 0x8a, 0x4e, 0xc0, 0x1a, 0x08, 0xe6, 0xd2, 0x54, 0xb0, 0xee, 0x7e,
-	0x3d, 0xf7, 0x77, 0xba, 0x5f, 0xc0, 0xe1, 0xf6, 0x45, 0x86, 0x4e, 0xc9, 0xbd, 0x1b, 0xce, 0x2e,
-	0xce, 0x2e, 0xc1, 0xf3, 0x13, 0x78, 0x7b, 0x44, 0x0b, 0xa7, 0x91, 0x45, 0x56, 0x7f, 0x1c, 0xec,
-	0xe2, 0x2a, 0x43, 0x5f, 0x00, 0x92, 0xcc, 0x0b, 0xe8, 0x21, 0xd9, 0x3a, 0xf8, 0xd7, 0x3f, 0xee,
-	0x81, 0xa5, 0x55, 0x0a, 0x3a, 0x20, 0x9b, 0x75, 0x63, 0x5b, 0x44, 0x2b, 0x9b, 0xf7, 0x01, 0xe4,
-	0x6d, 0xa2, 0xa7, 0x9b, 0xa4, 0xd0, 0xe3, 0xb6, 0x6c, 0x34, 0xf4, 0x14, 0xea, 0x79, 0x7b, 0xa2,
-	0x36, 0x59, 0x6f, 0x55, 0xbb, 0x4e, 0xf2, 0x4e, 0xbd, 0x80, 0x86, 0x3e, 0x14, 0x51, 0x87, 0x6c,
-	0x99, 0x91, 0x76, 0x83, 0xe8, 0x23, 0xf2, 0x31, 0x34, 0x47, 0x94, 0xe9, 0x43, 0x38, 0x7f, 0xce,
-	0x06, 0xd1, 0xe1, 0x1e, 0xb4, 0xe5, 0xab, 0xe9, 0x60, 0xe1, 0xc8, 0xda, 0x07, 0xdf, 0x42, 0x7b,
-	0xa3, 0xd1, 0xd1, 0xbb, 0x64, 0xd7, 0xb8, 0xb0, 0xbb, 0x64, 0xd7, 0x5c, 0xf8, 0x09, 0x3a, 0xdb,
-	0x1a, 0x14, 0x1d, 0x93, 0x7b, 0x86, 0x83, 0x7d, 0x44, 0x76, 0x77, 0x35, 0x22, 0x60, 0xca, 0xb7,
-	0xa3, 0x09, 0x3a, 0x20, 0x9b, 0x5b, 0x71, 0xed, 0x6d, 0xfb, 0x9d, 0x5f, 0x11, 0xe9, 0x05, 0x11,
-	0xe3, 0x33, 0x36, 0xff, 0x73, 0x3c, 0xa9, 0x89, 0x7f, 0xc7, 0x97, 0xff, 0x06, 0x00, 0x00, 0xff,
-	0xff, 0x7f, 0x61, 0xc1, 0x9a, 0x3b, 0x0b, 0x00, 0x00,
+	// 1236 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xdd, 0x6e, 0xe3, 0x44,
+	0x14, 0x5e, 0x27, 0x4d, 0xe2, 0x1c, 0xa7, 0xd9, 0x64, 0xb6, 0x5b, 0x82, 0xfb, 0x43, 0x3b, 0xb0,
+	0xea, 0xcf, 0xc2, 0x64, 0xd5, 0x4a, 0x70, 0x81, 0x84, 0xb4, 0x09, 0x21, 0xbb, 0xea, 0xb2, 0x5d,
+	0x5c, 0x2d, 0x2b, 0x81, 0x50, 0xe4, 0xda, 0xd3, 0xd6, 0xd4, 0xb1, 0x23, 0xdb, 0x2d, 0xea, 0x35,
+	0x37, 0xbc, 0x00, 0x0f, 0x82, 0x78, 0x10, 0x6e, 0x78, 0x20, 0x34, 0x3f, 0xb6, 0xc7, 0x4e, 0x52,
+	0x40, 0x82, 0xbb, 0x9c, 0xef, 0xcc, 0x1c, 0x7f, 0x73, 0xe6, 0x9c, 0x6f, 0x4e, 0xc0, 0x8c, 0x66,
+	0x4e, 0x3f, 0x9e, 0x51, 0x27, 0x89, 0x6c, 0xbf, 0x1f, 0xd3, 0xe8, 0xd6, 0x73, 0x28, 0x99, 0x45,
+	0x61, 0x12, 0xe2, 0x55, 0x30, 0xde, 0x78, 0xc1, 0xe5, 0xe9, 0x2c, 0xf1, 0xc2, 0x20, 0xc6, 0xdb,
+	0x00, 0xcc, 0xb4, 0x68, 0x7c, 0xe3, 0x27, 0xa8, 0x03, 0xd5, 0xf8, 0xe6, 0xbc, 0xa7, 0xed, 0x68,
+	0xfb, 0x4d, 0x8b, 0xfd, 0xc4, 0x43, 0xe8, 0xbe, 0xf2, 0xe2, 0x64, 0x74, 0x4b, 0x83, 0x24, 0x96,
+	0x9b, 0xd0, 0x3a, 0xd4, 0xaf, 0x3c, 0xd7, 0xa5, 0x01, 0x5f, 0xa9, 0x5b, 0xd2, 0x62, 0xb8, 0xe3,
+	0x87, 0x31, 0x75, 0x7b, 0x15, 0x81, 0x0b, 0x0b, 0x6f, 0x42, 0x7d, 0x70, 0xf7, 0xda, 0x9e, 0x52,
+	0x84, 0x60, 0x25, 0xb0, 0xa7, 0x54, 0x7e, 0x81, 0xff, 0xc6, 0x07, 0x00, 0x83, 0xbb, 0x61, 0x18,
+	0x5c, 0x0c, 0x43, 0x97, 0xa2, 0x0d, 0x68, 0x3a, 0x61, 0x70, 0x31, 0x71, 0x42, 0x37, 0x5d, 0xa6,
+	0x3b, 0xd2, 0x89, 0x9f, 0x42, 0x93, 0x33, 0x61, 0x94, 0xd0, 0x36, 0xd4, 0x29, 0xa7, 0xd5, 0xd3,
+	0x76, 0xaa, 0xfb, 0xc6, 0x51, 0x9d, 0x70, 0x9f, 0x25, 0x51, 0xfc, 0xb3, 0x06, 0x35, 0x8e, 0x2c,
+	0xfa, 0x2a, 0x5a, 0x83, 0x5a, 0xe2, 0x25, 0x3e, 0xe5, 0x54, 0x9b, 0x96, 0x30, 0x94, 0x93, 0x55,
+	0x97, 0x9c, 0x6c, 0x45, 0x3d, 0x19, 0xda, 0x81, 0x9a, 0x6b, 0x27, 0x34, 0xee, 0xd5, 0x38, 0x05,
+	0x10, 0x14, 0xbe, 0xb4, 0x13, 0x6a, 0x09, 0x07, 0x3e, 0x95, 0x94, 0x19, 0x86, 0xda, 0x50, 0xf1,
+	0x5c, 0x49, 0xa3, 0xe2, 0xb9, 0x8c, 0xc4, 0xad, 0xed, 0xdf, 0x64, 0x24, 0xb8, 0x81, 0x36, 0xa1,
+	0xe9, 0xd8, 0x81, 0x43, 0x7d, 0x9f, 0xba, 0x92, 0x47, 0x0e, 0xe0, 0x2f, 0x60, 0x2b, 0xbb, 0x11,
+	0x8b, 0x5e, 0x7a, 0x71, 0x12, 0xd9, 0xfc, 0x5a, 0xd2, 0xdb, 0xd9, 0x02, 0xe0, 0x19, 0x98, 0x28,
+	0x67, 0x6e, 0x72, 0x84, 0x5d, 0x01, 0x1e, 0x43, 0x47, 0xdd, 0xc6, 0x53, 0x79, 0x0c, 0xab, 0x91,
+	0x1a, 0x4a, 0x66, 0x74, 0x95, 0xa8, 0x2b, 0xad, 0xe2, 0x1a, 0xfc, 0x9b, 0x06, 0x2d, 0xd5, 0x7f,
+	0xef, 0xd5, 0xa1, 0x27, 0xb0, 0x72, 0xed, 0x05, 0xa2, 0x32, 0xda, 0x47, 0xdd, 0x42, 0xe4, 0x13,
+	0x2f, 0x70, 0x2d, 0xee, 0x2e, 0x91, 0xaf, 0x96, 0xc8, 0xe7, 0x6e, 0x96, 0x5c, 0x7e, 0x17, 0xa9,
+	0x9b, 0xe7, 0xf7, 0x03, 0xa8, 0x4f, 0xe9, 0xf4, 0x9c, 0x46, 0xbd, 0xda, 0x8e, 0xb6, 0x6f, 0x1c,
+	0x35, 0xc8, 0xd7, 0xdc, 0xb4, 0x24, 0x8c, 0x7f, 0xd7, 0xe0, 0xf1, 0xbb, 0xc8, 0x4b, 0xa8, 0x7d,
+	0xee, 0xd3, 0x02, 0xf9, 0x94, 0x9f, 0xf6, 0x6f, 0xf8, 0x55, 0xca, 0xfc, 0x70, 0x81, 0x1f, 0xa7,
+	0xff, 0xe2, 0x81, 0xc2, 0xf0, 0x17, 0x4d, 0x43, 0xbb, 0xd0, 0x12, 0x6c, 0x26, 0x74, 0x6a, 0x7b,
+	0xbe, 0x3c, 0x85, 0x21, 0xb0, 0x11, 0x83, 0x06, 0xab, 0x60, 0x4c, 0xf2, 0x38, 0xf8, 0x0f, 0x0d,
+	0x90, 0x3c, 0xc8, 0x7f, 0x4f, 0x79, 0x6b, 0x9e, 0xb2, 0x9a, 0xd2, 0x43, 0xe8, 0x4a, 0xb6, 0x17,
+	0x5e, 0x14, 0xcb, 0x20, 0x82, 0xf2, 0x43, 0xe1, 0xf8, 0x8a, 0xe1, 0x3c, 0xd4, 0x3e, 0x74, 0xe4,
+	0x5a, 0xdf, 0x4e, 0x97, 0xd6, 0xf8, 0xd2, 0xb6, 0xc0, 0x5f, 0xd9, 0x62, 0x25, 0x7e, 0x0c, 0x8f,
+	0x58, 0xe1, 0x9d, 0xd1, 0x24, 0xf1, 0x82, 0xcb, 0xb4, 0x74, 0xf1, 0x67, 0x60, 0x0c, 0xc2, 0xd0,
+	0x97, 0xf0, 0xb2, 0xbe, 0xcd, 0x5b, 0x46, 0x97, 0x2d, 0x93, 0xc7, 0x8b, 0x63, 0xa5, 0x15, 0xf0,
+	0x31, 0x18, 0x12, 0xe2, 0x65, 0xfe, 0x11, 0xe8, 0xb1, 0x5c, 0x21, 0x2b, 0x5c, 0x27, 0xd2, 0x6f,
+	0x65, 0x1e, 0x7c, 0x05, 0x0d, 0x09, 0x32, 0x3d, 0xbc, 0xa6, 0x77, 0xa9, 0x1e, 0x5e, 0xd3, 0x3b,
+	0xd4, 0x83, 0x46, 0x7c, 0x73, 0xfe, 0x23, 0x75, 0x12, 0x99, 0xc9, 0xd4, 0x64, 0x64, 0xf9, 0x6d,
+	0x88, 0x0c, 0x66, 0xa9, 0x77, 0x22, 0x6a, 0x27, 0xd4, 0x9d, 0xd8, 0x49, 0x5a, 0xae, 0x12, 0x79,
+	0x9e, 0xe0, 0x4f, 0x61, 0xe5, 0x6d, 0x4c, 0x23, 0x64, 0x82, 0x7e, 0x13, 0xd3, 0x48, 0x39, 0x6b,
+	0x66, 0x67, 0x39, 0xa8, 0x28, 0x8a, 0xf9, 0x3d, 0xac, 0x66, 0x45, 0xfc, 0xb7, 0x01, 0x4c, 0xd0,
+	0x67, 0x76, 0x1c, 0xff, 0x14, 0x46, 0xae, 0x0c, 0x92, 0xd9, 0x59, 0xf0, 0xaa, 0x12, 0x1c, 0x41,
+	0x87, 0x25, 0x8b, 0xc5, 0xcd, 0xf2, 0xb8, 0x07, 0x3a, 0xb3, 0x79, 0x12, 0x37, 0xa0, 0xc6, 0x62,
+	0xa7, 0x19, 0xac, 0x11, 0xe6, 0xb1, 0x04, 0x86, 0x9f, 0xc0, 0xc3, 0x8c, 0xd9, 0xf3, 0x37, 0x2f,
+	0x4f, 0xe8, 0xdd, 0x42, 0xc9, 0xff, 0x01, 0x3a, 0xc2, 0xfb, 0xce, 0x4b, 0xae, 0xce, 0xa8, 0x13,
+	0xd1, 0xc5, 0x22, 0xbd, 0x0e, 0xf5, 0x98, 0x7b, 0x25, 0x73, 0x69, 0x95, 0xf2, 0x5a, 0x2d, 0xe7,
+	0xf5, 0x19, 0xf4, 0x06, 0xf4, 0xd2, 0x0b, 0xbe, 0xa5, 0x91, 0x77, 0xe1, 0x39, 0xbc, 0x21, 0x52,
+	0x75, 0x5c, 0x83, 0x9a, 0x68, 0x3b, 0xf1, 0x1d, 0x61, 0xe0, 0xa7, 0xf0, 0xde, 0xdc, 0x8e, 0xfc,
+	0x4d, 0x2c, 0xd6, 0x00, 0x76, 0x60, 0x63, 0x18, 0x4e, 0x67, 0x3e, 0x4d, 0xe8, 0x3f, 0xfe, 0x42,
+	0x1a, 0xa6, 0x92, 0x97, 0x12, 0x93, 0xf9, 0x2b, 0xdb, 0xf7, 0x69, 0x70, 0x99, 0xf5, 0x5d, 0x06,
+	0xe0, 0x4d, 0x30, 0x17, 0x7d, 0x44, 0x90, 0xc2, 0x87, 0x80, 0xd8, 0x65, 0x08, 0x51, 0x88, 0xef,
+	0x3f, 0x5b, 0x1f, 0x40, 0xac, 0xe3, 0xd7, 0xb7, 0x0b, 0x0d, 0xd1, 0x8b, 0xe9, 0x05, 0x66, 0x1a,
+	0x99, 0xe2, 0xf8, 0x57, 0x0d, 0xea, 0x02, 0x5b, 0x72, 0x96, 0x2d, 0x00, 0x45, 0x0c, 0xa4, 0xa2,
+	0x5c, 0x64, 0x32, 0xb0, 0x01, 0xcd, 0xbc, 0xff, 0xc5, 0xc1, 0x74, 0x5f, 0x76, 0x3e, 0x2b, 0xc7,
+	0x5b, 0x7e, 0x9e, 0xec, 0x2d, 0xcd, 0xec, 0xd2, 0xb5, 0xd6, 0xca, 0xd7, 0xea, 0x28, 0xc5, 0xf5,
+	0x7f, 0xf1, 0xc3, 0xfb, 0xd0, 0x19, 0x53, 0x99, 0xd8, 0x7b, 0xf3, 0x7a, 0xf8, 0xac, 0xf8, 0x90,
+	0x32, 0xc5, 0x45, 0x2d, 0xd0, 0xad, 0xd1, 0x78, 0x72, 0xfa, 0x7a, 0x38, 0xea, 0x3c, 0x40, 0x6d,
+	0x00, 0x66, 0x9d, 0x8d, 0xac, 0x97, 0xa3, 0xb3, 0x8e, 0x76, 0xf4, 0x67, 0x03, 0xf4, 0x33, 0x39,
+	0x96, 0xa1, 0x5d, 0x58, 0x61, 0x93, 0x17, 0x6a, 0x11, 0x65, 0x1e, 0x33, 0x0d, 0xa2, 0x8c, 0x63,
+	0x1f, 0x03, 0xe4, 0xc3, 0x17, 0x42, 0x64, 0x6e, 0x12, 0x33, 0xe5, 0xc0, 0x21, 0x1b, 0x53, 0x1f,
+	0x53, 0xe1, 0x47, 0x0d, 0x22, 0x06, 0x2e, 0x53, 0x0e, 0x45, 0x68, 0x0b, 0x8c, 0x21, 0x4f, 0xa4,
+	0x30, 0x25, 0xac, 0xba, 0xdf, 0xce, 0xdc, 0xa5, 0xee, 0x13, 0x58, 0x5f, 0x3c, 0x73, 0xa0, 0x6d,
+	0x72, 0xef, 0x30, 0x62, 0x16, 0x5f, 0x25, 0xce, 0xf3, 0x13, 0x78, 0x38, 0xa6, 0x85, 0xd5, 0xc8,
+	0x20, 0xf9, 0x04, 0x68, 0x16, 0xa7, 0x0e, 0xf4, 0x39, 0x20, 0xc1, 0xbc, 0x80, 0xae, 0x93, 0x85,
+	0xcf, 0x78, 0x79, 0xf3, 0x01, 0xb4, 0xc4, 0x66, 0x59, 0x2f, 0x1d, 0x52, 0xaa, 0x20, 0x33, 0x2d,
+	0x7f, 0xd4, 0x07, 0x43, 0x69, 0x29, 0xf4, 0x88, 0xcc, 0x37, 0x98, 0x69, 0x10, 0xa5, 0x93, 0xf6,
+	0xa0, 0x99, 0x55, 0x0a, 0xea, 0x92, 0x72, 0xd5, 0xe4, 0x91, 0x3f, 0x04, 0x10, 0x24, 0xb8, 0x56,
+	0xb7, 0x49, 0x41, 0xbb, 0x4d, 0x21, 0xa0, 0xe8, 0x00, 0x9a, 0x99, 0xec, 0xa2, 0x2e, 0x29, 0x4b,
+	0xb0, 0xd9, 0x24, 0x99, 0x02, 0x1f, 0x41, 0x4b, 0x7d, 0xec, 0xd0, 0x1a, 0x59, 0xf0, 0xf6, 0x99,
+	0x2d, 0xa2, 0x3e, 0x7d, 0xc7, 0x69, 0x22, 0xa4, 0x2a, 0x2b, 0x89, 0x10, 0x88, 0xd9, 0x25, 0x73,
+	0x92, 0xbc, 0x07, 0xed, 0x31, 0x4d, 0xd4, 0x17, 0x39, 0xab, 0xab, 0x16, 0x51, 0xe1, 0x3e, 0x74,
+	0x45, 0xf9, 0xa8, 0x60, 0x61, 0x49, 0x69, 0xc3, 0x0b, 0xe8, 0xce, 0xe9, 0x2d, 0x7a, 0x9f, 0x2c,
+	0x53, 0x6d, 0xb3, 0x47, 0x96, 0xc9, 0xf3, 0x37, 0xb0, 0xb6, 0x48, 0x27, 0xd1, 0x26, 0xb9, 0x47,
+	0xa3, 0xcd, 0x0d, 0xb2, 0x5c, 0x5c, 0x11, 0x01, 0x5d, 0x14, 0x11, 0x8d, 0xd0, 0x23, 0x32, 0x3f,
+	0x78, 0x95, 0x8a, 0x6c, 0xb0, 0xf6, 0x1d, 0x22, 0x7d, 0x2f, 0x48, 0xd8, 0x83, 0x9b, 0xfd, 0xdd,
+	0x3a, 0xaf, 0xf3, 0xff, 0x5b, 0xc7, 0x7f, 0x05, 0x00, 0x00, 0xff, 0xff, 0x46, 0x3d, 0xfb, 0xf3,
+	0x8d, 0x0d, 0x00, 0x00,
 }

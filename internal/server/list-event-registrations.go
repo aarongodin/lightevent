@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aarongodin/spectral/internal/server/repository"
 	"github.com/aarongodin/spectral/internal/service"
 	"github.com/asdine/storm/v3"
 )
@@ -21,7 +22,18 @@ func (s *Server) ListEventRegistrations(ctx context.Context, message *service.Li
 		}
 	}
 
-	registrations, err := registrationRecordsToMessage(recs, event)
+	members := make(map[string]*repository.MemberRecord)
+	for _, rec := range recs {
+		if _, ok := members[rec.MemberEmail]; !ok {
+			member, err := s.Repo.Members.GetMember(rec.MemberEmail)
+			if err != nil {
+				return nil, errorResponse(err, "member")
+			}
+			members[rec.MemberEmail] = member
+		}
+	}
+
+	registrations, err := registrationRecordsToMessage(recs, members, event)
 	if err != nil {
 		return nil, errorResponse(err, "event registration")
 	}

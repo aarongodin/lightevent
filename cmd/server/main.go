@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aarongodin/spectral/internal/server"
 	"github.com/aarongodin/spectral/internal/server/access"
@@ -11,9 +12,14 @@ import (
 	"github.com/aarongodin/spectral/internal/service"
 	"github.com/asdine/storm/v3"
 	"github.com/julienschmidt/httprouter"
+	"github.com/justinas/alice"
 	"github.com/twitchtv/twirp"
 	"golang.org/x/exp/slog"
 )
+
+func timeoutHandler(h http.Handler) http.Handler {
+	return http.TimeoutHandler(h, 5*time.Second, "timed out")
+}
 
 func main() {
 	// Configuration
@@ -55,11 +61,14 @@ func main() {
 	access.InitCookies(runtimeConfig)
 
 	mux := http.NewServeMux()
-	mux.Handle(twirpHandler.PathPrefix(), access.WithAuthorization(twirpHandler, repo, access.GetAllowedSchemes()))
+	mux.Handle(twirpHandler.PathPrefix(), access.WithAuthorization(twirpHandler, repo, runtimeConfig, access.GetAllowedSchemes()))
 	mux.Handle("/", authHandler)
 
+	// Add global middleware
+	chain := alice.New(timeoutHandler).Then(mux)
+
 	logger.Info("starting http server")
-	if err := http.ListenAndServe(runtimeConfig.ServerAddr(), mux); err != nil {
+	if err := http.ListenAndServe(runtimeConfig.ServerAddr(), chain); err != nil {
 		logger.Error("failed to start http server", slog.Any("err", err))
 	}
 }

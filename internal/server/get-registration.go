@@ -17,9 +17,15 @@ func (s *Server) GetRegistration(ctx context.Context, message *service.ByConfCod
 		return nil, errorResponse(err, "event")
 	}
 
+	member, err := s.Repo.Members.GetMember(rec.MemberEmail)
+	if err != nil {
+		return nil, errorResponse(err, "member")
+	}
+
 	reg, err := registrationRecordToMessage(rec, event)
 	if err != nil {
 		return nil, errorResponse(err, "registration")
 	}
+	reg.Member = memberRecordToMessage(member)
 	return reg, nil
 }

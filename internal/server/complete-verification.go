@@ -26,7 +26,8 @@ func (s *Server) CompleteVerification(ctx context.Context, message *service.Comp
 		return nil, errorResponse(err, "verification")
 	}
 
-	if _, err := s.Repo.Members.CreateMember(message.Email); err != nil {
+	// TODO(aarongodin): need to update the member that they are now verified, if they already existed
+	if _, err := s.Repo.Members.CreateMember(message.Email, true, "", ""); err != nil {
 		if !errors.Is(err, storm.ErrAlreadyExists) {
 			return nil, errorResponse(err, "member")
 		}

@@ -7,6 +7,7 @@ require (
 	github.com/caarlos0/env/v7 v7.1.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/julienschmidt/httprouter v1.3.0
+	github.com/justinas/alice v1.2.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	golang.org/x/crypto v0.7.0

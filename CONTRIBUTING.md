@@ -61,6 +61,29 @@ pm2 start
 
 Open the admin app at [https://localhost:5500](https://localhost:5500) and the client app at [https://localhost:6500](https://localhost:6500).
 
+### Using the JSON API
+
+The protobuf framework used by spectral is [twirp](https://twitchtv.github.io/twirp/). For development purposes, there's also a JSON API. This makes it easier to test, especially for newcomers to protobuf.
+
+Once you have the server runnning locally, you can access the API on port 8080. Here's an example using httpie to call the Ping RPC:
+
+```
+~ http post localhost:8080/rpc/Spectral/Ping
+HTTP/1.1 401 Unauthorized
+Content-Length: 58
+Content-Type: application/json
+Date: Wed, 21 Jun 2023 20:24:08 GMT
+
+{
+    "code": "unauthenticated",
+    "msg": "authentication required"
+}
+```
+
+Since we haven't provided any authentication, we received a 401 status. There are three authentication methods provided, so depending on what aspect of the server you are testing, you'll need to authenticate with a credential that is allowed for the given RPC.
+
+An API Key is a straightforward way to test most endpoints.
+
 ## Pull Requests
 
 When you have a change to propose, follow the standard pull request workflow by forking this repo, pushing to a branch in your fork, and opening a PR in this repo using your fork and branch as the source.

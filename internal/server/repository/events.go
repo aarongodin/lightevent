@@ -7,7 +7,8 @@ import (
 )
 
 type EventDate struct {
-	Value time.Time
+	Value     time.Time
+	Cancelled bool
 }
 
 type EventRecord struct {
@@ -48,6 +49,10 @@ func (e eventsRepo) ListEvents() ([]EventRecord, error) {
 }
 
 func (e eventsRepo) Validate(rec *EventRecord, update bool) error {
+	if rec.Dates == nil || len(rec.Dates) == 0 {
+		return &ErrValidationFailed{"Dates", "event must have at least 1 date"}
+	}
+
 	// Date uniqueness check
 	for id, date := range rec.Dates {
 		for nestedID, nestedDate := range rec.Dates {

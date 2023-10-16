@@ -18,7 +18,9 @@ service Spectral {
 	rpc CreateRegistration(WriteableRegistration) returns (Registration);
 
 	// Members
+	rpc CreateMember(WriteableMember) returns (Member);
 	rpc ListMembers(ListMembersOptions) returns (MemberList);
+	rpc GetMember(GetMemberOptions) returns (Member);
 
 	// Users
 	rpc CreateUser(WriteableUser) returns (User);
@@ -26,6 +28,9 @@ service Spectral {
 
 	// Sessions
 	rpc ListSessions(ListSessionsOptions) returns (SessionList);
+
+	// API Keys
+	rpc CreateAPIKey(WriteableAPIKey) returns (APIKeyWithSecret);
 
 	// Settings
 	rpc GetBoolSetting(ByName) returns (BoolSetting);
@@ -69,6 +74,7 @@ message Event {
 message EventDate {
 	string id = 1;
 	string value = 2;
+	bool cancelled = 3;
 }
 
 message ListEventRegistrationsOptions {
@@ -80,31 +86,31 @@ message RegistrationList {
 }
 
 enum RegistrationKind {
-		REG_ONCE = 0;
-		REG_SERIES = 1;
-	}
+	REG_ONCE = 0;
+	REG_SERIES = 1;
+}
 
 message Registration {
 	string conf_code = 1;
 	RegistrationKind kind = 2;
 	string event_name = 3;
 	string event_date = 4;
-	string member_email = 5;
-	string member_name = 6;
+	Member member = 5;
 }
 
 message WriteableRegistration {
 	RegistrationKind kind = 1;
 	string event_name = 2;
-	string event_date = 3;
+	optional string event_date = 3;
 	string member_email = 4;
-	string member_name = 5;
 }
 
 message MemberRegistration {
 	RegistrationKind kind = 1;
 	string event_name = 2;
 	string event_date = 3;
+	string member_first_name = 4;
+	string member_last_name = 5;
 }
 
 message ListSettingsOptions {}
@@ -144,6 +150,16 @@ message UserList {
 	repeated User users = 1;
 }
 
+message WriteableAPIKey {
+	string name = 1;
+}
+
+message APIKeyWithSecret {
+	string name = 1;
+	string secret = 2;
+	string created_at = 3;
+}
+
 message BeginVerificationOptions {
 	string email = 1;
 }
@@ -160,12 +176,29 @@ message CompleteVerificationOptions {
 
 message CompleteVerificationResult {}
 
-message ListMembersOptions {}
+message ListMembersOptions {
+	string email = 1;
+}
+
 message MemberList {
 	repeated Member members = 1;
 }
 
 message Member {
 	string email = 1;
-	string created_at = 2;
+	string first_name = 2;
+	string last_name = 3;
+	bool verified = 4;
+	string created_at = 5;
 }
+
+message WriteableMember {
+	string email = 1;
+	string first_name = 2;
+	string last_name = 3;
+}
+
+message GetMemberOptions {
+	string email = 1;
+}
+

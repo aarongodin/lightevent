@@ -9,22 +9,29 @@ import (
 
 var errInvalidCredentials = errors.New("invalid credentials")
 
-// authenticateUser receives a username and password and returns the a session for the authenticated user.
-func (ar accessRoutes) authenticateUser(username string, password string) (*repository.SessionRecord, error) {
+func verifyUser(repo *repository.Repository, allowAdminUser bool, adminUserPassword string, username string, password string) error {
 	switch username {
 	case "admin":
-		if !ar.rc.AllowAdminUser || password != ar.rc.AdminUserPassword {
-			return nil, errInvalidCredentials
+		if !allowAdminUser || password != adminUserPassword {
+			return errInvalidCredentials
 		}
+		return nil
 	default:
-		user, err := ar.repo.Users.GetUser(username)
+		user, err := repo.Users.GetUser(username)
 		if err != nil {
-			return nil, errInvalidCredentials
+			return errInvalidCredentials
 		}
-
 		if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
-			return nil, errInvalidCredentials
+			return errInvalidCredentials
 		}
+		return nil
+	}
+}
+
+// authenticateUser receives a username and password and returns the a session for the authenticated user.
+func (ar accessRoutes) authenticateUser(username string, password string) (*repository.SessionRecord, error) {
+	if err := verifyUser(ar.repo, ar.rc.AllowAdminUser, ar.rc.AdminUserPassword, username, password); err != nil {
+		return nil, err
 	}
 
 	session, err := ar.repo.Sessions.GetSession(username, repository.SESSION_KIND_USER)

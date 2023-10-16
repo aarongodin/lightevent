@@ -5,7 +5,8 @@
   "author": "Aaron Godin <godinaaweb@gmail.com>",
   "license": "MIT",
   "workspaces": [
-    "admin"
+    "admin",
+    "e2e"
   ],
   "devDependencies": {
     "ts-proto": "^1.141.1",

@@ -1,5 +1,4 @@
 import { useNavigate, useRouteError } from "react-router-dom"
-import { TwirpError } from "twirp-ts"
 
 import { Button } from "../units/button"
 
@@ -30,8 +29,8 @@ function ErrorContents({ statusText, fallback }: ErrorContentsProps) {
   )
 }
 
-export default function ErrorPage() {
-  const error: any = useRouteError()
+export default function ErrorPage({ err }: { err?: Error }) {
+  const error: any = err === undefined ? useRouteError() : err
   return (
     <div className="flex w-screen h-screen items-center justify-center">
       <div className="w-96 flex flex-col items-center gap-6">

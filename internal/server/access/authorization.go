@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aarongodin/spectral/internal/server/config"
 	"github.com/aarongodin/spectral/internal/server/repository"
 	"github.com/aarongodin/spectral/internal/server/util"
 	"github.com/asdine/storm/v3"
@@ -99,9 +100,10 @@ func GetAllowedSchemes() map[string]byte {
 		"CreateEvent", "UpdateEvent",
 		"ListEventRegistrations", "CreateRegistration",
 		"GetBoolSetting", "UpdateBoolSetting",
-		"ListMembers",
+		"ListMembers", "CreateMember", "GetMember",
 		"CreateUser", "ListUsers",
 		"ListSessions",
+		"CreateAPIKey",
 	)
 
 	allowSchemes(m, accessMember, "Register")
@@ -130,6 +132,18 @@ func authorizeWithCookie(r *http.Request, repo *repository.Repository, cookieNam
 	return session, nil
 }
 
+// authorizeWithBasicAuth attemps to read Basic authorization from request headers and verify a user with the credentials.
+func authorizeWithBasicAuth(r *http.Request, repo *repository.Repository, rc *config.RuntimeConfig) (string, twirp.Error) {
+	username, password, ok := r.BasicAuth()
+	if ok {
+		if err := verifyUser(repo, rc.AllowAdminUser, rc.AdminUserPassword, username, password); err != nil {
+			return "", twirp.Unauthenticated.Error(err.Error())
+		}
+		return username, nil
+	}
+	return "", nil
+}
+
 // authorizeWithAPIKey checks for a valid API Key based on the provided credential in the
 // "Authorization" http header. A session is not tracked for API keys.
 func authorizeWithAPIKey(r *http.Request, repo *repository.Repository) (string, twirp.Error) {
@@ -155,7 +169,7 @@ func authorizeWithAPIKey(r *http.Request, repo *repository.Repository) (string, 
 
 // WithAuthorization is an http.Handler that verifies an authenticated user is allowed access
 // this this request.
-func WithAuthorization(base http.Handler, repo *repository.Repository, rpcAuthorization map[string]byte) http.Handler {
+func WithAuthorization(base http.Handler, repo *repository.Repository, rc *config.RuntimeConfig, rpcAuthorization map[string]byte) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _, method := util.ParseTwirpPath(r.URL.Path)
 		if method == "" {
@@ -203,6 +217,17 @@ func WithAuthorization(base http.Handler, repo *repository.Repository, rpcAuthor
 				subject = session.Subject
 				scheme = AUTHZ_SCHEME_USER
 				break
+			} else {
+				username, err := authorizeWithBasicAuth(r, repo, rc)
+				if err != nil {
+					twirp.WriteError(w, err)
+					return
+				}
+				if username != "" {
+					subject = username
+					scheme = AUTHZ_SCHEME_USER
+					break
+				}
 			}
 			fallthrough
 		case schemes&maskAPIKey > 0:
