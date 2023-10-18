@@ -56,7 +56,7 @@ interface Rpc {
   ): Promise<object | Uint8Array>;
 }
 
-export interface SpectralClient {
+export interface LightEventClient {
   Ping(request: PingOptions): Promise<PingResult>;
   ListEvents(request: ListEventsOptions): Promise<EventList>;
   GetEvent(request: ByName): Promise<Event>;
@@ -85,7 +85,7 @@ export interface SpectralClient {
   Register(request: MemberRegistration): Promise<Registration>;
 }
 
-export class SpectralClientJSON implements SpectralClient {
+export class LightEventClientJSON implements LightEventClient {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
@@ -113,7 +113,7 @@ export class SpectralClientJSON implements SpectralClient {
   Ping(request: PingOptions): Promise<PingResult> {
     const data = PingOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "Ping",
       "application/json",
       data as object
@@ -124,7 +124,7 @@ export class SpectralClientJSON implements SpectralClient {
   ListEvents(request: ListEventsOptions): Promise<EventList> {
     const data = ListEventsOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListEvents",
       "application/json",
       data as object
@@ -135,7 +135,7 @@ export class SpectralClientJSON implements SpectralClient {
   GetEvent(request: ByName): Promise<Event> {
     const data = ByName.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "GetEvent",
       "application/json",
       data as object
@@ -146,7 +146,7 @@ export class SpectralClientJSON implements SpectralClient {
   CreateEvent(request: Event): Promise<Event> {
     const data = Event.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateEvent",
       "application/json",
       data as object
@@ -157,7 +157,7 @@ export class SpectralClientJSON implements SpectralClient {
   UpdateEvent(request: Event): Promise<Event> {
     const data = Event.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "UpdateEvent",
       "application/json",
       data as object
@@ -170,7 +170,7 @@ export class SpectralClientJSON implements SpectralClient {
   ): Promise<RegistrationList> {
     const data = ListEventRegistrationsOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListEventRegistrations",
       "application/json",
       data as object
@@ -181,7 +181,7 @@ export class SpectralClientJSON implements SpectralClient {
   GetRegistration(request: ByConfCode): Promise<Registration> {
     const data = ByConfCode.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "GetRegistration",
       "application/json",
       data as object
@@ -192,7 +192,7 @@ export class SpectralClientJSON implements SpectralClient {
   CreateRegistration(request: WriteableRegistration): Promise<Registration> {
     const data = WriteableRegistration.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateRegistration",
       "application/json",
       data as object
@@ -203,7 +203,7 @@ export class SpectralClientJSON implements SpectralClient {
   CreateMember(request: WriteableMember): Promise<Member> {
     const data = WriteableMember.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateMember",
       "application/json",
       data as object
@@ -214,7 +214,7 @@ export class SpectralClientJSON implements SpectralClient {
   ListMembers(request: ListMembersOptions): Promise<MemberList> {
     const data = ListMembersOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListMembers",
       "application/json",
       data as object
@@ -225,7 +225,7 @@ export class SpectralClientJSON implements SpectralClient {
   GetMember(request: GetMemberOptions): Promise<Member> {
     const data = GetMemberOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "GetMember",
       "application/json",
       data as object
@@ -236,7 +236,7 @@ export class SpectralClientJSON implements SpectralClient {
   CreateUser(request: WriteableUser): Promise<User> {
     const data = WriteableUser.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateUser",
       "application/json",
       data as object
@@ -247,7 +247,7 @@ export class SpectralClientJSON implements SpectralClient {
   ListUsers(request: ListUsersOptions): Promise<UserList> {
     const data = ListUsersOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListUsers",
       "application/json",
       data as object
@@ -258,7 +258,7 @@ export class SpectralClientJSON implements SpectralClient {
   ListSessions(request: ListSessionsOptions): Promise<SessionList> {
     const data = ListSessionsOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListSessions",
       "application/json",
       data as object
@@ -269,7 +269,7 @@ export class SpectralClientJSON implements SpectralClient {
   CreateAPIKey(request: WriteableAPIKey): Promise<APIKeyWithSecret> {
     const data = WriteableAPIKey.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateAPIKey",
       "application/json",
       data as object
@@ -280,7 +280,7 @@ export class SpectralClientJSON implements SpectralClient {
   ListSettings(request: ListSettingsOptions): Promise<SettingsList> {
     const data = ListSettingsOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListSettings",
       "application/json",
       data as object
@@ -291,7 +291,7 @@ export class SpectralClientJSON implements SpectralClient {
   UpdateSettings(request: UpdateSettingsOptions): Promise<SettingsList> {
     const data = UpdateSettingsOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "UpdateSettings",
       "application/json",
       data as object
@@ -304,7 +304,7 @@ export class SpectralClientJSON implements SpectralClient {
   ): Promise<BeginVerificationResult> {
     const data = BeginVerificationOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "BeginVerification",
       "application/json",
       data as object
@@ -319,7 +319,7 @@ export class SpectralClientJSON implements SpectralClient {
   ): Promise<CompleteVerificationResult> {
     const data = CompleteVerificationOptions.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CompleteVerification",
       "application/json",
       data as object
@@ -332,7 +332,7 @@ export class SpectralClientJSON implements SpectralClient {
   Register(request: MemberRegistration): Promise<Registration> {
     const data = MemberRegistration.toJSON(request);
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "Register",
       "application/json",
       data as object
@@ -341,7 +341,7 @@ export class SpectralClientJSON implements SpectralClient {
   }
 }
 
-export class SpectralClientProtobuf implements SpectralClient {
+export class LightEventClientProtobuf implements LightEventClient {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
@@ -369,7 +369,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   Ping(request: PingOptions): Promise<PingResult> {
     const data = PingOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "Ping",
       "application/protobuf",
       data
@@ -380,7 +380,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   ListEvents(request: ListEventsOptions): Promise<EventList> {
     const data = ListEventsOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListEvents",
       "application/protobuf",
       data
@@ -391,7 +391,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   GetEvent(request: ByName): Promise<Event> {
     const data = ByName.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "GetEvent",
       "application/protobuf",
       data
@@ -402,7 +402,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   CreateEvent(request: Event): Promise<Event> {
     const data = Event.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateEvent",
       "application/protobuf",
       data
@@ -413,7 +413,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   UpdateEvent(request: Event): Promise<Event> {
     const data = Event.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "UpdateEvent",
       "application/protobuf",
       data
@@ -426,7 +426,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   ): Promise<RegistrationList> {
     const data = ListEventRegistrationsOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListEventRegistrations",
       "application/protobuf",
       data
@@ -437,7 +437,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   GetRegistration(request: ByConfCode): Promise<Registration> {
     const data = ByConfCode.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "GetRegistration",
       "application/protobuf",
       data
@@ -448,7 +448,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   CreateRegistration(request: WriteableRegistration): Promise<Registration> {
     const data = WriteableRegistration.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateRegistration",
       "application/protobuf",
       data
@@ -459,7 +459,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   CreateMember(request: WriteableMember): Promise<Member> {
     const data = WriteableMember.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateMember",
       "application/protobuf",
       data
@@ -470,7 +470,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   ListMembers(request: ListMembersOptions): Promise<MemberList> {
     const data = ListMembersOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListMembers",
       "application/protobuf",
       data
@@ -481,7 +481,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   GetMember(request: GetMemberOptions): Promise<Member> {
     const data = GetMemberOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "GetMember",
       "application/protobuf",
       data
@@ -492,7 +492,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   CreateUser(request: WriteableUser): Promise<User> {
     const data = WriteableUser.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateUser",
       "application/protobuf",
       data
@@ -503,7 +503,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   ListUsers(request: ListUsersOptions): Promise<UserList> {
     const data = ListUsersOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListUsers",
       "application/protobuf",
       data
@@ -514,7 +514,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   ListSessions(request: ListSessionsOptions): Promise<SessionList> {
     const data = ListSessionsOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListSessions",
       "application/protobuf",
       data
@@ -525,7 +525,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   CreateAPIKey(request: WriteableAPIKey): Promise<APIKeyWithSecret> {
     const data = WriteableAPIKey.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CreateAPIKey",
       "application/protobuf",
       data
@@ -536,7 +536,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   ListSettings(request: ListSettingsOptions): Promise<SettingsList> {
     const data = ListSettingsOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "ListSettings",
       "application/protobuf",
       data
@@ -547,7 +547,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   UpdateSettings(request: UpdateSettingsOptions): Promise<SettingsList> {
     const data = UpdateSettingsOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "UpdateSettings",
       "application/protobuf",
       data
@@ -560,7 +560,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   ): Promise<BeginVerificationResult> {
     const data = BeginVerificationOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "BeginVerification",
       "application/protobuf",
       data
@@ -575,7 +575,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   ): Promise<CompleteVerificationResult> {
     const data = CompleteVerificationOptions.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "CompleteVerification",
       "application/protobuf",
       data
@@ -588,7 +588,7 @@ export class SpectralClientProtobuf implements SpectralClient {
   Register(request: MemberRegistration): Promise<Registration> {
     const data = MemberRegistration.encode(request).finish();
     const promise = this.rpc.request(
-      "Spectral",
+      "LightEvent",
       "Register",
       "application/protobuf",
       data
@@ -601,7 +601,7 @@ export class SpectralClientProtobuf implements SpectralClient {
 //          Server Code             //
 //==================================//
 
-export interface SpectralTwirp<T extends TwirpContext = TwirpContext> {
+export interface LightEventTwirp<T extends TwirpContext = TwirpContext> {
   Ping(ctx: T, request: PingOptions): Promise<PingResult>;
   ListEvents(ctx: T, request: ListEventsOptions): Promise<EventList>;
   GetEvent(ctx: T, request: ByName): Promise<Event>;
@@ -636,7 +636,7 @@ export interface SpectralTwirp<T extends TwirpContext = TwirpContext> {
   Register(ctx: T, request: MemberRegistration): Promise<Registration>;
 }
 
-export enum SpectralMethod {
+export enum LightEventMethod {
   Ping = "Ping",
   ListEvents = "ListEvents",
   GetEvent = "GetEvent",
@@ -659,42 +659,42 @@ export enum SpectralMethod {
   Register = "Register",
 }
 
-export const SpectralMethodList = [
-  SpectralMethod.Ping,
-  SpectralMethod.ListEvents,
-  SpectralMethod.GetEvent,
-  SpectralMethod.CreateEvent,
-  SpectralMethod.UpdateEvent,
-  SpectralMethod.ListEventRegistrations,
-  SpectralMethod.GetRegistration,
-  SpectralMethod.CreateRegistration,
-  SpectralMethod.CreateMember,
-  SpectralMethod.ListMembers,
-  SpectralMethod.GetMember,
-  SpectralMethod.CreateUser,
-  SpectralMethod.ListUsers,
-  SpectralMethod.ListSessions,
-  SpectralMethod.CreateAPIKey,
-  SpectralMethod.ListSettings,
-  SpectralMethod.UpdateSettings,
-  SpectralMethod.BeginVerification,
-  SpectralMethod.CompleteVerification,
-  SpectralMethod.Register,
+export const LightEventMethodList = [
+  LightEventMethod.Ping,
+  LightEventMethod.ListEvents,
+  LightEventMethod.GetEvent,
+  LightEventMethod.CreateEvent,
+  LightEventMethod.UpdateEvent,
+  LightEventMethod.ListEventRegistrations,
+  LightEventMethod.GetRegistration,
+  LightEventMethod.CreateRegistration,
+  LightEventMethod.CreateMember,
+  LightEventMethod.ListMembers,
+  LightEventMethod.GetMember,
+  LightEventMethod.CreateUser,
+  LightEventMethod.ListUsers,
+  LightEventMethod.ListSessions,
+  LightEventMethod.CreateAPIKey,
+  LightEventMethod.ListSettings,
+  LightEventMethod.UpdateSettings,
+  LightEventMethod.BeginVerification,
+  LightEventMethod.CompleteVerification,
+  LightEventMethod.Register,
 ];
 
-export function createSpectralServer<T extends TwirpContext = TwirpContext>(
-  service: SpectralTwirp<T>
+export function createLightEventServer<T extends TwirpContext = TwirpContext>(
+  service: LightEventTwirp<T>
 ) {
-  return new TwirpServer<SpectralTwirp, T>({
+  return new TwirpServer<LightEventTwirp, T>({
     service,
     packageName: "",
-    serviceName: "Spectral",
-    methodList: SpectralMethodList,
-    matchRoute: matchSpectralRoute,
+    serviceName: "LightEvent",
+    methodList: LightEventMethodList,
+    matchRoute: matchLightEventRoute,
   });
 }
 
-function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
+function matchLightEventRoute<T extends TwirpContext = TwirpContext>(
   method: string,
   events: RouterEvents<T>
 ) {
@@ -702,24 +702,24 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "Ping":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, PingOptions, PingResult>[]
       ) => {
         ctx = { ...ctx, methodName: "Ping" };
         await events.onMatch(ctx);
-        return handleSpectralPingRequest(ctx, service, data, interceptors);
+        return handleLightEventPingRequest(ctx, service, data, interceptors);
       };
     case "ListEvents":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, ListEventsOptions, EventList>[]
       ) => {
         ctx = { ...ctx, methodName: "ListEvents" };
         await events.onMatch(ctx);
-        return handleSpectralListEventsRequest(
+        return handleLightEventListEventsRequest(
           ctx,
           service,
           data,
@@ -729,24 +729,29 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "GetEvent":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, ByName, Event>[]
       ) => {
         ctx = { ...ctx, methodName: "GetEvent" };
         await events.onMatch(ctx);
-        return handleSpectralGetEventRequest(ctx, service, data, interceptors);
+        return handleLightEventGetEventRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
       };
     case "CreateEvent":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, Event, Event>[]
       ) => {
         ctx = { ...ctx, methodName: "CreateEvent" };
         await events.onMatch(ctx);
-        return handleSpectralCreateEventRequest(
+        return handleLightEventCreateEventRequest(
           ctx,
           service,
           data,
@@ -756,13 +761,13 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "UpdateEvent":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, Event, Event>[]
       ) => {
         ctx = { ...ctx, methodName: "UpdateEvent" };
         await events.onMatch(ctx);
-        return handleSpectralUpdateEventRequest(
+        return handleLightEventUpdateEventRequest(
           ctx,
           service,
           data,
@@ -772,7 +777,7 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "ListEventRegistrations":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<
           T,
@@ -782,7 +787,7 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
       ) => {
         ctx = { ...ctx, methodName: "ListEventRegistrations" };
         await events.onMatch(ctx);
-        return handleSpectralListEventRegistrationsRequest(
+        return handleLightEventListEventRegistrationsRequest(
           ctx,
           service,
           data,
@@ -792,13 +797,13 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "GetRegistration":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, ByConfCode, Registration>[]
       ) => {
         ctx = { ...ctx, methodName: "GetRegistration" };
         await events.onMatch(ctx);
-        return handleSpectralGetRegistrationRequest(
+        return handleLightEventGetRegistrationRequest(
           ctx,
           service,
           data,
@@ -808,13 +813,13 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "CreateRegistration":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, WriteableRegistration, Registration>[]
       ) => {
         ctx = { ...ctx, methodName: "CreateRegistration" };
         await events.onMatch(ctx);
-        return handleSpectralCreateRegistrationRequest(
+        return handleLightEventCreateRegistrationRequest(
           ctx,
           service,
           data,
@@ -824,13 +829,13 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "CreateMember":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, WriteableMember, Member>[]
       ) => {
         ctx = { ...ctx, methodName: "CreateMember" };
         await events.onMatch(ctx);
-        return handleSpectralCreateMemberRequest(
+        return handleLightEventCreateMemberRequest(
           ctx,
           service,
           data,
@@ -840,13 +845,13 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "ListMembers":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, ListMembersOptions, MemberList>[]
       ) => {
         ctx = { ...ctx, methodName: "ListMembers" };
         await events.onMatch(ctx);
-        return handleSpectralListMembersRequest(
+        return handleLightEventListMembersRequest(
           ctx,
           service,
           data,
@@ -856,24 +861,29 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "GetMember":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, GetMemberOptions, Member>[]
       ) => {
         ctx = { ...ctx, methodName: "GetMember" };
         await events.onMatch(ctx);
-        return handleSpectralGetMemberRequest(ctx, service, data, interceptors);
+        return handleLightEventGetMemberRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
       };
     case "CreateUser":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, WriteableUser, User>[]
       ) => {
         ctx = { ...ctx, methodName: "CreateUser" };
         await events.onMatch(ctx);
-        return handleSpectralCreateUserRequest(
+        return handleLightEventCreateUserRequest(
           ctx,
           service,
           data,
@@ -883,24 +893,29 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "ListUsers":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, ListUsersOptions, UserList>[]
       ) => {
         ctx = { ...ctx, methodName: "ListUsers" };
         await events.onMatch(ctx);
-        return handleSpectralListUsersRequest(ctx, service, data, interceptors);
+        return handleLightEventListUsersRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
       };
     case "ListSessions":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, ListSessionsOptions, SessionList>[]
       ) => {
         ctx = { ...ctx, methodName: "ListSessions" };
         await events.onMatch(ctx);
-        return handleSpectralListSessionsRequest(
+        return handleLightEventListSessionsRequest(
           ctx,
           service,
           data,
@@ -910,13 +925,13 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "CreateAPIKey":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, WriteableAPIKey, APIKeyWithSecret>[]
       ) => {
         ctx = { ...ctx, methodName: "CreateAPIKey" };
         await events.onMatch(ctx);
-        return handleSpectralCreateAPIKeyRequest(
+        return handleLightEventCreateAPIKeyRequest(
           ctx,
           service,
           data,
@@ -926,13 +941,13 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "ListSettings":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, ListSettingsOptions, SettingsList>[]
       ) => {
         ctx = { ...ctx, methodName: "ListSettings" };
         await events.onMatch(ctx);
-        return handleSpectralListSettingsRequest(
+        return handleLightEventListSettingsRequest(
           ctx,
           service,
           data,
@@ -942,13 +957,13 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "UpdateSettings":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, UpdateSettingsOptions, SettingsList>[]
       ) => {
         ctx = { ...ctx, methodName: "UpdateSettings" };
         await events.onMatch(ctx);
-        return handleSpectralUpdateSettingsRequest(
+        return handleLightEventUpdateSettingsRequest(
           ctx,
           service,
           data,
@@ -958,7 +973,7 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "BeginVerification":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<
           T,
@@ -968,7 +983,7 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
       ) => {
         ctx = { ...ctx, methodName: "BeginVerification" };
         await events.onMatch(ctx);
-        return handleSpectralBeginVerificationRequest(
+        return handleLightEventBeginVerificationRequest(
           ctx,
           service,
           data,
@@ -978,7 +993,7 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "CompleteVerification":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<
           T,
@@ -988,7 +1003,7 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
       ) => {
         ctx = { ...ctx, methodName: "CompleteVerification" };
         await events.onMatch(ctx);
-        return handleSpectralCompleteVerificationRequest(
+        return handleLightEventCompleteVerificationRequest(
           ctx,
           service,
           data,
@@ -998,13 +1013,18 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
     case "Register":
       return async (
         ctx: T,
-        service: SpectralTwirp,
+        service: LightEventTwirp,
         data: Buffer,
         interceptors?: Interceptor<T, MemberRegistration, Registration>[]
       ) => {
         ctx = { ...ctx, methodName: "Register" };
         await events.onMatch(ctx);
-        return handleSpectralRegisterRequest(ctx, service, data, interceptors);
+        return handleLightEventRegisterRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
       };
     default:
       events.onNotFound();
@@ -1013,34 +1033,41 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
   }
 }
 
-function handleSpectralPingRequest<T extends TwirpContext = TwirpContext>(
+function handleLightEventPingRequest<T extends TwirpContext = TwirpContext>(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, PingOptions, PingResult>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralPingJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventPingJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleSpectralPingProtobuf<T>(ctx, service, data, interceptors);
+      return handleLightEventPingProtobuf<T>(ctx, service, data, interceptors);
     default:
       const msg = "unexpected Content-Type";
       throw new TwirpError(TwirpErrorCode.BadRoute, msg);
   }
 }
 
-function handleSpectralListEventsRequest<T extends TwirpContext = TwirpContext>(
+function handleLightEventListEventsRequest<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListEventsOptions, EventList>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralListEventsJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventListEventsJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
     case TwirpContentType.Protobuf:
-      return handleSpectralListEventsProtobuf<T>(
+      return handleLightEventListEventsProtobuf<T>(
         ctx,
         service,
         data,
@@ -1052,17 +1079,17 @@ function handleSpectralListEventsRequest<T extends TwirpContext = TwirpContext>(
   }
 }
 
-function handleSpectralGetEventRequest<T extends TwirpContext = TwirpContext>(
+function handleLightEventGetEventRequest<T extends TwirpContext = TwirpContext>(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ByName, Event>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralGetEventJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventGetEventJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleSpectralGetEventProtobuf<T>(
+      return handleLightEventGetEventProtobuf<T>(
         ctx,
         service,
         data,
@@ -1074,19 +1101,24 @@ function handleSpectralGetEventRequest<T extends TwirpContext = TwirpContext>(
   }
 }
 
-function handleSpectralCreateEventRequest<
+function handleLightEventCreateEventRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, Event, Event>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralCreateEventJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventCreateEventJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
     case TwirpContentType.Protobuf:
-      return handleSpectralCreateEventProtobuf<T>(
+      return handleLightEventCreateEventProtobuf<T>(
         ctx,
         service,
         data,
@@ -1098,19 +1130,24 @@ function handleSpectralCreateEventRequest<
   }
 }
 
-function handleSpectralUpdateEventRequest<
+function handleLightEventUpdateEventRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, Event, Event>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralUpdateEventJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventUpdateEventJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
     case TwirpContentType.Protobuf:
-      return handleSpectralUpdateEventProtobuf<T>(
+      return handleLightEventUpdateEventProtobuf<T>(
         ctx,
         service,
         data,
@@ -1122,11 +1159,11 @@ function handleSpectralUpdateEventRequest<
   }
 }
 
-function handleSpectralListEventRegistrationsRequest<
+function handleLightEventListEventRegistrationsRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -1136,14 +1173,14 @@ function handleSpectralListEventRegistrationsRequest<
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralListEventRegistrationsJSON<T>(
+      return handleLightEventListEventRegistrationsJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralListEventRegistrationsProtobuf<T>(
+      return handleLightEventListEventRegistrationsProtobuf<T>(
         ctx,
         service,
         data,
@@ -1155,24 +1192,24 @@ function handleSpectralListEventRegistrationsRequest<
   }
 }
 
-function handleSpectralGetRegistrationRequest<
+function handleLightEventGetRegistrationRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ByConfCode, Registration>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralGetRegistrationJSON<T>(
+      return handleLightEventGetRegistrationJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralGetRegistrationProtobuf<T>(
+      return handleLightEventGetRegistrationProtobuf<T>(
         ctx,
         service,
         data,
@@ -1184,24 +1221,24 @@ function handleSpectralGetRegistrationRequest<
   }
 }
 
-function handleSpectralCreateRegistrationRequest<
+function handleLightEventCreateRegistrationRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableRegistration, Registration>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralCreateRegistrationJSON<T>(
+      return handleLightEventCreateRegistrationJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralCreateRegistrationProtobuf<T>(
+      return handleLightEventCreateRegistrationProtobuf<T>(
         ctx,
         service,
         data,
@@ -1213,24 +1250,24 @@ function handleSpectralCreateRegistrationRequest<
   }
 }
 
-function handleSpectralCreateMemberRequest<
+function handleLightEventCreateMemberRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableMember, Member>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralCreateMemberJSON<T>(
+      return handleLightEventCreateMemberJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralCreateMemberProtobuf<T>(
+      return handleLightEventCreateMemberProtobuf<T>(
         ctx,
         service,
         data,
@@ -1242,19 +1279,24 @@ function handleSpectralCreateMemberRequest<
   }
 }
 
-function handleSpectralListMembersRequest<
+function handleLightEventListMembersRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListMembersOptions, MemberList>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralListMembersJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventListMembersJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
     case TwirpContentType.Protobuf:
-      return handleSpectralListMembersProtobuf<T>(
+      return handleLightEventListMembersProtobuf<T>(
         ctx,
         service,
         data,
@@ -1266,17 +1308,19 @@ function handleSpectralListMembersRequest<
   }
 }
 
-function handleSpectralGetMemberRequest<T extends TwirpContext = TwirpContext>(
+function handleLightEventGetMemberRequest<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, GetMemberOptions, Member>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralGetMemberJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventGetMemberJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleSpectralGetMemberProtobuf<T>(
+      return handleLightEventGetMemberProtobuf<T>(
         ctx,
         service,
         data,
@@ -1288,17 +1332,24 @@ function handleSpectralGetMemberRequest<T extends TwirpContext = TwirpContext>(
   }
 }
 
-function handleSpectralCreateUserRequest<T extends TwirpContext = TwirpContext>(
+function handleLightEventCreateUserRequest<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableUser, User>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralCreateUserJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventCreateUserJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
     case TwirpContentType.Protobuf:
-      return handleSpectralCreateUserProtobuf<T>(
+      return handleLightEventCreateUserProtobuf<T>(
         ctx,
         service,
         data,
@@ -1310,17 +1361,19 @@ function handleSpectralCreateUserRequest<T extends TwirpContext = TwirpContext>(
   }
 }
 
-function handleSpectralListUsersRequest<T extends TwirpContext = TwirpContext>(
+function handleLightEventListUsersRequest<
+  T extends TwirpContext = TwirpContext
+>(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListUsersOptions, UserList>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralListUsersJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventListUsersJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleSpectralListUsersProtobuf<T>(
+      return handleLightEventListUsersProtobuf<T>(
         ctx,
         service,
         data,
@@ -1332,24 +1385,24 @@ function handleSpectralListUsersRequest<T extends TwirpContext = TwirpContext>(
   }
 }
 
-function handleSpectralListSessionsRequest<
+function handleLightEventListSessionsRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListSessionsOptions, SessionList>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralListSessionsJSON<T>(
+      return handleLightEventListSessionsJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralListSessionsProtobuf<T>(
+      return handleLightEventListSessionsProtobuf<T>(
         ctx,
         service,
         data,
@@ -1361,24 +1414,24 @@ function handleSpectralListSessionsRequest<
   }
 }
 
-function handleSpectralCreateAPIKeyRequest<
+function handleLightEventCreateAPIKeyRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableAPIKey, APIKeyWithSecret>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralCreateAPIKeyJSON<T>(
+      return handleLightEventCreateAPIKeyJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralCreateAPIKeyProtobuf<T>(
+      return handleLightEventCreateAPIKeyProtobuf<T>(
         ctx,
         service,
         data,
@@ -1390,24 +1443,24 @@ function handleSpectralCreateAPIKeyRequest<
   }
 }
 
-function handleSpectralListSettingsRequest<
+function handleLightEventListSettingsRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListSettingsOptions, SettingsList>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralListSettingsJSON<T>(
+      return handleLightEventListSettingsJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralListSettingsProtobuf<T>(
+      return handleLightEventListSettingsProtobuf<T>(
         ctx,
         service,
         data,
@@ -1419,24 +1472,24 @@ function handleSpectralListSettingsRequest<
   }
 }
 
-function handleSpectralUpdateSettingsRequest<
+function handleLightEventUpdateSettingsRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, UpdateSettingsOptions, SettingsList>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralUpdateSettingsJSON<T>(
+      return handleLightEventUpdateSettingsJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralUpdateSettingsProtobuf<T>(
+      return handleLightEventUpdateSettingsProtobuf<T>(
         ctx,
         service,
         data,
@@ -1448,11 +1501,11 @@ function handleSpectralUpdateSettingsRequest<
   }
 }
 
-function handleSpectralBeginVerificationRequest<
+function handleLightEventBeginVerificationRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -1462,14 +1515,14 @@ function handleSpectralBeginVerificationRequest<
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralBeginVerificationJSON<T>(
+      return handleLightEventBeginVerificationJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralBeginVerificationProtobuf<T>(
+      return handleLightEventBeginVerificationProtobuf<T>(
         ctx,
         service,
         data,
@@ -1481,11 +1534,11 @@ function handleSpectralBeginVerificationRequest<
   }
 }
 
-function handleSpectralCompleteVerificationRequest<
+function handleLightEventCompleteVerificationRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -1495,14 +1548,14 @@ function handleSpectralCompleteVerificationRequest<
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralCompleteVerificationJSON<T>(
+      return handleLightEventCompleteVerificationJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralCompleteVerificationProtobuf<T>(
+      return handleLightEventCompleteVerificationProtobuf<T>(
         ctx,
         service,
         data,
@@ -1514,17 +1567,17 @@ function handleSpectralCompleteVerificationRequest<
   }
 }
 
-function handleSpectralRegisterRequest<T extends TwirpContext = TwirpContext>(
+function handleLightEventRegisterRequest<T extends TwirpContext = TwirpContext>(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, MemberRegistration, Registration>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralRegisterJSON<T>(ctx, service, data, interceptors);
+      return handleLightEventRegisterJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
-      return handleSpectralRegisterProtobuf<T>(
+      return handleLightEventRegisterProtobuf<T>(
         ctx,
         service,
         data,
@@ -1535,9 +1588,9 @@ function handleSpectralRegisterRequest<T extends TwirpContext = TwirpContext>(
       throw new TwirpError(TwirpErrorCode.BadRoute, msg);
   }
 }
-async function handleSpectralPingJSON<T extends TwirpContext = TwirpContext>(
+async function handleLightEventPingJSON<T extends TwirpContext = TwirpContext>(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, PingOptions, PingResult>[]
 ) {
@@ -1570,11 +1623,11 @@ async function handleSpectralPingJSON<T extends TwirpContext = TwirpContext>(
   return JSON.stringify(PingResult.toJSON(response) as string);
 }
 
-async function handleSpectralListEventsJSON<
+async function handleLightEventListEventsJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListEventsOptions, EventList>[]
 ) {
@@ -1607,11 +1660,11 @@ async function handleSpectralListEventsJSON<
   return JSON.stringify(EventList.toJSON(response) as string);
 }
 
-async function handleSpectralGetEventJSON<
+async function handleLightEventGetEventJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ByName, Event>[]
 ) {
@@ -1644,11 +1697,11 @@ async function handleSpectralGetEventJSON<
   return JSON.stringify(Event.toJSON(response) as string);
 }
 
-async function handleSpectralCreateEventJSON<
+async function handleLightEventCreateEventJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, Event, Event>[]
 ) {
@@ -1681,11 +1734,11 @@ async function handleSpectralCreateEventJSON<
   return JSON.stringify(Event.toJSON(response) as string);
 }
 
-async function handleSpectralUpdateEventJSON<
+async function handleLightEventUpdateEventJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, Event, Event>[]
 ) {
@@ -1718,11 +1771,11 @@ async function handleSpectralUpdateEventJSON<
   return JSON.stringify(Event.toJSON(response) as string);
 }
 
-async function handleSpectralListEventRegistrationsJSON<
+async function handleLightEventListEventRegistrationsJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -1759,11 +1812,11 @@ async function handleSpectralListEventRegistrationsJSON<
   return JSON.stringify(RegistrationList.toJSON(response) as string);
 }
 
-async function handleSpectralGetRegistrationJSON<
+async function handleLightEventGetRegistrationJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ByConfCode, Registration>[]
 ) {
@@ -1796,11 +1849,11 @@ async function handleSpectralGetRegistrationJSON<
   return JSON.stringify(Registration.toJSON(response) as string);
 }
 
-async function handleSpectralCreateRegistrationJSON<
+async function handleLightEventCreateRegistrationJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableRegistration, Registration>[]
 ) {
@@ -1833,11 +1886,11 @@ async function handleSpectralCreateRegistrationJSON<
   return JSON.stringify(Registration.toJSON(response) as string);
 }
 
-async function handleSpectralCreateMemberJSON<
+async function handleLightEventCreateMemberJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableMember, Member>[]
 ) {
@@ -1870,11 +1923,11 @@ async function handleSpectralCreateMemberJSON<
   return JSON.stringify(Member.toJSON(response) as string);
 }
 
-async function handleSpectralListMembersJSON<
+async function handleLightEventListMembersJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListMembersOptions, MemberList>[]
 ) {
@@ -1907,11 +1960,11 @@ async function handleSpectralListMembersJSON<
   return JSON.stringify(MemberList.toJSON(response) as string);
 }
 
-async function handleSpectralGetMemberJSON<
+async function handleLightEventGetMemberJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, GetMemberOptions, Member>[]
 ) {
@@ -1944,11 +1997,11 @@ async function handleSpectralGetMemberJSON<
   return JSON.stringify(Member.toJSON(response) as string);
 }
 
-async function handleSpectralCreateUserJSON<
+async function handleLightEventCreateUserJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableUser, User>[]
 ) {
@@ -1981,11 +2034,11 @@ async function handleSpectralCreateUserJSON<
   return JSON.stringify(User.toJSON(response) as string);
 }
 
-async function handleSpectralListUsersJSON<
+async function handleLightEventListUsersJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListUsersOptions, UserList>[]
 ) {
@@ -2018,11 +2071,11 @@ async function handleSpectralListUsersJSON<
   return JSON.stringify(UserList.toJSON(response) as string);
 }
 
-async function handleSpectralListSessionsJSON<
+async function handleLightEventListSessionsJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListSessionsOptions, SessionList>[]
 ) {
@@ -2055,11 +2108,11 @@ async function handleSpectralListSessionsJSON<
   return JSON.stringify(SessionList.toJSON(response) as string);
 }
 
-async function handleSpectralCreateAPIKeyJSON<
+async function handleLightEventCreateAPIKeyJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableAPIKey, APIKeyWithSecret>[]
 ) {
@@ -2092,11 +2145,11 @@ async function handleSpectralCreateAPIKeyJSON<
   return JSON.stringify(APIKeyWithSecret.toJSON(response) as string);
 }
 
-async function handleSpectralListSettingsJSON<
+async function handleLightEventListSettingsJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListSettingsOptions, SettingsList>[]
 ) {
@@ -2129,11 +2182,11 @@ async function handleSpectralListSettingsJSON<
   return JSON.stringify(SettingsList.toJSON(response) as string);
 }
 
-async function handleSpectralUpdateSettingsJSON<
+async function handleLightEventUpdateSettingsJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, UpdateSettingsOptions, SettingsList>[]
 ) {
@@ -2166,11 +2219,11 @@ async function handleSpectralUpdateSettingsJSON<
   return JSON.stringify(SettingsList.toJSON(response) as string);
 }
 
-async function handleSpectralBeginVerificationJSON<
+async function handleLightEventBeginVerificationJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -2207,11 +2260,11 @@ async function handleSpectralBeginVerificationJSON<
   return JSON.stringify(BeginVerificationResult.toJSON(response) as string);
 }
 
-async function handleSpectralCompleteVerificationJSON<
+async function handleLightEventCompleteVerificationJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -2248,11 +2301,11 @@ async function handleSpectralCompleteVerificationJSON<
   return JSON.stringify(CompleteVerificationResult.toJSON(response) as string);
 }
 
-async function handleSpectralRegisterJSON<
+async function handleLightEventRegisterJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, MemberRegistration, Registration>[]
 ) {
@@ -2284,11 +2337,11 @@ async function handleSpectralRegisterJSON<
 
   return JSON.stringify(Registration.toJSON(response) as string);
 }
-async function handleSpectralPingProtobuf<
+async function handleLightEventPingProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, PingOptions, PingResult>[]
 ) {
@@ -2320,11 +2373,11 @@ async function handleSpectralPingProtobuf<
   return Buffer.from(PingResult.encode(response).finish());
 }
 
-async function handleSpectralListEventsProtobuf<
+async function handleLightEventListEventsProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListEventsOptions, EventList>[]
 ) {
@@ -2356,11 +2409,11 @@ async function handleSpectralListEventsProtobuf<
   return Buffer.from(EventList.encode(response).finish());
 }
 
-async function handleSpectralGetEventProtobuf<
+async function handleLightEventGetEventProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ByName, Event>[]
 ) {
@@ -2392,11 +2445,11 @@ async function handleSpectralGetEventProtobuf<
   return Buffer.from(Event.encode(response).finish());
 }
 
-async function handleSpectralCreateEventProtobuf<
+async function handleLightEventCreateEventProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, Event, Event>[]
 ) {
@@ -2428,11 +2481,11 @@ async function handleSpectralCreateEventProtobuf<
   return Buffer.from(Event.encode(response).finish());
 }
 
-async function handleSpectralUpdateEventProtobuf<
+async function handleLightEventUpdateEventProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, Event, Event>[]
 ) {
@@ -2464,11 +2517,11 @@ async function handleSpectralUpdateEventProtobuf<
   return Buffer.from(Event.encode(response).finish());
 }
 
-async function handleSpectralListEventRegistrationsProtobuf<
+async function handleLightEventListEventRegistrationsProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -2504,11 +2557,11 @@ async function handleSpectralListEventRegistrationsProtobuf<
   return Buffer.from(RegistrationList.encode(response).finish());
 }
 
-async function handleSpectralGetRegistrationProtobuf<
+async function handleLightEventGetRegistrationProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ByConfCode, Registration>[]
 ) {
@@ -2540,11 +2593,11 @@ async function handleSpectralGetRegistrationProtobuf<
   return Buffer.from(Registration.encode(response).finish());
 }
 
-async function handleSpectralCreateRegistrationProtobuf<
+async function handleLightEventCreateRegistrationProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableRegistration, Registration>[]
 ) {
@@ -2576,11 +2629,11 @@ async function handleSpectralCreateRegistrationProtobuf<
   return Buffer.from(Registration.encode(response).finish());
 }
 
-async function handleSpectralCreateMemberProtobuf<
+async function handleLightEventCreateMemberProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableMember, Member>[]
 ) {
@@ -2612,11 +2665,11 @@ async function handleSpectralCreateMemberProtobuf<
   return Buffer.from(Member.encode(response).finish());
 }
 
-async function handleSpectralListMembersProtobuf<
+async function handleLightEventListMembersProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListMembersOptions, MemberList>[]
 ) {
@@ -2648,11 +2701,11 @@ async function handleSpectralListMembersProtobuf<
   return Buffer.from(MemberList.encode(response).finish());
 }
 
-async function handleSpectralGetMemberProtobuf<
+async function handleLightEventGetMemberProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, GetMemberOptions, Member>[]
 ) {
@@ -2684,11 +2737,11 @@ async function handleSpectralGetMemberProtobuf<
   return Buffer.from(Member.encode(response).finish());
 }
 
-async function handleSpectralCreateUserProtobuf<
+async function handleLightEventCreateUserProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableUser, User>[]
 ) {
@@ -2720,11 +2773,11 @@ async function handleSpectralCreateUserProtobuf<
   return Buffer.from(User.encode(response).finish());
 }
 
-async function handleSpectralListUsersProtobuf<
+async function handleLightEventListUsersProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListUsersOptions, UserList>[]
 ) {
@@ -2756,11 +2809,11 @@ async function handleSpectralListUsersProtobuf<
   return Buffer.from(UserList.encode(response).finish());
 }
 
-async function handleSpectralListSessionsProtobuf<
+async function handleLightEventListSessionsProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListSessionsOptions, SessionList>[]
 ) {
@@ -2792,11 +2845,11 @@ async function handleSpectralListSessionsProtobuf<
   return Buffer.from(SessionList.encode(response).finish());
 }
 
-async function handleSpectralCreateAPIKeyProtobuf<
+async function handleLightEventCreateAPIKeyProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, WriteableAPIKey, APIKeyWithSecret>[]
 ) {
@@ -2828,11 +2881,11 @@ async function handleSpectralCreateAPIKeyProtobuf<
   return Buffer.from(APIKeyWithSecret.encode(response).finish());
 }
 
-async function handleSpectralListSettingsProtobuf<
+async function handleLightEventListSettingsProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, ListSettingsOptions, SettingsList>[]
 ) {
@@ -2864,11 +2917,11 @@ async function handleSpectralListSettingsProtobuf<
   return Buffer.from(SettingsList.encode(response).finish());
 }
 
-async function handleSpectralUpdateSettingsProtobuf<
+async function handleLightEventUpdateSettingsProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, UpdateSettingsOptions, SettingsList>[]
 ) {
@@ -2900,11 +2953,11 @@ async function handleSpectralUpdateSettingsProtobuf<
   return Buffer.from(SettingsList.encode(response).finish());
 }
 
-async function handleSpectralBeginVerificationProtobuf<
+async function handleLightEventBeginVerificationProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -2940,11 +2993,11 @@ async function handleSpectralBeginVerificationProtobuf<
   return Buffer.from(BeginVerificationResult.encode(response).finish());
 }
 
-async function handleSpectralCompleteVerificationProtobuf<
+async function handleLightEventCompleteVerificationProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<
     T,
@@ -2980,11 +3033,11 @@ async function handleSpectralCompleteVerificationProtobuf<
   return Buffer.from(CompleteVerificationResult.encode(response).finish());
 }
 
-async function handleSpectralRegisterProtobuf<
+async function handleLightEventRegisterProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
-  service: SpectralTwirp,
+  service: LightEventTwirp,
   data: Buffer,
   interceptors?: Interceptor<T, MemberRegistration, Registration>[]
 ) {

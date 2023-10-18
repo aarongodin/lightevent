@@ -23,9 +23,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aarongodin/spectral/internal/config"
-	"github.com/aarongodin/spectral/internal/server/twirputil"
-	"github.com/aarongodin/spectral/internal/storage"
+	"github.com/aarongodin/lightevent/internal/config"
+	"github.com/aarongodin/lightevent/internal/server/twirputil"
+	"github.com/aarongodin/lightevent/internal/storage"
 	"github.com/twitchtv/twirp"
 )
 

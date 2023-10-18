@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/aarongodin/spectral/internal/storage"
-	"github.com/aarongodin/spectral/internal/util"
+	"github.com/aarongodin/lightevent/internal/storage"
+	"github.com/aarongodin/lightevent/internal/util"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 

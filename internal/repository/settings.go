@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aarongodin/spectral/internal/storage"
+	"github.com/aarongodin/lightevent/internal/storage"
 )
 
 const (

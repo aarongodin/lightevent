@@ -1,14 +1,14 @@
-# Contributing to Spectral
+# Contributing to LightEvent
 
 Any level of contribution is welcome, and we want it to be easy to engage with the development of the project. Contributions come in all shapes and sizes, from one-line documentation fixes to major features or bugfixes. If you're new to web software or open source, this is a great project to start with because it applies almost all of the most common practices in web development.
 
 ## Versioning
 
-This project follows [Semver](https://semver.org/). Generally speaking, we will avoid breaking changes whenever possible. You can find release notes on the [Releases](https://github.com/aarongodin/spectral/releases) page.
+This project follows [Semver](https://semver.org/). Generally speaking, we will avoid breaking changes whenever possible. You can find release notes on the [Releases](https://github.com/aarongodin/lightevent/releases) page.
 
 ## Issues
 
-The [issues](https://github.com/aarongodin/spectral/issues) section of GitHub is for bug tracking and feature requests.
+The [issues](https://github.com/aarongodin/lightevent/issues) section of GitHub is for bug tracking and feature requests.
 
 ### Bugs
 
@@ -63,12 +63,12 @@ Open the admin app at [https://localhost:5500](https://localhost:5500) and the c
 
 ### Using the JSON API
 
-The protobuf framework used by spectral is [twirp](https://twitchtv.github.io/twirp/). For development purposes, there's also a JSON API. This makes it easier to test, especially for newcomers to protobuf.
+The protobuf framework used by LightEvent is [twirp](https://twitchtv.github.io/twirp/). For development purposes, there's also a JSON API. This makes it easier to test, especially for newcomers to protobuf.
 
 Once you have the server runnning locally, you can access the API on port 8080. Here's an example using httpie to call the Ping RPC:
 
 ```
-~ http post localhost:8080/rpc/Spectral/Ping
+~ http post localhost:8080/rpc/LightEvent/Ping
 HTTP/1.1 401 Unauthorized
 Content-Length: 58
 Content-Type: application/json

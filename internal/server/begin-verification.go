@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/aarongodin/spectral/internal/repository"
-	"github.com/aarongodin/spectral/internal/service"
+	"github.com/aarongodin/lightevent/internal/repository"
+	"github.com/aarongodin/lightevent/internal/service"
 )
 
 func (s *Server) BeginVerification(ctx context.Context, message *service.BeginVerificationOptions) (*service.BeginVerificationResult, error) {

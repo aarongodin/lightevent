@@ -4,7 +4,7 @@ import "google/protobuf/struct.proto";
 
 option go_package = "./internal/service";
 
-service Spectral {
+service LightEvent {
 	// Ping allows clients to ask the server about the authenticated user or API key.
 	rpc Ping(PingOptions) returns (PingResult);
 

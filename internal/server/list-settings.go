@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 
-	"github.com/aarongodin/spectral/internal/repository"
-	"github.com/aarongodin/spectral/internal/service"
+	"github.com/aarongodin/lightevent/internal/repository"
+	"github.com/aarongodin/lightevent/internal/service"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 

@@ -3,14 +3,14 @@ package access
 import (
 	"net/http"
 
-	"github.com/aarongodin/spectral/internal/config"
+	"github.com/aarongodin/lightevent/internal/config"
 	"github.com/gorilla/securecookie"
 	"github.com/rs/zerolog/log"
 )
 
 const (
-	COOKIE_USER_SESSION   = "spectral-user-session"
-	COOKIE_MEMBER_SESSION = "spectral-member-session"
+	COOKIE_USER_SESSION   = "lightevent-user-session"
+	COOKIE_MEMBER_SESSION = "lightevent-member-session"
 )
 
 var sc *securecookie.SecureCookie

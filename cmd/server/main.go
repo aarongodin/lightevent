@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/aarongodin/spectral"
-	"github.com/aarongodin/spectral/internal/config"
-	"github.com/aarongodin/spectral/internal/server"
-	"github.com/aarongodin/spectral/internal/server/access"
-	"github.com/aarongodin/spectral/internal/service"
-	"github.com/aarongodin/spectral/internal/storage"
+	"github.com/aarongodin/lightevent"
+	"github.com/aarongodin/lightevent/internal/config"
+	"github.com/aarongodin/lightevent/internal/server"
+	"github.com/aarongodin/lightevent/internal/server/access"
+	"github.com/aarongodin/lightevent/internal/service"
+	"github.com/aarongodin/lightevent/internal/storage"
 	"github.com/julienschmidt/httprouter"
 	"github.com/twitchtv/twirp"
 
@@ -37,7 +37,7 @@ func main() {
 	if runtimeConfig.LogFormat == "console" {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
-	log.Info().Str("version", spectral.VERSION).Msg("welcome message")
+	log.Info().Str("version", lightevent.VERSION).Msg("LightEvent")
 	if runtimeConfig.Debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 		log.Info().Str("lvl", zerolog.GlobalLevel().String()).Str("format", runtimeConfig.LogFormat).Msg("logging config")
@@ -50,7 +50,7 @@ func main() {
 	queries := storage.New(store.DB)
 
 	s := server.NewServer(store.DB, queries, runtimeConfig)
-	twirpHandler := service.NewSpectralServer(s, twirp.WithServerPathPrefix("/rpc"), twirp.WithServerHooks(server.NewLoggingHooks()))
+	twirpHandler := service.NewLightEventServer(s, twirp.WithServerPathPrefix("/rpc"), twirp.WithServerHooks(server.NewLoggingHooks()))
 
 	authHandler := httprouter.New()
 	if err := access.Register(authHandler, queries, runtimeConfig); err != nil {

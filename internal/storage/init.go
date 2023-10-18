@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aarongodin/spectral/db/migrations"
-	"github.com/aarongodin/spectral/internal/config"
+	"github.com/aarongodin/lightevent/db/migrations"
+	"github.com/aarongodin/lightevent/internal/config"
 	"github.com/rs/zerolog/log"
 )
 
-var spectralMigrationsKey = "spectral"
+var lightEventMigrationsKey = "lightevent"
 
 var createMigrationsTable = `
 	CREATE TABLE IF NOT EXISTS migrations (
@@ -76,7 +76,7 @@ func (s Storage) Migrate(ctx context.Context) error {
 	if _, err := s.DB.ExecContext(ctx, createMigrationsTable); err != nil {
 		return fmt.Errorf("error creating migrations table: %w", err)
 	}
-	current, err := s.CurrentVersion(ctx, spectralMigrationsKey)
+	current, err := s.CurrentVersion(ctx, lightEventMigrationsKey)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (s Storage) Migrate(ctx context.Context) error {
 				return fmt.Errorf("error executing migration [%s]: %w", version.filename, err)
 			}
 
-			if _, err := tx.ExecContext(ctx, setMigrationVersion, spectralMigrationsKey, version.n); err != nil {
+			if _, err := tx.ExecContext(ctx, setMigrationVersion, lightEventMigrationsKey, version.n); err != nil {
 				return fmt.Errorf("error setting migration version for [%s]: %w", version.filename, err)
 			}
 

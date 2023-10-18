@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/aarongodin/spectral/internal/service"
+	"github.com/aarongodin/lightevent/internal/service"
 )
 
 func (s *Server) ListEvents(ctx context.Context, message *service.ListEventsOptions) (*service.EventList, error) {

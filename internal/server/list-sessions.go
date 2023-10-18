@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aarongodin/spectral/internal/service"
+	"github.com/aarongodin/lightevent/internal/service"
 )
 
 func (s *Server) ListSessions(ctx context.Context, message *service.ListSessionsOptions) (*service.SessionList, error) {

@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/aarongodin/spectral/internal/service"
-	"github.com/aarongodin/spectral/internal/storage"
-	"github.com/aarongodin/spectral/internal/util"
+	"github.com/aarongodin/lightevent/internal/service"
+	"github.com/aarongodin/lightevent/internal/storage"
+	"github.com/aarongodin/lightevent/internal/util"
 	"github.com/twitchtv/twirp"
 )
 

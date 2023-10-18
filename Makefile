@@ -1,5 +1,5 @@
 server:
-	@go build -o bin/spectral cmd/server/main.go
+	@go build -o bin/lightevent cmd/server/main.go
 
 download:
 	@echo Download go.mod dependencies
@@ -10,7 +10,7 @@ install-tools: download
 	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
 
 protoc:
-	@echo Compiling rpc/spectral/service.proto
+	@echo Compiling rpc/lightevent/service.proto
 	@mkdir ./generated
 	@protoc \
 		--twirp_out=. \
@@ -22,9 +22,9 @@ protoc:
     --ts_proto_out=./generated \
     --twirp_ts_opt="ts_proto" \
     --twirp_ts_out=./generated \
-		rpc/spectral/service.proto
-	@cp ./generated/rpc/spectral/* admin/src/rpc/
-	@cp ./generated/rpc/spectral/* e2e/src/rpc/
+		rpc/lightevent/service.proto
+	@cp ./generated/rpc/lightevent/* admin/src/rpc/
+	@cp ./generated/rpc/lightevent/* e2e/src/rpc/
 	@rm -rf ./generated
 
 test-api:

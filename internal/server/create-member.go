@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/aarongodin/spectral/internal/service"
-	"github.com/aarongodin/spectral/internal/storage"
+	"github.com/aarongodin/lightevent/internal/service"
+	"github.com/aarongodin/lightevent/internal/storage"
 )
 
 func (s *Server) CreateMember(ctx context.Context, message *service.WriteableMember) (*service.Member, error) {

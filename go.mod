@@ -1,4 +1,4 @@
-module github.com/aarongodin/spectral
+module github.com/aarongodin/lightevent
 
 go 1.19
 

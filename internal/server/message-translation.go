@@ -3,8 +3,8 @@ package server
 import (
 	"time"
 
-	"github.com/aarongodin/spectral/internal/service"
-	"github.com/aarongodin/spectral/internal/storage"
+	"github.com/aarongodin/lightevent/internal/service"
+	"github.com/aarongodin/lightevent/internal/storage"
 )
 
 var (

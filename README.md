@@ -1,6 +1,6 @@
-# spectral
+# LightEvent
 
-Spectral is an open source & self-hosted alternative to complex/expensive class & event management software. The system is comprised of the following components:
+LightEvent is an open source & self-hosted alternative to complex/expensive class & event management software. The system is comprised of the following components:
 
 * Server application written in go
 * Admin UI served by the Server application
@@ -20,8 +20,8 @@ The features are intended to be laser-focused on offering a simple experience, b
 
 * **Single binary** - Download a single binary and run it however you want.
 * **Embedded storage** - Uses sqlite through for embedded storage, so there's no DBMS to manage. Backups and replication for read-replicas could be done with [Litestream](https://litestream.io/).
-* **Tidy web footprint** - Spectral aims at keeping the client application as small as possible to ensure fast load time.
-* **RPC API with Twirp** - Augment Spectral with your own integrations using the API. Spectral is built using [Twirp](https://github.com/twitchtv/twirp), a fantastic RPC framework built on [protobuf](https://github.com/protocolbuffers/protobuf).
+* **Tidy web footprint** - LightEvent aims at keeping the client application as small as possible to ensure fast load time.
+* **RPC API with Twirp** - Augment LightEvent with your own integrations using the API. LightEvent is built using [Twirp](https://github.com/twitchtv/twirp), a fantastic RPC framework built on [protobuf](https://github.com/protocolbuffers/protobuf).
 
 ### GitHub Project
 
@@ -29,11 +29,11 @@ Check out status of requested and planned features in our GitHub project!
 
 ## Getting Started
 
-To install and try Spectral, follow [the Getting Started guide]().
+To install and try LightEvent, follow [the Getting Started guide]().
 
 ## Testing Process
 
-Each release of Spectral is heavily tested through a set of automated integration tests. We are using [Playwright](https://playwright.dev/) to test through multiple browsers on each release to ensure a consistent and bug-free experience between common browsers.
+Each release of LightEvent is heavily tested through a set of automated integration tests. We are using [Playwright](https://playwright.dev/) to test through multiple browsers on each release to ensure a consistent and bug-free experience between common browsers.
 
 You can read more about the testing process [on the website]().
 

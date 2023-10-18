@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/aarongodin/spectral/internal/service"
+	"github.com/aarongodin/lightevent/internal/service"
 )
 
 func (s *Server) GetRegistration(ctx context.Context, message *service.ByConfCode) (*service.Registration, error) {

@@ -9,9 +9,8 @@
 # export PORT=8080
 # export DEBUG=true
 # export LOG_FORMAT=console
-# export DATABASE_PATH=spectral.db
+# export DATABASE_FILE=lightevent.sqlite3
 # export SESSION_MAX_AGE=168h
 # export COOKIE_HMAC_SECRET=test
 # export ALLOW_ADMIN_USER=true
 # export ADMIN_USER_PASSWORD=admin
-# export DATABASE_FILE=spectral.sqlite3

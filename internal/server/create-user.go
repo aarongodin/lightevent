@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/aarongodin/spectral/internal/service"
-	"github.com/aarongodin/spectral/internal/storage"
+	"github.com/aarongodin/lightevent/internal/service"
+	"github.com/aarongodin/lightevent/internal/storage"
 	"github.com/twitchtv/twirp"
 	"golang.org/x/crypto/bcrypt"
 )

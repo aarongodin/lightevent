@@ -1,6 +1,6 @@
 import { FetchRPC, FetchRPCOptions } from "twirp-ts"
 
-import { SpectralClientProtobuf } from "../src/rpc"
+import { LightEventClientProtobuf } from "../src/rpc"
 
 export const adminUserClient = buildClient({
   headers: {
@@ -9,7 +9,7 @@ export const adminUserClient = buildClient({
 })
 
 export function buildClient(opts: Omit<FetchRPCOptions, "baseUrl"> = {}) {
-  return new SpectralClientProtobuf(
+  return new LightEventClientProtobuf(
     FetchRPC({
       ...opts,
       baseUrl: "http://0.0.0.0:8080/rpc",

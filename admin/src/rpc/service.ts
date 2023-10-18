@@ -2303,7 +2303,7 @@ export const GetMemberOptions = {
   },
 };
 
-export interface Spectral {
+export interface LightEvent {
   /** Ping allows clients to ask the server about the authenticated user or API key. */
   Ping(request: PingOptions): Promise<PingResult>;
   /** Events */

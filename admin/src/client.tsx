@@ -1,10 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react"
 
-import { SpectralClientProtobuf } from "./rpc/service.twirp"
+import { LightEventClientProtobuf } from "./rpc/service.twirp"
 
-export const ClientContext = createContext<SpectralClientProtobuf | null>(null)
+export const ClientContext = createContext<LightEventClientProtobuf | null>(null)
 
-export function useClient(): SpectralClientProtobuf {
+export function useClient(): LightEventClientProtobuf {
   const v = useContext(ClientContext)
   if (v === null) {
     throw new Error("uninitialized client")
@@ -14,7 +14,7 @@ export function useClient(): SpectralClientProtobuf {
 
 type WithRequestProps<T> = {
   children: (response: T, refreshing: boolean) => any
-  load: (client: SpectralClientProtobuf) => Promise<T>
+  load: (client: LightEventClientProtobuf) => Promise<T>
   deps: any[]
   loader: React.FunctionComponent
 }

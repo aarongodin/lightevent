@@ -1,7 +1,7 @@
 {
-  "name": "spectral",
+  "name": "lightevent",
   "version": "0.0.0",
-  "description": "package for Spectral repository",
+  "description": "package for LightEvent repository",
   "author": "Aaron Godin <godinaaweb@gmail.com>",
   "license": "MIT",
   "workspaces": [

@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 
-	"github.com/aarongodin/spectral/internal/service"
-	"github.com/aarongodin/spectral/internal/storage"
+	"github.com/aarongodin/lightevent/internal/service"
+	"github.com/aarongodin/lightevent/internal/storage"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/twitchtv/twirp"
 )

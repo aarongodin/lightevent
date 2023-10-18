@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 
-	"github.com/aarongodin/spectral/internal/server/access"
-	"github.com/aarongodin/spectral/internal/service"
+	"github.com/aarongodin/lightevent/internal/server/access"
+	"github.com/aarongodin/lightevent/internal/service"
 )
 
 func (s *Server) Ping(ctx context.Context, message *service.PingOptions) (*service.PingResult, error) {

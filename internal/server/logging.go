@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/aarongodin/spectral/internal/server/access"
+	"github.com/aarongodin/lightevent/internal/server/access"
 	"github.com/rs/zerolog/log"
 	"github.com/twitchtv/twirp"
 )

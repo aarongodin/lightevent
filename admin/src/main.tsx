@@ -8,10 +8,10 @@ import { FetchRPC, TwirpError, TwirpErrorCode } from "twirp-ts"
 import { ClientContext } from "./client"
 import { PromptProvider, PromptView } from "./prompt"
 import router from "./router"
-import { SpectralClientProtobuf } from "./rpc"
+import { LightEventClientProtobuf } from "./rpc"
 import UnexpectedError from "./unexpected"
 
-const client = new SpectralClientProtobuf(
+const client = new LightEventClientProtobuf(
   FetchRPC({
     baseUrl: `${window.origin}/rpc`,
     credentials: "same-origin",
