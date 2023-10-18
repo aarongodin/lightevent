@@ -24,7 +24,6 @@ func translateEvent(rec storage.Event) *service.Event {
 
 func translateEventDate(rec storage.EventDate) *service.EventDate {
 	return &service.EventDate{
-		Id:        rec.Uid,
 		Value:     rec.Value.Format(time.RFC3339),
 		Cancelled: rec.Cancelled == 1,
 	}

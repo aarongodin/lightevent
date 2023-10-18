@@ -11,6 +11,8 @@ import (
 	"github.com/aarongodin/lightevent/db/migrations"
 	"github.com/aarongodin/lightevent/internal/config"
 	"github.com/rs/zerolog/log"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var lightEventMigrationsKey = "lightevent"

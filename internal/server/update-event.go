@@ -6,7 +6,6 @@ import (
 
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
-	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 func (s *Server) UpdateEvent(ctx context.Context, message *service.Event) (*service.Event, error) {
@@ -35,23 +34,12 @@ func (s *Server) UpdateEvent(ctx context.Context, message *service.Event) (*serv
 	}
 
 	for _, date := range message.Dates {
-		uid := date.Id
-		if uid == "" {
-			if dateID, err := gonanoid.New(); err != nil {
-				return nil, errorResponse(err, "event")
-			} else {
-				uid = dateID
-			}
-		}
-
 		value, err := time.Parse(time.RFC3339, date.Value)
 		if err != nil {
 			return nil, errorResponse(err, "event")
 		}
-
 		params := storage.UpsertEventDateParams{
 			EventID: current.ID,
-			Uid:     uid,
 			Value:   value,
 		}
 		storage.SetInt64FromBool(&params.Cancelled, date.Cancelled)

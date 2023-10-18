@@ -16,4 +16,9 @@ export default defineConfig({
       "/rpc": serverURL,
     },
   },
+  resolve: {
+    alias: {
+      "../../google/protobuf/struct": "google-protobuf/google/protobuf/struct_pb",
+    },
+  },
 })

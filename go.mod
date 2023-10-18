@@ -4,9 +4,9 @@ go 1.19
 
 require (
 	github.com/caarlos0/env/v7 v7.1.0
+	github.com/google/uuid v1.3.1
 	github.com/gorilla/securecookie v1.1.1
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/matoous/go-nanoid/v2 v2.0.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/rs/zerolog v1.31.0
 	github.com/twitchtv/twirp v8.1.3+incompatible

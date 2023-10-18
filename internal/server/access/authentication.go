@@ -7,7 +7,7 @@ import (
 
 	"github.com/aarongodin/lightevent/internal/repository"
 	"github.com/aarongodin/lightevent/internal/storage"
-	gonanoid "github.com/matoous/go-nanoid/v2"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,14 +45,10 @@ func (ar accessRoutes) authenticateUser(ctx context.Context, username string, pa
 
 	if err != nil {
 		if errors.Is(sql.ErrNoRows, err) {
-			key, err := gonanoid.New()
-			if err != nil {
-				return nil, err
-			}
 			session, err = ar.queries.CreateSession(ctx, storage.CreateSessionParams{
 				Subject: username,
 				Kind:    repository.SESSION_KIND_USER,
-				Key:     key,
+				Key:     uuid.New().String(),
 			})
 			if err != nil {
 				return nil, err

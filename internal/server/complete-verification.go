@@ -10,7 +10,7 @@ import (
 	"github.com/aarongodin/lightevent/internal/server/access"
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
-	gonanoid "github.com/matoous/go-nanoid/v2"
+	"github.com/google/uuid"
 	"github.com/twitchtv/twirp"
 )
 
@@ -44,14 +44,13 @@ func (s *Server) CompleteVerification(ctx context.Context, message *service.Comp
 
 	if err != nil {
 		if errors.Is(sql.ErrNoRows, err) {
-			key, err := gonanoid.New()
 			if err != nil {
 				return nil, err
 			}
 			session, err = s.queries.CreateSession(ctx, storage.CreateSessionParams{
 				Subject: message.Email,
 				Kind:    repository.SESSION_KIND_MEMBER,
-				Key:     key,
+				Key:     uuid.New().String(),
 			})
 			if err != nil {
 				return nil, err

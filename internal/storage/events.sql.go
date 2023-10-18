@@ -48,29 +48,22 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event
 
 const createEventDate = `-- name: CreateEventDate :one
 INSERT INTO event_dates (
-  event_id, uid, value, cancelled
-) VALUES (?, ?, ?, ?)
-RETURNING id, uid, event_id, value, cancelled
+  event_id, value, cancelled
+) VALUES (?, ?, ?)
+RETURNING id, event_id, value, cancelled
 `
 
 type CreateEventDateParams struct {
 	EventID   int64
-	Uid       string
 	Value     time.Time
 	Cancelled int64
 }
 
 func (q *Queries) CreateEventDate(ctx context.Context, arg CreateEventDateParams) (EventDate, error) {
-	row := q.db.QueryRowContext(ctx, createEventDate,
-		arg.EventID,
-		arg.Uid,
-		arg.Value,
-		arg.Cancelled,
-	)
+	row := q.db.QueryRowContext(ctx, createEventDate, arg.EventID, arg.Value, arg.Cancelled)
 	var i EventDate
 	err := row.Scan(
 		&i.ID,
-		&i.Uid,
 		&i.EventID,
 		&i.Value,
 		&i.Cancelled,
@@ -121,7 +114,7 @@ func (q *Queries) GetEventByName(ctx context.Context, name string) (Event, error
 }
 
 const getEventDate = `-- name: GetEventDate :one
-SELECT id, uid, event_id, value, cancelled FROM event_dates
+SELECT id, event_id, value, cancelled FROM event_dates
 WHERE id = ?
 `
 
@@ -130,7 +123,6 @@ func (q *Queries) GetEventDate(ctx context.Context, id int64) (EventDate, error)
 	var i EventDate
 	err := row.Scan(
 		&i.ID,
-		&i.Uid,
 		&i.EventID,
 		&i.Value,
 		&i.Cancelled,
@@ -139,7 +131,7 @@ func (q *Queries) GetEventDate(ctx context.Context, id int64) (EventDate, error)
 }
 
 const getEventDateByValue = `-- name: GetEventDateByValue :one
-SELECT id, uid, event_id, value, cancelled FROM event_dates
+SELECT id, event_id, value, cancelled FROM event_dates
 WHERE event_id = ? AND value = ?
 `
 
@@ -153,7 +145,6 @@ func (q *Queries) GetEventDateByValue(ctx context.Context, arg GetEventDateByVal
 	var i EventDate
 	err := row.Scan(
 		&i.ID,
-		&i.Uid,
 		&i.EventID,
 		&i.Value,
 		&i.Cancelled,
@@ -162,7 +153,7 @@ func (q *Queries) GetEventDateByValue(ctx context.Context, arg GetEventDateByVal
 }
 
 const listEventDates = `-- name: ListEventDates :many
-SELECT id, uid, event_id, value, cancelled
+SELECT id, event_id, value, cancelled
 FROM event_dates
 WHERE event_id = ?
 `
@@ -178,7 +169,6 @@ func (q *Queries) ListEventDates(ctx context.Context, eventID int64) ([]EventDat
 		var i EventDate
 		if err := rows.Scan(
 			&i.ID,
-			&i.Uid,
 			&i.EventID,
 			&i.Value,
 			&i.Cancelled,
@@ -271,31 +261,24 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event
 
 const upsertEventDate = `-- name: UpsertEventDate :one
 INSERT INTO event_dates (
-  event_id, uid, value, cancelled
-) VALUES (?, ?, ?, ?)
+  event_id, value, cancelled
+) VALUES (?, ?, ?)
 ON CONFLICT DO UPDATE SET
   cancelled = excluded.cancelled
-RETURNING id, uid, event_id, value, cancelled
+RETURNING id, event_id, value, cancelled
 `
 
 type UpsertEventDateParams struct {
 	EventID   int64
-	Uid       string
 	Value     time.Time
 	Cancelled int64
 }
 
 func (q *Queries) UpsertEventDate(ctx context.Context, arg UpsertEventDateParams) (EventDate, error) {
-	row := q.db.QueryRowContext(ctx, upsertEventDate,
-		arg.EventID,
-		arg.Uid,
-		arg.Value,
-		arg.Cancelled,
-	)
+	row := q.db.QueryRowContext(ctx, upsertEventDate, arg.EventID, arg.Value, arg.Cancelled)
 	var i EventDate
 	err := row.Scan(
 		&i.ID,
-		&i.Uid,
 		&i.EventID,
 		&i.Value,
 		&i.Cancelled,

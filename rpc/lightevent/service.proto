@@ -74,9 +74,8 @@ message Event {
 }
 
 message EventDate {
-	string id = 1;
-	string value = 2;
-	bool cancelled = 3;
+	string value = 1;
+	bool cancelled = 2;
 }
 
 message ListEventRegistrationsOptions {

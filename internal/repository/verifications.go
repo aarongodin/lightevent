@@ -5,7 +5,7 @@ import (
 
 	"github.com/aarongodin/lightevent/internal/storage"
 	"github.com/aarongodin/lightevent/internal/util"
-	gonanoid "github.com/matoous/go-nanoid/v2"
+	"github.com/google/uuid"
 )
 
 // CreateVerification adds business logic for initializing a new verification in the storage.
@@ -15,14 +15,9 @@ func CreateVerification(ctx context.Context, queries *storage.Queries, email str
 		return storage.Verification{}, err
 	}
 
-	key, err := gonanoid.New()
-	if err != nil {
-		return storage.Verification{}, err
-	}
-
 	params := storage.CreateVerificationParams{
 		Email:     email,
-		Key:       key,
+		Key:       uuid.New().String(),
 		Challenge: challenge,
 	}
 

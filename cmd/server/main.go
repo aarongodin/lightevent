@@ -19,8 +19,6 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -40,8 +38,8 @@ func main() {
 	log.Info().Str("version", lightevent.VERSION).Msg("LightEvent")
 	if runtimeConfig.Debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-		log.Info().Str("lvl", zerolog.GlobalLevel().String()).Str("format", runtimeConfig.LogFormat).Msg("logging config")
 	}
+	log.Info().Str("lvl", zerolog.GlobalLevel().String()).Str("format", runtimeConfig.LogFormat).Msg("logging config")
 
 	store, err := storage.Init(context.Background(), runtimeConfig)
 	if err != nil {

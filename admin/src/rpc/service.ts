@@ -70,7 +70,6 @@ export interface Event {
 }
 
 export interface EventDate {
-  id: string;
   value: string;
   cancelled: boolean;
 }
@@ -613,19 +612,16 @@ export const Event = {
 };
 
 function createBaseEventDate(): EventDate {
-  return { id: "", value: "", cancelled: false };
+  return { value: "", cancelled: false };
 }
 
 export const EventDate = {
   encode(message: EventDate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
     if (message.value !== "") {
-      writer.uint32(18).string(message.value);
+      writer.uint32(10).string(message.value);
     }
     if (message.cancelled === true) {
-      writer.uint32(24).bool(message.cancelled);
+      writer.uint32(16).bool(message.cancelled);
     }
     return writer;
   },
@@ -638,12 +634,9 @@ export const EventDate = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.id = reader.string();
-          break;
-        case 2:
           message.value = reader.string();
           break;
-        case 3:
+        case 2:
           message.cancelled = reader.bool();
           break;
         default:
@@ -656,7 +649,6 @@ export const EventDate = {
 
   fromJSON(object: any): EventDate {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
       value: isSet(object.value) ? String(object.value) : "",
       cancelled: isSet(object.cancelled) ? Boolean(object.cancelled) : false,
     };
@@ -664,7 +656,6 @@ export const EventDate = {
 
   toJSON(message: EventDate): unknown {
     const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
     message.value !== undefined && (obj.value = message.value);
     message.cancelled !== undefined && (obj.cancelled = message.cancelled);
     return obj;
@@ -676,7 +667,6 @@ export const EventDate = {
 
   fromPartial<I extends Exact<DeepPartial<EventDate>, I>>(object: I): EventDate {
     const message = createBaseEventDate();
-    message.id = object.id ?? "";
     message.value = object.value ?? "";
     message.cancelled = object.cancelled ?? false;
     return message;

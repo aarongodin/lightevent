@@ -7,6 +7,8 @@ import (
 
 	"github.com/aarongodin/lightevent/internal/config"
 	"github.com/aarongodin/lightevent/internal/storage"
+	"github.com/aarongodin/lightevent/internal/validation"
+	"github.com/mattn/go-sqlite3"
 	"github.com/twitchtv/twirp"
 )
 
@@ -31,13 +33,15 @@ func errorResponse(err error, entity string) error {
 		return twirp.NotFoundError(fmt.Sprintf("%s not found", entity))
 	}
 
-	// if errors.Is(err, storm.ErrAlreadyExists) {
-	// 	return twirp.AlreadyExists.Error(fmt.Sprintf("%s already exists", entity))
-	// }
+	if verr, ok := err.(validation.ErrValidationFailed); ok {
+		return twirp.InvalidArgumentError(verr.Argument, verr.Reason)
+	}
 
-	// if verr, ok := err.(repository.ErrValidationFailed); ok {
-	// 	return twirp.InvalidArgumentError(verr.Argument, verr.Reason)
-	// }
+	if sqliteErr, ok := err.(sqlite3.Error); ok {
+		if sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+			return twirp.AlreadyExists.Error(fmt.Sprintf("%s already exists", entity))
+		}
+	}
 
 	return err
 }

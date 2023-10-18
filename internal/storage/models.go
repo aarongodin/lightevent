@@ -28,7 +28,6 @@ type Event struct {
 
 type EventDate struct {
 	ID        int64
-	Uid       string
 	EventID   int64
 	Value     time.Time
 	Cancelled int64

@@ -44,14 +44,14 @@ WHERE event_id = ? AND value = ?;
 
 -- name: CreateEventDate :one
 INSERT INTO event_dates (
-  event_id, uid, value, cancelled
-) VALUES (?, ?, ?, ?)
+  event_id, value, cancelled
+) VALUES (?, ?, ?)
 RETURNING *;
 
 -- name: UpsertEventDate :one
 INSERT INTO event_dates (
-  event_id, uid, value, cancelled
-) VALUES (?, ?, ?, ?)
+  event_id, value, cancelled
+) VALUES (?, ?, ?)
 ON CONFLICT DO UPDATE SET
   cancelled = excluded.cancelled
 RETURNING *;
