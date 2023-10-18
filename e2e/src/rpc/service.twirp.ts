@@ -33,7 +33,9 @@ import {
   SessionList,
   WriteableAPIKey,
   APIKeyWithSecret,
-  BoolSetting,
+  ListSettingsOptions,
+  SettingsList,
+  UpdateSettingsOptions,
   BeginVerificationOptions,
   BeginVerificationResult,
   CompleteVerificationOptions,
@@ -72,8 +74,8 @@ export interface SpectralClient {
   ListUsers(request: ListUsersOptions): Promise<UserList>;
   ListSessions(request: ListSessionsOptions): Promise<SessionList>;
   CreateAPIKey(request: WriteableAPIKey): Promise<APIKeyWithSecret>;
-  GetBoolSetting(request: ByName): Promise<BoolSetting>;
-  UpdateBoolSetting(request: BoolSetting): Promise<BoolSetting>;
+  ListSettings(request: ListSettingsOptions): Promise<SettingsList>;
+  UpdateSettings(request: UpdateSettingsOptions): Promise<SettingsList>;
   BeginVerification(
     request: BeginVerificationOptions
   ): Promise<BeginVerificationResult>;
@@ -102,8 +104,8 @@ export class SpectralClientJSON implements SpectralClient {
     this.ListUsers.bind(this);
     this.ListSessions.bind(this);
     this.CreateAPIKey.bind(this);
-    this.GetBoolSetting.bind(this);
-    this.UpdateBoolSetting.bind(this);
+    this.ListSettings.bind(this);
+    this.UpdateSettings.bind(this);
     this.BeginVerification.bind(this);
     this.CompleteVerification.bind(this);
     this.Register.bind(this);
@@ -275,26 +277,26 @@ export class SpectralClientJSON implements SpectralClient {
     return promise.then((data) => APIKeyWithSecret.fromJSON(data as any));
   }
 
-  GetBoolSetting(request: ByName): Promise<BoolSetting> {
-    const data = ByName.toJSON(request);
+  ListSettings(request: ListSettingsOptions): Promise<SettingsList> {
+    const data = ListSettingsOptions.toJSON(request);
     const promise = this.rpc.request(
       "Spectral",
-      "GetBoolSetting",
+      "ListSettings",
       "application/json",
       data as object
     );
-    return promise.then((data) => BoolSetting.fromJSON(data as any));
+    return promise.then((data) => SettingsList.fromJSON(data as any));
   }
 
-  UpdateBoolSetting(request: BoolSetting): Promise<BoolSetting> {
-    const data = BoolSetting.toJSON(request);
+  UpdateSettings(request: UpdateSettingsOptions): Promise<SettingsList> {
+    const data = UpdateSettingsOptions.toJSON(request);
     const promise = this.rpc.request(
       "Spectral",
-      "UpdateBoolSetting",
+      "UpdateSettings",
       "application/json",
       data as object
     );
-    return promise.then((data) => BoolSetting.fromJSON(data as any));
+    return promise.then((data) => SettingsList.fromJSON(data as any));
   }
 
   BeginVerification(
@@ -358,8 +360,8 @@ export class SpectralClientProtobuf implements SpectralClient {
     this.ListUsers.bind(this);
     this.ListSessions.bind(this);
     this.CreateAPIKey.bind(this);
-    this.GetBoolSetting.bind(this);
-    this.UpdateBoolSetting.bind(this);
+    this.ListSettings.bind(this);
+    this.UpdateSettings.bind(this);
     this.BeginVerification.bind(this);
     this.CompleteVerification.bind(this);
     this.Register.bind(this);
@@ -531,26 +533,26 @@ export class SpectralClientProtobuf implements SpectralClient {
     return promise.then((data) => APIKeyWithSecret.decode(data as Uint8Array));
   }
 
-  GetBoolSetting(request: ByName): Promise<BoolSetting> {
-    const data = ByName.encode(request).finish();
+  ListSettings(request: ListSettingsOptions): Promise<SettingsList> {
+    const data = ListSettingsOptions.encode(request).finish();
     const promise = this.rpc.request(
       "Spectral",
-      "GetBoolSetting",
+      "ListSettings",
       "application/protobuf",
       data
     );
-    return promise.then((data) => BoolSetting.decode(data as Uint8Array));
+    return promise.then((data) => SettingsList.decode(data as Uint8Array));
   }
 
-  UpdateBoolSetting(request: BoolSetting): Promise<BoolSetting> {
-    const data = BoolSetting.encode(request).finish();
+  UpdateSettings(request: UpdateSettingsOptions): Promise<SettingsList> {
+    const data = UpdateSettingsOptions.encode(request).finish();
     const promise = this.rpc.request(
       "Spectral",
-      "UpdateBoolSetting",
+      "UpdateSettings",
       "application/protobuf",
       data
     );
-    return promise.then((data) => BoolSetting.decode(data as Uint8Array));
+    return promise.then((data) => SettingsList.decode(data as Uint8Array));
   }
 
   BeginVerification(
@@ -621,8 +623,8 @@ export interface SpectralTwirp<T extends TwirpContext = TwirpContext> {
   ListUsers(ctx: T, request: ListUsersOptions): Promise<UserList>;
   ListSessions(ctx: T, request: ListSessionsOptions): Promise<SessionList>;
   CreateAPIKey(ctx: T, request: WriteableAPIKey): Promise<APIKeyWithSecret>;
-  GetBoolSetting(ctx: T, request: ByName): Promise<BoolSetting>;
-  UpdateBoolSetting(ctx: T, request: BoolSetting): Promise<BoolSetting>;
+  ListSettings(ctx: T, request: ListSettingsOptions): Promise<SettingsList>;
+  UpdateSettings(ctx: T, request: UpdateSettingsOptions): Promise<SettingsList>;
   BeginVerification(
     ctx: T,
     request: BeginVerificationOptions
@@ -650,8 +652,8 @@ export enum SpectralMethod {
   ListUsers = "ListUsers",
   ListSessions = "ListSessions",
   CreateAPIKey = "CreateAPIKey",
-  GetBoolSetting = "GetBoolSetting",
-  UpdateBoolSetting = "UpdateBoolSetting",
+  ListSettings = "ListSettings",
+  UpdateSettings = "UpdateSettings",
   BeginVerification = "BeginVerification",
   CompleteVerification = "CompleteVerification",
   Register = "Register",
@@ -673,8 +675,8 @@ export const SpectralMethodList = [
   SpectralMethod.ListUsers,
   SpectralMethod.ListSessions,
   SpectralMethod.CreateAPIKey,
-  SpectralMethod.GetBoolSetting,
-  SpectralMethod.UpdateBoolSetting,
+  SpectralMethod.ListSettings,
+  SpectralMethod.UpdateSettings,
   SpectralMethod.BeginVerification,
   SpectralMethod.CompleteVerification,
   SpectralMethod.Register,
@@ -921,32 +923,32 @@ function matchSpectralRoute<T extends TwirpContext = TwirpContext>(
           interceptors
         );
       };
-    case "GetBoolSetting":
+    case "ListSettings":
       return async (
         ctx: T,
         service: SpectralTwirp,
         data: Buffer,
-        interceptors?: Interceptor<T, ByName, BoolSetting>[]
+        interceptors?: Interceptor<T, ListSettingsOptions, SettingsList>[]
       ) => {
-        ctx = { ...ctx, methodName: "GetBoolSetting" };
+        ctx = { ...ctx, methodName: "ListSettings" };
         await events.onMatch(ctx);
-        return handleSpectralGetBoolSettingRequest(
+        return handleSpectralListSettingsRequest(
           ctx,
           service,
           data,
           interceptors
         );
       };
-    case "UpdateBoolSetting":
+    case "UpdateSettings":
       return async (
         ctx: T,
         service: SpectralTwirp,
         data: Buffer,
-        interceptors?: Interceptor<T, BoolSetting, BoolSetting>[]
+        interceptors?: Interceptor<T, UpdateSettingsOptions, SettingsList>[]
       ) => {
-        ctx = { ...ctx, methodName: "UpdateBoolSetting" };
+        ctx = { ...ctx, methodName: "UpdateSettings" };
         await events.onMatch(ctx);
-        return handleSpectralUpdateBoolSettingRequest(
+        return handleSpectralUpdateSettingsRequest(
           ctx,
           service,
           data,
@@ -1388,24 +1390,24 @@ function handleSpectralCreateAPIKeyRequest<
   }
 }
 
-function handleSpectralGetBoolSettingRequest<
+function handleSpectralListSettingsRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
   service: SpectralTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, ByName, BoolSetting>[]
+  interceptors?: Interceptor<T, ListSettingsOptions, SettingsList>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralGetBoolSettingJSON<T>(
+      return handleSpectralListSettingsJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralGetBoolSettingProtobuf<T>(
+      return handleSpectralListSettingsProtobuf<T>(
         ctx,
         service,
         data,
@@ -1417,24 +1419,24 @@ function handleSpectralGetBoolSettingRequest<
   }
 }
 
-function handleSpectralUpdateBoolSettingRequest<
+function handleSpectralUpdateSettingsRequest<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
   service: SpectralTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, BoolSetting, BoolSetting>[]
+  interceptors?: Interceptor<T, UpdateSettingsOptions, SettingsList>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
-      return handleSpectralUpdateBoolSettingJSON<T>(
+      return handleSpectralUpdateSettingsJSON<T>(
         ctx,
         service,
         data,
         interceptors
       );
     case TwirpContentType.Protobuf:
-      return handleSpectralUpdateBoolSettingProtobuf<T>(
+      return handleSpectralUpdateSettingsProtobuf<T>(
         ctx,
         service,
         data,
@@ -2090,20 +2092,20 @@ async function handleSpectralCreateAPIKeyJSON<
   return JSON.stringify(APIKeyWithSecret.toJSON(response) as string);
 }
 
-async function handleSpectralGetBoolSettingJSON<
+async function handleSpectralListSettingsJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
   service: SpectralTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, ByName, BoolSetting>[]
+  interceptors?: Interceptor<T, ListSettingsOptions, SettingsList>[]
 ) {
-  let request: ByName;
-  let response: BoolSetting;
+  let request: ListSettingsOptions;
+  let response: SettingsList;
 
   try {
     const body = JSON.parse(data.toString() || "{}");
-    request = ByName.fromJSON(body);
+    request = ListSettingsOptions.fromJSON(body);
   } catch (e) {
     if (e instanceof Error) {
       const msg = "the json request could not be decoded";
@@ -2114,33 +2116,33 @@ async function handleSpectralGetBoolSettingJSON<
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
       T,
-      ByName,
-      BoolSetting
+      ListSettingsOptions,
+      SettingsList
     >;
     response = await interceptor(ctx, request!, (ctx, inputReq) => {
-      return service.GetBoolSetting(ctx, inputReq);
+      return service.ListSettings(ctx, inputReq);
     });
   } else {
-    response = await service.GetBoolSetting(ctx, request!);
+    response = await service.ListSettings(ctx, request!);
   }
 
-  return JSON.stringify(BoolSetting.toJSON(response) as string);
+  return JSON.stringify(SettingsList.toJSON(response) as string);
 }
 
-async function handleSpectralUpdateBoolSettingJSON<
+async function handleSpectralUpdateSettingsJSON<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
   service: SpectralTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, BoolSetting, BoolSetting>[]
+  interceptors?: Interceptor<T, UpdateSettingsOptions, SettingsList>[]
 ) {
-  let request: BoolSetting;
-  let response: BoolSetting;
+  let request: UpdateSettingsOptions;
+  let response: SettingsList;
 
   try {
     const body = JSON.parse(data.toString() || "{}");
-    request = BoolSetting.fromJSON(body);
+    request = UpdateSettingsOptions.fromJSON(body);
   } catch (e) {
     if (e instanceof Error) {
       const msg = "the json request could not be decoded";
@@ -2151,17 +2153,17 @@ async function handleSpectralUpdateBoolSettingJSON<
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
       T,
-      BoolSetting,
-      BoolSetting
+      UpdateSettingsOptions,
+      SettingsList
     >;
     response = await interceptor(ctx, request!, (ctx, inputReq) => {
-      return service.UpdateBoolSetting(ctx, inputReq);
+      return service.UpdateSettings(ctx, inputReq);
     });
   } else {
-    response = await service.UpdateBoolSetting(ctx, request!);
+    response = await service.UpdateSettings(ctx, request!);
   }
 
-  return JSON.stringify(BoolSetting.toJSON(response) as string);
+  return JSON.stringify(SettingsList.toJSON(response) as string);
 }
 
 async function handleSpectralBeginVerificationJSON<
@@ -2826,19 +2828,19 @@ async function handleSpectralCreateAPIKeyProtobuf<
   return Buffer.from(APIKeyWithSecret.encode(response).finish());
 }
 
-async function handleSpectralGetBoolSettingProtobuf<
+async function handleSpectralListSettingsProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
   service: SpectralTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, ByName, BoolSetting>[]
+  interceptors?: Interceptor<T, ListSettingsOptions, SettingsList>[]
 ) {
-  let request: ByName;
-  let response: BoolSetting;
+  let request: ListSettingsOptions;
+  let response: SettingsList;
 
   try {
-    request = ByName.decode(data);
+    request = ListSettingsOptions.decode(data);
   } catch (e) {
     if (e instanceof Error) {
       const msg = "the protobuf request could not be decoded";
@@ -2849,32 +2851,32 @@ async function handleSpectralGetBoolSettingProtobuf<
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
       T,
-      ByName,
-      BoolSetting
+      ListSettingsOptions,
+      SettingsList
     >;
     response = await interceptor(ctx, request!, (ctx, inputReq) => {
-      return service.GetBoolSetting(ctx, inputReq);
+      return service.ListSettings(ctx, inputReq);
     });
   } else {
-    response = await service.GetBoolSetting(ctx, request!);
+    response = await service.ListSettings(ctx, request!);
   }
 
-  return Buffer.from(BoolSetting.encode(response).finish());
+  return Buffer.from(SettingsList.encode(response).finish());
 }
 
-async function handleSpectralUpdateBoolSettingProtobuf<
+async function handleSpectralUpdateSettingsProtobuf<
   T extends TwirpContext = TwirpContext
 >(
   ctx: T,
   service: SpectralTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, BoolSetting, BoolSetting>[]
+  interceptors?: Interceptor<T, UpdateSettingsOptions, SettingsList>[]
 ) {
-  let request: BoolSetting;
-  let response: BoolSetting;
+  let request: UpdateSettingsOptions;
+  let response: SettingsList;
 
   try {
-    request = BoolSetting.decode(data);
+    request = UpdateSettingsOptions.decode(data);
   } catch (e) {
     if (e instanceof Error) {
       const msg = "the protobuf request could not be decoded";
@@ -2885,17 +2887,17 @@ async function handleSpectralUpdateBoolSettingProtobuf<
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
       T,
-      BoolSetting,
-      BoolSetting
+      UpdateSettingsOptions,
+      SettingsList
     >;
     response = await interceptor(ctx, request!, (ctx, inputReq) => {
-      return service.UpdateBoolSetting(ctx, inputReq);
+      return service.UpdateSettings(ctx, inputReq);
     });
   } else {
-    response = await service.UpdateBoolSetting(ctx, request!);
+    response = await service.UpdateSettings(ctx, request!);
   }
 
-  return Buffer.from(BoolSetting.encode(response).finish());
+  return Buffer.from(SettingsList.encode(response).finish());
 }
 
 async function handleSpectralBeginVerificationProtobuf<

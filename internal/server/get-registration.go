@@ -7,25 +7,36 @@ import (
 )
 
 func (s *Server) GetRegistration(ctx context.Context, message *service.ByConfCode) (*service.Registration, error) {
-	rec, err := s.Repo.Registrations.GetRegistration(message.ConfCode)
+	rec, err := s.queries.GetRegistrationByConfCode(ctx, message.ConfCode)
 	if err != nil {
 		return nil, errorResponse(err, "registration")
 	}
 
-	event, err := s.Repo.Events.GetEvent(rec.EventID)
+	event, err := s.queries.GetEvent(ctx, rec.EventID)
 	if err != nil {
 		return nil, errorResponse(err, "event")
 	}
 
-	member, err := s.Repo.Members.GetMember(rec.MemberEmail)
+	reg := &service.Registration{
+		ConfCode:  rec.ConfCode,
+		Kind:      registrationKindFromString(rec.Kind),
+		EventName: event.Name,
+	}
+
+	// TODO(aarongodin): combine with logic from list-event-registrations.go
+	member, err := s.queries.GetMember(ctx, rec.MemberID)
 	if err != nil {
 		return nil, errorResponse(err, "member")
 	}
+	reg.Member = translateMember(member)
 
-	reg, err := registrationRecordToMessage(rec, event)
-	if err != nil {
-		return nil, errorResponse(err, "registration")
+	if rec.EventDateID.Valid {
+		eventDate, err := s.queries.GetEventDate(ctx, rec.EventDateID.Int64)
+		if err != nil {
+			return nil, errorResponse(err, "event")
+		}
+		reg.EventDate = translateEventDate(eventDate)
 	}
-	reg.Member = memberRecordToMessage(member)
+
 	return reg, nil
 }

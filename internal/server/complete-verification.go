@@ -2,18 +2,20 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 
+	"github.com/aarongodin/spectral/internal/repository"
 	"github.com/aarongodin/spectral/internal/server/access"
-	"github.com/aarongodin/spectral/internal/server/repository"
 	"github.com/aarongodin/spectral/internal/service"
-	"github.com/asdine/storm/v3"
+	"github.com/aarongodin/spectral/internal/storage"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/twitchtv/twirp"
 )
 
 func (s *Server) CompleteVerification(ctx context.Context, message *service.CompleteVerificationOptions) (*service.CompleteVerificationResult, error) {
-	verification, err := s.Repo.Verifications.GetVerification(message.Key)
+	verification, err := s.queries.GetVerificationByKey(ctx, message.Key)
 	if err != nil {
 		return nil, errorResponse(err, "verification")
 	}
@@ -22,26 +24,39 @@ func (s *Server) CompleteVerification(ctx context.Context, message *service.Comp
 		return nil, twirp.NewError(twirp.Unauthenticated, "incorrect challenge")
 	}
 
-	if err := s.Repo.Verifications.CompleteVerification(verification.ID); err != nil {
+	if err := s.queries.SetVerificationCompleted(ctx, verification.ID); err != nil {
 		return nil, errorResponse(err, "verification")
 	}
 
 	// TODO(aarongodin): need to update the member that they are now verified, if they already existed
-	if _, err := s.Repo.Members.CreateMember(message.Email, true, "", ""); err != nil {
-		if !errors.Is(err, storm.ErrAlreadyExists) {
-			return nil, errorResponse(err, "member")
-		}
+	if _, err := s.queries.CreateMember(ctx, storage.CreateMemberParams{
+		Email:    message.Email,
+		Verified: 1,
+	}); err != nil {
+		return nil, errorResponse(err, "member")
 	}
 
 	// create a session and set the cookie
-	session, err := s.Repo.Sessions.GetSession(message.Email, repository.SESSION_KIND_MEMBER)
-	if err != nil {
-		return nil, errorResponse(err, "session")
-	}
+	session, err := s.queries.GetSessionByIdentity(ctx, storage.GetSessionByIdentityParams{
+		Subject: message.Email,
+		Kind:    repository.SESSION_KIND_USER,
+	})
 
-	if session == nil {
-		session, err = s.Repo.Sessions.CreateSession(message.Email, repository.SESSION_KIND_MEMBER)
-		if err != nil {
+	if err != nil {
+		if errors.Is(sql.ErrNoRows, err) {
+			key, err := gonanoid.New()
+			if err != nil {
+				return nil, err
+			}
+			session, err = s.queries.CreateSession(ctx, storage.CreateSessionParams{
+				Subject: message.Email,
+				Kind:    repository.SESSION_KIND_MEMBER,
+				Key:     key,
+			})
+			if err != nil {
+				return nil, err
+			}
+		} else {
 			return nil, err
 		}
 	}

@@ -7,11 +7,13 @@ import (
 )
 
 func (s *Server) ListMembers(ctx context.Context, message *service.ListMembersOptions) (*service.MemberList, error) {
-	recs, err := s.Repo.Members.ListMembers(message.Email)
+	recs, err := s.queries.ListMembers(ctx)
 	if err != nil {
 		return nil, errorResponse(err, "member")
 	}
-	return &service.MemberList{
-		Members: memberRecordsToMessage(recs),
-	}, nil
+	members := make([]*service.Member, 0, len(recs))
+	for _, rec := range recs {
+		members = append(members, translateMember(rec))
+	}
+	return &service.MemberList{Members: members}, nil
 }

@@ -1,15 +1,19 @@
 package access
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 
-	"github.com/aarongodin/spectral/internal/server/repository"
+	"github.com/aarongodin/spectral/internal/repository"
+	"github.com/aarongodin/spectral/internal/storage"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var errInvalidCredentials = errors.New("invalid credentials")
 
-func verifyUser(repo *repository.Repository, allowAdminUser bool, adminUserPassword string, username string, password string) error {
+func verifyUser(ctx context.Context, queries *storage.Queries, allowAdminUser bool, adminUserPassword string, username string, password string) error {
 	switch username {
 	case "admin":
 		if !allowAdminUser || password != adminUserPassword {
@@ -17,34 +21,46 @@ func verifyUser(repo *repository.Repository, allowAdminUser bool, adminUserPassw
 		}
 		return nil
 	default:
-		user, err := repo.Users.GetUser(username)
+		user, err := queries.GetUserByUsername(ctx, username)
 		if err != nil {
 			return errInvalidCredentials
 		}
-		if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 			return errInvalidCredentials
 		}
 		return nil
 	}
 }
 
-// authenticateUser receives a username and password and returns the a session for the authenticated user.
-func (ar accessRoutes) authenticateUser(username string, password string) (*repository.SessionRecord, error) {
-	if err := verifyUser(ar.repo, ar.rc.AllowAdminUser, ar.rc.AdminUserPassword, username, password); err != nil {
+// authenticateUser receives a username and password and returns a session for the authenticated user.
+func (ar accessRoutes) authenticateUser(ctx context.Context, username string, password string) (*storage.Session, error) {
+	if err := verifyUser(ctx, ar.queries, ar.rc.AllowAdminUser, ar.rc.AdminUserPassword, username, password); err != nil {
 		return nil, err
 	}
 
-	session, err := ar.repo.Sessions.GetSession(username, repository.SESSION_KIND_USER)
+	session, err := ar.queries.GetSessionByIdentity(ctx, storage.GetSessionByIdentityParams{
+		Subject: username,
+		Kind:    repository.SESSION_KIND_USER,
+	})
+
 	if err != nil {
-		return nil, err
-	}
-
-	if session == nil {
-		session, err = ar.repo.Sessions.CreateSession(username, repository.SESSION_KIND_USER)
-		if err != nil {
+		if errors.Is(sql.ErrNoRows, err) {
+			key, err := gonanoid.New()
+			if err != nil {
+				return nil, err
+			}
+			session, err = ar.queries.CreateSession(ctx, storage.CreateSessionParams{
+				Subject: username,
+				Kind:    repository.SESSION_KIND_USER,
+				Key:     key,
+			})
+			if err != nil {
+				return nil, err
+			}
+		} else {
 			return nil, err
 		}
 	}
 
-	return session, nil
+	return &session, nil
 }

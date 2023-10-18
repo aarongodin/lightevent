@@ -7,9 +7,17 @@ import (
 )
 
 func (s *Server) GetEvent(ctx context.Context, message *service.ByName) (*service.Event, error) {
-	rec, err := s.Repo.Events.GetEventByName(message.Name)
+	rec, err := s.queries.GetEventByName(ctx, message.Name)
 	if err != nil {
 		return nil, errorResponse(err, "event")
 	}
-	return eventRecordToMessage(rec), nil
+	event := translateEvent(rec)
+	eventDates, err := s.queries.ListEventDates(ctx, rec.ID)
+	if err != nil {
+		return nil, errorResponse(err, "event")
+	}
+	for _, eventDate := range eventDates {
+		event.Dates = append(event.Dates, translateEventDate(eventDate))
+	}
+	return event, nil
 }

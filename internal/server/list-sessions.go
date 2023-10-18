@@ -2,14 +2,19 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/aarongodin/spectral/internal/service"
 )
 
 func (s *Server) ListSessions(ctx context.Context, message *service.ListSessionsOptions) (*service.SessionList, error) {
-	recs, err := s.Repo.Sessions.ListSessions()
+	recs, err := s.queries.ListSessions(ctx, time.Now().Add(-s.rc.SessionMaxAge))
 	if err != nil {
 		return nil, errorResponse(err, "session")
 	}
-	return &service.SessionList{Sessions: sessionRecordsToMessage(recs)}, nil
+	sessions := make([]*service.Session, 0, len(recs))
+	for _, rec := range recs {
+		sessions = append(sessions, translateSession(rec))
+	}
+	return &service.SessionList{Sessions: sessions}, nil
 }

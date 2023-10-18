@@ -21,8 +21,10 @@
 go.work
 
 *.db
+*.sqlite*
 .envrc
 main
 node_modules
 .DS_Store
 tmp
+bin

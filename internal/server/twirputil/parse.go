@@ -1,4 +1,4 @@
-package util
+package twirputil
 
 import "strings"
 

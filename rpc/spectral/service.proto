@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/struct.proto";
+
 option go_package = "./internal/service";
 
 service Spectral {
@@ -33,8 +35,8 @@ service Spectral {
 	rpc CreateAPIKey(WriteableAPIKey) returns (APIKeyWithSecret);
 
 	// Settings
-	rpc GetBoolSetting(ByName) returns (BoolSetting);
-	rpc UpdateBoolSetting(BoolSetting) returns (BoolSetting);
+	rpc ListSettings(ListSettingsOptions) returns (SettingsList);
+	rpc UpdateSettings(UpdateSettingsOptions) returns (SettingsList);
 
 	rpc BeginVerification(BeginVerificationOptions) returns (BeginVerificationResult);
 	rpc CompleteVerification(CompleteVerificationOptions) returns (CompleteVerificationResult);
@@ -94,7 +96,7 @@ message Registration {
 	string conf_code = 1;
 	RegistrationKind kind = 2;
 	string event_name = 3;
-	string event_date = 4;
+	optional EventDate event_date = 4;
 	Member member = 5;
 }
 
@@ -108,16 +110,18 @@ message WriteableRegistration {
 message MemberRegistration {
 	RegistrationKind kind = 1;
 	string event_name = 2;
-	string event_date = 3;
+	optional string event_date = 3;
 	string member_first_name = 4;
 	string member_last_name = 5;
 }
 
 message ListSettingsOptions {}
+message UpdateSettingsOptions {
+	.google.protobuf.Struct settings = 1;
+}
 
-message BoolSetting {
-	string name = 1;
-	bool value = 2;
+message SettingsList {
+	.google.protobuf.Struct settings = 1;
 }
 
 message ListSessionsOptions {}
@@ -135,13 +139,17 @@ message Session {
 
 message User {
 	string username = 1;
-	string name = 2;
+	string first_name = 2;
+	string last_name = 3;
+	string created_at = 4;
+	string updated_at = 5;
 }
 
 message WriteableUser {
 	string username = 1;
 	string password = 2;
-	string name = 3;
+	optional string first_name = 3;
+	optional string last_name = 4;
 }
 
 message ListUsersOptions {}

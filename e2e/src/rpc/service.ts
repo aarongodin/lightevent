@@ -1,5 +1,6 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { Struct } from "../../google/protobuf/struct";
 
 export const protobufPackage = "";
 
@@ -86,7 +87,7 @@ export interface Registration {
   confCode: string;
   kind: RegistrationKind;
   eventName: string;
-  eventDate: string;
+  eventDate?: EventDate | undefined;
   member: Member | undefined;
 }
 
@@ -100,7 +101,7 @@ export interface WriteableRegistration {
 export interface MemberRegistration {
   kind: RegistrationKind;
   eventName: string;
-  eventDate: string;
+  eventDate?: string | undefined;
   memberFirstName: string;
   memberLastName: string;
 }
@@ -108,9 +109,12 @@ export interface MemberRegistration {
 export interface ListSettingsOptions {
 }
 
-export interface BoolSetting {
-  name: string;
-  value: boolean;
+export interface UpdateSettingsOptions {
+  settings: { [key: string]: any } | undefined;
+}
+
+export interface SettingsList {
+  settings: { [key: string]: any } | undefined;
 }
 
 export interface ListSessionsOptions {
@@ -129,13 +133,17 @@ export interface Session {
 
 export interface User {
   username: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface WriteableUser {
   username: string;
   password: string;
-  name: string;
+  firstName?: string | undefined;
+  lastName?: string | undefined;
 }
 
 export interface ListUsersOptions {
@@ -788,7 +796,7 @@ export const RegistrationList = {
 };
 
 function createBaseRegistration(): Registration {
-  return { confCode: "", kind: 0, eventName: "", eventDate: "", member: undefined };
+  return { confCode: "", kind: 0, eventName: "", eventDate: undefined, member: undefined };
 }
 
 export const Registration = {
@@ -802,8 +810,8 @@ export const Registration = {
     if (message.eventName !== "") {
       writer.uint32(26).string(message.eventName);
     }
-    if (message.eventDate !== "") {
-      writer.uint32(34).string(message.eventDate);
+    if (message.eventDate !== undefined) {
+      EventDate.encode(message.eventDate, writer.uint32(34).fork()).ldelim();
     }
     if (message.member !== undefined) {
       Member.encode(message.member, writer.uint32(42).fork()).ldelim();
@@ -828,7 +836,7 @@ export const Registration = {
           message.eventName = reader.string();
           break;
         case 4:
-          message.eventDate = reader.string();
+          message.eventDate = EventDate.decode(reader, reader.uint32());
           break;
         case 5:
           message.member = Member.decode(reader, reader.uint32());
@@ -846,7 +854,7 @@ export const Registration = {
       confCode: isSet(object.confCode) ? String(object.confCode) : "",
       kind: isSet(object.kind) ? registrationKindFromJSON(object.kind) : 0,
       eventName: isSet(object.eventName) ? String(object.eventName) : "",
-      eventDate: isSet(object.eventDate) ? String(object.eventDate) : "",
+      eventDate: isSet(object.eventDate) ? EventDate.fromJSON(object.eventDate) : undefined,
       member: isSet(object.member) ? Member.fromJSON(object.member) : undefined,
     };
   },
@@ -856,7 +864,8 @@ export const Registration = {
     message.confCode !== undefined && (obj.confCode = message.confCode);
     message.kind !== undefined && (obj.kind = registrationKindToJSON(message.kind));
     message.eventName !== undefined && (obj.eventName = message.eventName);
-    message.eventDate !== undefined && (obj.eventDate = message.eventDate);
+    message.eventDate !== undefined &&
+      (obj.eventDate = message.eventDate ? EventDate.toJSON(message.eventDate) : undefined);
     message.member !== undefined && (obj.member = message.member ? Member.toJSON(message.member) : undefined);
     return obj;
   },
@@ -870,7 +879,9 @@ export const Registration = {
     message.confCode = object.confCode ?? "";
     message.kind = object.kind ?? 0;
     message.eventName = object.eventName ?? "";
-    message.eventDate = object.eventDate ?? "";
+    message.eventDate = (object.eventDate !== undefined && object.eventDate !== null)
+      ? EventDate.fromPartial(object.eventDate)
+      : undefined;
     message.member = (object.member !== undefined && object.member !== null)
       ? Member.fromPartial(object.member)
       : undefined;
@@ -959,7 +970,7 @@ export const WriteableRegistration = {
 };
 
 function createBaseMemberRegistration(): MemberRegistration {
-  return { kind: 0, eventName: "", eventDate: "", memberFirstName: "", memberLastName: "" };
+  return { kind: 0, eventName: "", eventDate: undefined, memberFirstName: "", memberLastName: "" };
 }
 
 export const MemberRegistration = {
@@ -970,7 +981,7 @@ export const MemberRegistration = {
     if (message.eventName !== "") {
       writer.uint32(18).string(message.eventName);
     }
-    if (message.eventDate !== "") {
+    if (message.eventDate !== undefined) {
       writer.uint32(26).string(message.eventDate);
     }
     if (message.memberFirstName !== "") {
@@ -1016,7 +1027,7 @@ export const MemberRegistration = {
     return {
       kind: isSet(object.kind) ? registrationKindFromJSON(object.kind) : 0,
       eventName: isSet(object.eventName) ? String(object.eventName) : "",
-      eventDate: isSet(object.eventDate) ? String(object.eventDate) : "",
+      eventDate: isSet(object.eventDate) ? String(object.eventDate) : undefined,
       memberFirstName: isSet(object.memberFirstName) ? String(object.memberFirstName) : "",
       memberLastName: isSet(object.memberLastName) ? String(object.memberLastName) : "",
     };
@@ -1040,7 +1051,7 @@ export const MemberRegistration = {
     const message = createBaseMemberRegistration();
     message.kind = object.kind ?? 0;
     message.eventName = object.eventName ?? "";
-    message.eventDate = object.eventDate ?? "";
+    message.eventDate = object.eventDate ?? undefined;
     message.memberFirstName = object.memberFirstName ?? "";
     message.memberLastName = object.memberLastName ?? "";
     return message;
@@ -1090,33 +1101,27 @@ export const ListSettingsOptions = {
   },
 };
 
-function createBaseBoolSetting(): BoolSetting {
-  return { name: "", value: false };
+function createBaseUpdateSettingsOptions(): UpdateSettingsOptions {
+  return { settings: undefined };
 }
 
-export const BoolSetting = {
-  encode(message: BoolSetting, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.value === true) {
-      writer.uint32(16).bool(message.value);
+export const UpdateSettingsOptions = {
+  encode(message: UpdateSettingsOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.settings !== undefined) {
+      Struct.encode(Struct.wrap(message.settings), writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): BoolSetting {
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateSettingsOptions {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseBoolSetting();
+    const message = createBaseUpdateSettingsOptions();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.name = reader.string();
-          break;
-        case 2:
-          message.value = reader.bool();
+          message.settings = Struct.unwrap(Struct.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -1126,28 +1131,74 @@ export const BoolSetting = {
     return message;
   },
 
-  fromJSON(object: any): BoolSetting {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      value: isSet(object.value) ? Boolean(object.value) : false,
-    };
+  fromJSON(object: any): UpdateSettingsOptions {
+    return { settings: isObject(object.settings) ? object.settings : undefined };
   },
 
-  toJSON(message: BoolSetting): unknown {
+  toJSON(message: UpdateSettingsOptions): unknown {
     const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.value !== undefined && (obj.value = message.value);
+    message.settings !== undefined && (obj.settings = message.settings);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<BoolSetting>, I>>(base?: I): BoolSetting {
-    return BoolSetting.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<UpdateSettingsOptions>, I>>(base?: I): UpdateSettingsOptions {
+    return UpdateSettingsOptions.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<BoolSetting>, I>>(object: I): BoolSetting {
-    const message = createBaseBoolSetting();
-    message.name = object.name ?? "";
-    message.value = object.value ?? false;
+  fromPartial<I extends Exact<DeepPartial<UpdateSettingsOptions>, I>>(object: I): UpdateSettingsOptions {
+    const message = createBaseUpdateSettingsOptions();
+    message.settings = object.settings ?? undefined;
+    return message;
+  },
+};
+
+function createBaseSettingsList(): SettingsList {
+  return { settings: undefined };
+}
+
+export const SettingsList = {
+  encode(message: SettingsList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.settings !== undefined) {
+      Struct.encode(Struct.wrap(message.settings), writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SettingsList {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSettingsList();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.settings = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SettingsList {
+    return { settings: isObject(object.settings) ? object.settings : undefined };
+  },
+
+  toJSON(message: SettingsList): unknown {
+    const obj: any = {};
+    message.settings !== undefined && (obj.settings = message.settings);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SettingsList>, I>>(base?: I): SettingsList {
+    return SettingsList.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<SettingsList>, I>>(object: I): SettingsList {
+    const message = createBaseSettingsList();
+    message.settings = object.settings ?? undefined;
     return message;
   },
 };
@@ -1331,7 +1382,7 @@ export const Session = {
 };
 
 function createBaseUser(): User {
-  return { username: "", name: "" };
+  return { username: "", firstName: "", lastName: "", createdAt: "", updatedAt: "" };
 }
 
 export const User = {
@@ -1339,8 +1390,17 @@ export const User = {
     if (message.username !== "") {
       writer.uint32(10).string(message.username);
     }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
+    if (message.firstName !== "") {
+      writer.uint32(18).string(message.firstName);
+    }
+    if (message.lastName !== "") {
+      writer.uint32(26).string(message.lastName);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(34).string(message.createdAt);
+    }
+    if (message.updatedAt !== "") {
+      writer.uint32(42).string(message.updatedAt);
     }
     return writer;
   },
@@ -1356,7 +1416,16 @@ export const User = {
           message.username = reader.string();
           break;
         case 2:
-          message.name = reader.string();
+          message.firstName = reader.string();
+          break;
+        case 3:
+          message.lastName = reader.string();
+          break;
+        case 4:
+          message.createdAt = reader.string();
+          break;
+        case 5:
+          message.updatedAt = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1369,14 +1438,20 @@ export const User = {
   fromJSON(object: any): User {
     return {
       username: isSet(object.username) ? String(object.username) : "",
-      name: isSet(object.name) ? String(object.name) : "",
+      firstName: isSet(object.firstName) ? String(object.firstName) : "",
+      lastName: isSet(object.lastName) ? String(object.lastName) : "",
+      createdAt: isSet(object.createdAt) ? String(object.createdAt) : "",
+      updatedAt: isSet(object.updatedAt) ? String(object.updatedAt) : "",
     };
   },
 
   toJSON(message: User): unknown {
     const obj: any = {};
     message.username !== undefined && (obj.username = message.username);
-    message.name !== undefined && (obj.name = message.name);
+    message.firstName !== undefined && (obj.firstName = message.firstName);
+    message.lastName !== undefined && (obj.lastName = message.lastName);
+    message.createdAt !== undefined && (obj.createdAt = message.createdAt);
+    message.updatedAt !== undefined && (obj.updatedAt = message.updatedAt);
     return obj;
   },
 
@@ -1387,13 +1462,16 @@ export const User = {
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
     message.username = object.username ?? "";
-    message.name = object.name ?? "";
+    message.firstName = object.firstName ?? "";
+    message.lastName = object.lastName ?? "";
+    message.createdAt = object.createdAt ?? "";
+    message.updatedAt = object.updatedAt ?? "";
     return message;
   },
 };
 
 function createBaseWriteableUser(): WriteableUser {
-  return { username: "", password: "", name: "" };
+  return { username: "", password: "", firstName: undefined, lastName: undefined };
 }
 
 export const WriteableUser = {
@@ -1404,8 +1482,11 @@ export const WriteableUser = {
     if (message.password !== "") {
       writer.uint32(18).string(message.password);
     }
-    if (message.name !== "") {
-      writer.uint32(26).string(message.name);
+    if (message.firstName !== undefined) {
+      writer.uint32(26).string(message.firstName);
+    }
+    if (message.lastName !== undefined) {
+      writer.uint32(34).string(message.lastName);
     }
     return writer;
   },
@@ -1424,7 +1505,10 @@ export const WriteableUser = {
           message.password = reader.string();
           break;
         case 3:
-          message.name = reader.string();
+          message.firstName = reader.string();
+          break;
+        case 4:
+          message.lastName = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1438,7 +1522,8 @@ export const WriteableUser = {
     return {
       username: isSet(object.username) ? String(object.username) : "",
       password: isSet(object.password) ? String(object.password) : "",
-      name: isSet(object.name) ? String(object.name) : "",
+      firstName: isSet(object.firstName) ? String(object.firstName) : undefined,
+      lastName: isSet(object.lastName) ? String(object.lastName) : undefined,
     };
   },
 
@@ -1446,7 +1531,8 @@ export const WriteableUser = {
     const obj: any = {};
     message.username !== undefined && (obj.username = message.username);
     message.password !== undefined && (obj.password = message.password);
-    message.name !== undefined && (obj.name = message.name);
+    message.firstName !== undefined && (obj.firstName = message.firstName);
+    message.lastName !== undefined && (obj.lastName = message.lastName);
     return obj;
   },
 
@@ -1458,7 +1544,8 @@ export const WriteableUser = {
     const message = createBaseWriteableUser();
     message.username = object.username ?? "";
     message.password = object.password ?? "";
-    message.name = object.name ?? "";
+    message.firstName = object.firstName ?? undefined;
+    message.lastName = object.lastName ?? undefined;
     return message;
   },
 };
@@ -2240,8 +2327,8 @@ export interface Spectral {
   /** API Keys */
   CreateAPIKey(request: WriteableAPIKey): Promise<APIKeyWithSecret>;
   /** Settings */
-  GetBoolSetting(request: ByName): Promise<BoolSetting>;
-  UpdateBoolSetting(request: BoolSetting): Promise<BoolSetting>;
+  ListSettings(request: ListSettingsOptions): Promise<SettingsList>;
+  UpdateSettings(request: UpdateSettingsOptions): Promise<SettingsList>;
   BeginVerification(request: BeginVerificationOptions): Promise<BeginVerificationResult>;
   CompleteVerification(request: CompleteVerificationOptions): Promise<CompleteVerificationResult>;
   Register(request: MemberRegistration): Promise<Registration>;
@@ -2257,6 +2344,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

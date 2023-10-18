@@ -1,3 +1,6 @@
+server:
+	@go build -o bin/spectral cmd/server/main.go
+
 download:
 	@echo Download go.mod dependencies
 	@go mod download

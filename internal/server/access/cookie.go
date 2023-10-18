@@ -3,8 +3,9 @@ package access
 import (
 	"net/http"
 
-	"github.com/aarongodin/spectral/internal/server/config"
+	"github.com/aarongodin/spectral/internal/config"
 	"github.com/gorilla/securecookie"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -17,7 +18,9 @@ var sc *securecookie.SecureCookie
 func InitCookies(cfg *config.RuntimeConfig) {
 	hashKey := []byte(cfg.CookieHMACSecret)
 	if len(hashKey) == 0 {
-		// TODO(aarongodin): warn the user that they are using a generated key
+		log.Warn().Msg("securecookie: no hashKey specified; falling back to generated key. " +
+			"This key will not be persisted and will invalidate user and member sessions upon application restart. " +
+			"Specify the environment variable COOKIE_HMAC_SECRET with a secure alphanumeric value.")
 		hashKey = securecookie.GenerateRandomKey(32)
 	}
 	sc = securecookie.New(hashKey, nil)

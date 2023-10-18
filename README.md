@@ -19,7 +19,7 @@ The features are intended to be laser-focused on offering a simple experience, b
 ### Technical Features
 
 * **Single binary** - Download a single binary and run it however you want.
-* **Embedded storage** - Uses [bbolt](https://github.com/etcd-io/bbolt) through [storm](https://github.com/asdine/storm) for embedded storage, so there's no DBMS to manage. Backups are through a single flat file (like with sqlite).
+* **Embedded storage** - Uses sqlite through for embedded storage, so there's no DBMS to manage. Backups and replication for read-replicas could be done with [Litestream](https://litestream.io/).
 * **Tidy web footprint** - Spectral aims at keeping the client application as small as possible to ensure fast load time.
 * **RPC API with Twirp** - Augment Spectral with your own integrations using the API. Spectral is built using [Twirp](https://github.com/twitchtv/twirp), a fantastic RPC framework built on [protobuf](https://github.com/protocolbuffers/protobuf).
 

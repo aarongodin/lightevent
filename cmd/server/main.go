@@ -1,74 +1,73 @@
 package main
 
 import (
+	"context"
+	"encoding/gob"
 	"net/http"
 	"os"
-	"time"
 
+	"github.com/aarongodin/spectral"
+	"github.com/aarongodin/spectral/internal/config"
 	"github.com/aarongodin/spectral/internal/server"
 	"github.com/aarongodin/spectral/internal/server/access"
-	"github.com/aarongodin/spectral/internal/server/config"
-	"github.com/aarongodin/spectral/internal/server/repository"
 	"github.com/aarongodin/spectral/internal/service"
-	"github.com/asdine/storm/v3"
+	"github.com/aarongodin/spectral/internal/storage"
 	"github.com/julienschmidt/httprouter"
-	"github.com/justinas/alice"
 	"github.com/twitchtv/twirp"
-	"golang.org/x/exp/slog"
+
+	_ "embed"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func timeoutHandler(h http.Handler) http.Handler {
-	return http.TimeoutHandler(h, 5*time.Second, "timed out")
-}
-
 func main() {
-	// Configuration
+	// Globally register gob-encoding for types permissible on the settings map
+	gob.Register([]any{})
+	gob.Register(map[string]any{})
+
 	runtimeConfig, err := config.NewRuntimeConfig()
 	if err != nil {
 		os.Exit(server.EXIT_STARTUP_ERR)
 	}
 
-	// Logging config
-	logOptions := slog.HandlerOptions{}
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if runtimeConfig.LogFormat == "console" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+	log.Info().Str("version", spectral.VERSION).Msg("welcome message")
 	if runtimeConfig.Debug {
-		logOptions.Level = slog.LevelDebug
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		log.Info().Str("lvl", zerolog.GlobalLevel().String()).Str("format", runtimeConfig.LogFormat).Msg("logging config")
 	}
-	logger := slog.New(logOptions.NewJSONHandler(os.Stdout))
-	slog.SetDefault(logger)
 
-	// DB connection
-	db, err := storm.Open(runtimeConfig.DatabasePath)
+	store, err := storage.Init(context.Background(), runtimeConfig)
 	if err != nil {
-		logger.Error("failed to open db", slog.Any("err", err))
-		os.Exit(server.EXIT_STARTUP_ERR)
+		log.Err(err).Msg("failed to init storage")
 	}
-	defer db.Close()
+	queries := storage.New(store.DB)
 
-	persistentConfig := config.NewPersistentConfig(db)
-	repo := repository.New(db, runtimeConfig)
-
-	s := &server.Server{
-		Repo:             repo,
-		PersistentConfig: persistentConfig,
-	}
+	s := server.NewServer(store.DB, queries, runtimeConfig)
 	twirpHandler := service.NewSpectralServer(s, twirp.WithServerPathPrefix("/rpc"), twirp.WithServerHooks(server.NewLoggingHooks()))
 
 	authHandler := httprouter.New()
-	if err := access.Register(authHandler, repo, runtimeConfig); err != nil {
-		logger.Error("failed to register access routes", slog.Any("err", err))
+	if err := access.Register(authHandler, queries, runtimeConfig); err != nil {
+		log.Err(err).Msg("failed to register access routes")
 		os.Exit(server.EXIT_STARTUP_ERR)
 	}
 	access.InitCookies(runtimeConfig)
 
 	mux := http.NewServeMux()
-	mux.Handle(twirpHandler.PathPrefix(), access.WithAuthorization(twirpHandler, repo, runtimeConfig, access.GetAllowedSchemes()))
+	mux.Handle(
+		twirpHandler.PathPrefix(),
+		access.WithAuthorization(twirpHandler, queries, runtimeConfig, access.GetAllowedSchemes()),
+	)
 	mux.Handle("/", authHandler)
 
-	// Add global middleware
-	chain := alice.New(timeoutHandler).Then(mux)
-
-	logger.Info("starting http server")
-	if err := http.ListenAndServe(runtimeConfig.ServerAddr(), chain); err != nil {
-		logger.Error("failed to start http server", slog.Any("err", err))
+	log.Info().Int("port", runtimeConfig.Port).Str("host", runtimeConfig.Host).Msg("starting http server")
+	if err := http.ListenAndServe(runtimeConfig.ServerAddr(), mux); err != nil {
+		log.Err(err).Msg("failed to start http server")
 	}
 }

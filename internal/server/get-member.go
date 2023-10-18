@@ -7,9 +7,9 @@ import (
 )
 
 func (s *Server) GetMember(ctx context.Context, message *service.GetMemberOptions) (*service.Member, error) {
-	rec, err := s.Repo.Members.GetMember(message.Email)
+	rec, err := s.queries.GetMemberByEmail(ctx, message.Email)
 	if err != nil {
 		return nil, errorResponse(err, "member")
 	}
-	return memberRecordToMessage(rec), nil
+	return translateMember(rec), nil
 }

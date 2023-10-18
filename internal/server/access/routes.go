@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/aarongodin/spectral/internal/server/config"
-	"github.com/aarongodin/spectral/internal/server/repository"
+	"github.com/aarongodin/spectral/internal/config"
+	"github.com/aarongodin/spectral/internal/storage"
 	"github.com/julienschmidt/httprouter"
+	"github.com/rs/zerolog/log"
 	"github.com/twitchtv/twirp"
-	"golang.org/x/exp/slog"
 )
 
 //go:embed static/login.html.tmpl
@@ -21,7 +21,7 @@ var loginHTML string
 var loginCSS string
 
 type accessRoutes struct {
-	repo          *repository.Repository
+	queries       *storage.Queries
 	rc            *config.RuntimeConfig
 	loginTemplate *template.Template
 }
@@ -46,9 +46,9 @@ func (ar accessRoutes) handleAuthentication(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	session, err := ar.authenticateUser(username, password)
+	session, err := ar.authenticateUser(r.Context(), username, password)
 	if err != nil {
-		slog.Debug("authenticate user error", slog.Any("err", err))
+		log.Debug().Err(err).Msg("authenticate user error")
 		redirectPath := fmt.Sprintf("/login?err=%s", url.QueryEscape(err.Error()))
 		http.Redirect(w, r, redirectPath, http.StatusSeeOther)
 		return
@@ -83,14 +83,14 @@ func (ar accessRoutes) handleLogin(w http.ResponseWriter, r *http.Request, p htt
 }
 
 // Register attaches the route handlers to the given router
-func Register(router *httprouter.Router, repo *repository.Repository, rc *config.RuntimeConfig) error {
+func Register(router *httprouter.Router, queries *storage.Queries, rc *config.RuntimeConfig) error {
 	loginTemplate, err := template.New("login").Parse(loginHTML)
 	if err != nil {
 		return err
 	}
 
 	routes := &accessRoutes{
-		repo:          repo,
+		queries:       queries,
 		rc:            rc,
 		loginTemplate: loginTemplate,
 	}
@@ -99,7 +99,7 @@ func Register(router *httprouter.Router, repo *repository.Repository, rc *config
 	router.POST("/auth/login", routes.handleAuthentication)
 
 	if rc.AllowAdminUser {
-		slog.Info("admin user enabled")
+		log.Info().Msg("admin user enabled")
 	}
 
 	return nil

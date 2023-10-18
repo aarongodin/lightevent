@@ -18,14 +18,14 @@ package access
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"strings"
 
-	"github.com/aarongodin/spectral/internal/server/config"
-	"github.com/aarongodin/spectral/internal/server/repository"
-	"github.com/aarongodin/spectral/internal/server/util"
-	"github.com/asdine/storm/v3"
+	"github.com/aarongodin/spectral/internal/config"
+	"github.com/aarongodin/spectral/internal/server/twirputil"
+	"github.com/aarongodin/spectral/internal/storage"
 	"github.com/twitchtv/twirp"
 )
 
@@ -99,7 +99,7 @@ func GetAllowedSchemes() map[string]byte {
 	allowSchemes(m, accessAdmin,
 		"CreateEvent", "UpdateEvent",
 		"ListEventRegistrations", "CreateRegistration",
-		"GetBoolSetting", "UpdateBoolSetting",
+		"ListSettings", "UpdateSettings",
 		"ListMembers", "CreateMember", "GetMember",
 		"CreateUser", "ListUsers",
 		"ListSessions",
@@ -113,7 +113,7 @@ func GetAllowedSchemes() map[string]byte {
 
 // authorizeWithCookie attempts to read a cookie with a given name and find a session based on
 // the cookie value.
-func authorizeWithCookie(r *http.Request, repo *repository.Repository, cookieName string) (*repository.SessionRecord, twirp.Error) {
+func authorizeWithCookie(r *http.Request, queries *storage.Queries, cookieName string) (*storage.Session, twirp.Error) {
 	c, err := GetCookie(r, cookieName)
 	if err != nil {
 		if errors.Is(err, http.ErrNoCookie) {
@@ -124,19 +124,19 @@ func authorizeWithCookie(r *http.Request, repo *repository.Repository, cookieNam
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	session, err := repo.Sessions.GetSessionByKey(c.Value)
+	session, err := queries.GetSessionByKey(r.Context(), c.Value)
 	if err != nil {
 		return nil, twirp.Unauthenticated.Error("authentication required")
 	}
 
-	return session, nil
+	return &session, nil
 }
 
 // authorizeWithBasicAuth attemps to read Basic authorization from request headers and verify a user with the credentials.
-func authorizeWithBasicAuth(r *http.Request, repo *repository.Repository, rc *config.RuntimeConfig) (string, twirp.Error) {
+func authorizeWithBasicAuth(r *http.Request, queries *storage.Queries, rc *config.RuntimeConfig) (string, twirp.Error) {
 	username, password, ok := r.BasicAuth()
 	if ok {
-		if err := verifyUser(repo, rc.AllowAdminUser, rc.AdminUserPassword, username, password); err != nil {
+		if err := verifyUser(r.Context(), queries, rc.AllowAdminUser, rc.AdminUserPassword, username, password); err != nil {
 			return "", twirp.Unauthenticated.Error(err.Error())
 		}
 		return username, nil
@@ -146,7 +146,7 @@ func authorizeWithBasicAuth(r *http.Request, repo *repository.Repository, rc *co
 
 // authorizeWithAPIKey checks for a valid API Key based on the provided credential in the
 // "Authorization" http header. A session is not tracked for API keys.
-func authorizeWithAPIKey(r *http.Request, repo *repository.Repository) (string, twirp.Error) {
+func authorizeWithAPIKey(r *http.Request, queries *storage.Queries) (string, twirp.Error) {
 	authz := r.Header.Get("authorization")
 	if authz != "" {
 		fields := strings.Fields(authz)
@@ -154,9 +154,9 @@ func authorizeWithAPIKey(r *http.Request, repo *repository.Repository) (string, 
 			return "", twirp.Unauthenticated.Error("invalid authorization format")
 		}
 
-		apiKey, err := repo.APIKeys.GetAPIKeyBySecret(fields[1])
+		apiKey, err := queries.GetAPIKeyBySecret(r.Context(), fields[1])
 		if err != nil {
-			if errors.Is(err, storm.ErrNotFound) {
+			if errors.Is(err, sql.ErrNoRows) {
 				return "", twirp.Unauthenticated.Error("authentication required")
 			}
 			return "", twirp.WrapError(twirp.InternalError("error retrieving API key"), err)
@@ -169,9 +169,9 @@ func authorizeWithAPIKey(r *http.Request, repo *repository.Repository) (string, 
 
 // WithAuthorization is an http.Handler that verifies an authenticated user is allowed access
 // this this request.
-func WithAuthorization(base http.Handler, repo *repository.Repository, rc *config.RuntimeConfig, rpcAuthorization map[string]byte) http.Handler {
+func WithAuthorization(base http.Handler, queries *storage.Queries, rc *config.RuntimeConfig, rpcAuthorization map[string]byte) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _, method := util.ParseTwirpPath(r.URL.Path)
+		_, _, method := twirputil.ParseTwirpPath(r.URL.Path)
 		if method == "" {
 			twirp.WriteError(w, twirp.InternalError("unexpected request path"))
 			return
@@ -195,7 +195,7 @@ func WithAuthorization(base http.Handler, repo *repository.Repository, rc *confi
 		switch {
 		case schemes&maskMember > 0:
 			// member scheme is allowed
-			session, err := authorizeWithCookie(r, repo, COOKIE_MEMBER_SESSION)
+			session, err := authorizeWithCookie(r, queries, COOKIE_MEMBER_SESSION)
 			if err != nil {
 				twirp.WriteError(w, err)
 				return
@@ -208,7 +208,7 @@ func WithAuthorization(base http.Handler, repo *repository.Repository, rc *confi
 			fallthrough
 		case schemes&maskUser > 0:
 			// user scheme is allowed
-			session, err := authorizeWithCookie(r, repo, COOKIE_USER_SESSION)
+			session, err := authorizeWithCookie(r, queries, COOKIE_USER_SESSION)
 			if err != nil {
 				twirp.WriteError(w, err)
 				return
@@ -218,7 +218,7 @@ func WithAuthorization(base http.Handler, repo *repository.Repository, rc *confi
 				scheme = AUTHZ_SCHEME_USER
 				break
 			} else {
-				username, err := authorizeWithBasicAuth(r, repo, rc)
+				username, err := authorizeWithBasicAuth(r, queries, rc)
 				if err != nil {
 					twirp.WriteError(w, err)
 					return
@@ -232,7 +232,7 @@ func WithAuthorization(base http.Handler, repo *repository.Repository, rc *confi
 			fallthrough
 		case schemes&maskAPIKey > 0:
 			// API key scheme is allowed
-			result, err := authorizeWithAPIKey(r, repo)
+			result, err := authorizeWithAPIKey(r, queries)
 			if err != nil {
 				twirp.WriteError(w, err)
 				return
