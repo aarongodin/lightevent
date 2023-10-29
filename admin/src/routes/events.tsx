@@ -16,7 +16,7 @@ type EventsTableProps = {
 }
 
 function EventDates({ eventDates }: { eventDates: EventDate[] }) {
-  const firstDate = DateTime.fromISO(eventDates[0].value).toLocaleString(DateTime.DATETIME_MED)
+  const firstDate = DateTime.fromISO(eventDates[0].value).toLocaleString(DateTime.DATETIME_SHORT)
   if (eventDates.length === 1) {
     return <span>{firstDate}</span>
   }

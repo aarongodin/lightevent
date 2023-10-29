@@ -1,4 +1,4 @@
-import { createContext, PropsWithChildren, useContext, useState } from "react"
+import { createContext, PropsWithChildren, useContext, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 
 import { Button } from "./units/button"
@@ -40,7 +40,6 @@ export function PromptProvider({ children }: PropsWithChildren) {
 
 // confirm accepts the prompt context and pushes a new confirm item onto the stack.
 function confirm(ctx: PromptContextValue, message: string): Promise<ConfirmationResponse> {
-  // const resolve = Promise.resolve({ ok: true })
   let resolve = (_: ConfirmationResponse) => {
     // noop
   }
@@ -49,7 +48,7 @@ function confirm(ctx: PromptContextValue, message: string): Promise<Confirmation
   })
 
   function popAndResolve(resp: ConfirmationResponse) {
-    ctx.setStack([...ctx.stack.slice(0, ctx.stack.length - 2)])
+    ctx.setStack([...ctx.stack.slice(0, ctx.stack.length - 1)])
     resolve(resp)
   }
 
@@ -89,8 +88,21 @@ interface PromptContainerProps extends PropsWithChildren {
 // PromptContainer renders the dialog for the given prompt, based on the kind of prompt being rendered
 function PromptContainer({ kind, children }: PromptContainerProps) {
   // TODO(aarongodin): allow "kind" to control things like the size of the dialog
+  const ctx = useContext(PromptContext)
+
+  const handleBackdropClick: React.MouseEventHandler = (event) => {
+    if (event.target instanceof Element && event.target.id === "prompt-backdrop") {
+      ctx.setStack([...ctx.stack.slice(0, ctx.stack.length - 1)])
+    }
+  }
+
   return (
-    <dialog open className="fixed top-0 left-0 bg-transparent backdrop-blur w-screen h-screen">
+    <dialog
+      open
+      id="prompt-backdrop"
+      onClick={handleBackdropClick}
+      className="fixed top-0 left-0 bg-transparent backdrop-blur w-screen h-screen"
+    >
       <div className="fixed top-32 m-auto inset-x-0 z-10 w-96 p-4 bg-white drop-shadow rounded-lg">{children}</div>
     </dialog>
   )

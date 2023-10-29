@@ -37,6 +37,10 @@ export function registrationKindToJSON(object: RegistrationKind): string {
   }
 }
 
+export interface Result {
+  message: string;
+}
+
 export interface PingOptions {
 }
 
@@ -70,8 +74,13 @@ export interface Event {
 }
 
 export interface EventDate {
+  uid: string;
   value: string;
   cancelled: boolean;
+}
+
+export interface CancelEventDateOptions {
+  eventDateUid: string;
 }
 
 export interface ListEventRegistrationsOptions {
@@ -82,6 +91,14 @@ export interface RegistrationList {
   registrations: Registration[];
 }
 
+export interface MemberRegistrationList {
+  registrations: MemberRegistration[];
+}
+
+export interface ListMemberRegistrationsOptions {
+  memberEmail: string;
+}
+
 export interface Registration {
   confCode: string;
   kind: RegistrationKind;
@@ -90,17 +107,28 @@ export interface Registration {
   member: Member | undefined;
 }
 
+export interface MemberRegistration {
+  confCode: string;
+  kind: RegistrationKind;
+  eventName: string;
+  eventDate?: EventDate | undefined;
+}
+
 export interface WriteableRegistration {
   kind: RegistrationKind;
   eventName: string;
-  eventDate?: string | undefined;
+  eventDateUid?: string | undefined;
   memberEmail: string;
 }
 
-export interface MemberRegistration {
+export interface DeleteRegistrationOptions {
+  confCode: string;
+}
+
+export interface RegisterOptions {
   kind: RegistrationKind;
   eventName: string;
-  eventDate?: string | undefined;
+  eventDateUid?: string | undefined;
   memberFirstName: string;
   memberLastName: string;
 }
@@ -180,7 +208,7 @@ export interface CompleteVerificationResult {
 }
 
 export interface ListMembersOptions {
-  email: string;
+  search?: string | undefined;
 }
 
 export interface MemberList {
@@ -204,6 +232,57 @@ export interface WriteableMember {
 export interface GetMemberOptions {
   email: string;
 }
+
+function createBaseResult(): Result {
+  return { message: "" };
+}
+
+export const Result = {
+  encode(message: Result, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Result {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.message = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Result {
+    return { message: isSet(object.message) ? String(object.message) : "" };
+  },
+
+  toJSON(message: Result): unknown {
+    const obj: any = {};
+    message.message !== undefined && (obj.message = message.message);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Result>, I>>(base?: I): Result {
+    return Result.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Result>, I>>(object: I): Result {
+    const message = createBaseResult();
+    message.message = object.message ?? "";
+    return message;
+  },
+};
 
 function createBasePingOptions(): PingOptions {
   return {};
@@ -612,16 +691,19 @@ export const Event = {
 };
 
 function createBaseEventDate(): EventDate {
-  return { value: "", cancelled: false };
+  return { uid: "", value: "", cancelled: false };
 }
 
 export const EventDate = {
   encode(message: EventDate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.uid !== "") {
+      writer.uint32(10).string(message.uid);
+    }
     if (message.value !== "") {
-      writer.uint32(10).string(message.value);
+      writer.uint32(18).string(message.value);
     }
     if (message.cancelled === true) {
-      writer.uint32(16).bool(message.cancelled);
+      writer.uint32(24).bool(message.cancelled);
     }
     return writer;
   },
@@ -634,9 +716,12 @@ export const EventDate = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.value = reader.string();
+          message.uid = reader.string();
           break;
         case 2:
+          message.value = reader.string();
+          break;
+        case 3:
           message.cancelled = reader.bool();
           break;
         default:
@@ -649,6 +734,7 @@ export const EventDate = {
 
   fromJSON(object: any): EventDate {
     return {
+      uid: isSet(object.uid) ? String(object.uid) : "",
       value: isSet(object.value) ? String(object.value) : "",
       cancelled: isSet(object.cancelled) ? Boolean(object.cancelled) : false,
     };
@@ -656,6 +742,7 @@ export const EventDate = {
 
   toJSON(message: EventDate): unknown {
     const obj: any = {};
+    message.uid !== undefined && (obj.uid = message.uid);
     message.value !== undefined && (obj.value = message.value);
     message.cancelled !== undefined && (obj.cancelled = message.cancelled);
     return obj;
@@ -667,8 +754,60 @@ export const EventDate = {
 
   fromPartial<I extends Exact<DeepPartial<EventDate>, I>>(object: I): EventDate {
     const message = createBaseEventDate();
+    message.uid = object.uid ?? "";
     message.value = object.value ?? "";
     message.cancelled = object.cancelled ?? false;
+    return message;
+  },
+};
+
+function createBaseCancelEventDateOptions(): CancelEventDateOptions {
+  return { eventDateUid: "" };
+}
+
+export const CancelEventDateOptions = {
+  encode(message: CancelEventDateOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.eventDateUid !== "") {
+      writer.uint32(18).string(message.eventDateUid);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CancelEventDateOptions {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCancelEventDateOptions();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          message.eventDateUid = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CancelEventDateOptions {
+    return { eventDateUid: isSet(object.eventDateUid) ? String(object.eventDateUid) : "" };
+  },
+
+  toJSON(message: CancelEventDateOptions): unknown {
+    const obj: any = {};
+    message.eventDateUid !== undefined && (obj.eventDateUid = message.eventDateUid);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CancelEventDateOptions>, I>>(base?: I): CancelEventDateOptions {
+    return CancelEventDateOptions.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CancelEventDateOptions>, I>>(object: I): CancelEventDateOptions {
+    const message = createBaseCancelEventDateOptions();
+    message.eventDateUid = object.eventDateUid ?? "";
     return message;
   },
 };
@@ -785,6 +924,118 @@ export const RegistrationList = {
   },
 };
 
+function createBaseMemberRegistrationList(): MemberRegistrationList {
+  return { registrations: [] };
+}
+
+export const MemberRegistrationList = {
+  encode(message: MemberRegistrationList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.registrations) {
+      MemberRegistration.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MemberRegistrationList {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMemberRegistrationList();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.registrations.push(MemberRegistration.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MemberRegistrationList {
+    return {
+      registrations: Array.isArray(object?.registrations)
+        ? object.registrations.map((e: any) => MemberRegistration.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: MemberRegistrationList): unknown {
+    const obj: any = {};
+    if (message.registrations) {
+      obj.registrations = message.registrations.map((e) => e ? MemberRegistration.toJSON(e) : undefined);
+    } else {
+      obj.registrations = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MemberRegistrationList>, I>>(base?: I): MemberRegistrationList {
+    return MemberRegistrationList.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MemberRegistrationList>, I>>(object: I): MemberRegistrationList {
+    const message = createBaseMemberRegistrationList();
+    message.registrations = object.registrations?.map((e) => MemberRegistration.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseListMemberRegistrationsOptions(): ListMemberRegistrationsOptions {
+  return { memberEmail: "" };
+}
+
+export const ListMemberRegistrationsOptions = {
+  encode(message: ListMemberRegistrationsOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.memberEmail !== "") {
+      writer.uint32(10).string(message.memberEmail);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListMemberRegistrationsOptions {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListMemberRegistrationsOptions();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.memberEmail = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListMemberRegistrationsOptions {
+    return { memberEmail: isSet(object.memberEmail) ? String(object.memberEmail) : "" };
+  },
+
+  toJSON(message: ListMemberRegistrationsOptions): unknown {
+    const obj: any = {};
+    message.memberEmail !== undefined && (obj.memberEmail = message.memberEmail);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListMemberRegistrationsOptions>, I>>(base?: I): ListMemberRegistrationsOptions {
+    return ListMemberRegistrationsOptions.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ListMemberRegistrationsOptions>, I>>(
+    object: I,
+  ): ListMemberRegistrationsOptions {
+    const message = createBaseListMemberRegistrationsOptions();
+    message.memberEmail = object.memberEmail ?? "";
+    return message;
+  },
+};
+
 function createBaseRegistration(): Registration {
   return { confCode: "", kind: 0, eventName: "", eventDate: undefined, member: undefined };
 }
@@ -879,8 +1130,91 @@ export const Registration = {
   },
 };
 
+function createBaseMemberRegistration(): MemberRegistration {
+  return { confCode: "", kind: 0, eventName: "", eventDate: undefined };
+}
+
+export const MemberRegistration = {
+  encode(message: MemberRegistration, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.confCode !== "") {
+      writer.uint32(10).string(message.confCode);
+    }
+    if (message.kind !== 0) {
+      writer.uint32(16).int32(message.kind);
+    }
+    if (message.eventName !== "") {
+      writer.uint32(26).string(message.eventName);
+    }
+    if (message.eventDate !== undefined) {
+      EventDate.encode(message.eventDate, writer.uint32(34).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MemberRegistration {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMemberRegistration();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.confCode = reader.string();
+          break;
+        case 2:
+          message.kind = reader.int32() as any;
+          break;
+        case 3:
+          message.eventName = reader.string();
+          break;
+        case 4:
+          message.eventDate = EventDate.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MemberRegistration {
+    return {
+      confCode: isSet(object.confCode) ? String(object.confCode) : "",
+      kind: isSet(object.kind) ? registrationKindFromJSON(object.kind) : 0,
+      eventName: isSet(object.eventName) ? String(object.eventName) : "",
+      eventDate: isSet(object.eventDate) ? EventDate.fromJSON(object.eventDate) : undefined,
+    };
+  },
+
+  toJSON(message: MemberRegistration): unknown {
+    const obj: any = {};
+    message.confCode !== undefined && (obj.confCode = message.confCode);
+    message.kind !== undefined && (obj.kind = registrationKindToJSON(message.kind));
+    message.eventName !== undefined && (obj.eventName = message.eventName);
+    message.eventDate !== undefined &&
+      (obj.eventDate = message.eventDate ? EventDate.toJSON(message.eventDate) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MemberRegistration>, I>>(base?: I): MemberRegistration {
+    return MemberRegistration.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MemberRegistration>, I>>(object: I): MemberRegistration {
+    const message = createBaseMemberRegistration();
+    message.confCode = object.confCode ?? "";
+    message.kind = object.kind ?? 0;
+    message.eventName = object.eventName ?? "";
+    message.eventDate = (object.eventDate !== undefined && object.eventDate !== null)
+      ? EventDate.fromPartial(object.eventDate)
+      : undefined;
+    return message;
+  },
+};
+
 function createBaseWriteableRegistration(): WriteableRegistration {
-  return { kind: 0, eventName: "", eventDate: undefined, memberEmail: "" };
+  return { kind: 0, eventName: "", eventDateUid: undefined, memberEmail: "" };
 }
 
 export const WriteableRegistration = {
@@ -891,8 +1225,8 @@ export const WriteableRegistration = {
     if (message.eventName !== "") {
       writer.uint32(18).string(message.eventName);
     }
-    if (message.eventDate !== undefined) {
-      writer.uint32(26).string(message.eventDate);
+    if (message.eventDateUid !== undefined) {
+      writer.uint32(26).string(message.eventDateUid);
     }
     if (message.memberEmail !== "") {
       writer.uint32(34).string(message.memberEmail);
@@ -914,7 +1248,7 @@ export const WriteableRegistration = {
           message.eventName = reader.string();
           break;
         case 3:
-          message.eventDate = reader.string();
+          message.eventDateUid = reader.string();
           break;
         case 4:
           message.memberEmail = reader.string();
@@ -931,7 +1265,7 @@ export const WriteableRegistration = {
     return {
       kind: isSet(object.kind) ? registrationKindFromJSON(object.kind) : 0,
       eventName: isSet(object.eventName) ? String(object.eventName) : "",
-      eventDate: isSet(object.eventDate) ? String(object.eventDate) : undefined,
+      eventDateUid: isSet(object.eventDateUid) ? String(object.eventDateUid) : undefined,
       memberEmail: isSet(object.memberEmail) ? String(object.memberEmail) : "",
     };
   },
@@ -940,7 +1274,7 @@ export const WriteableRegistration = {
     const obj: any = {};
     message.kind !== undefined && (obj.kind = registrationKindToJSON(message.kind));
     message.eventName !== undefined && (obj.eventName = message.eventName);
-    message.eventDate !== undefined && (obj.eventDate = message.eventDate);
+    message.eventDateUid !== undefined && (obj.eventDateUid = message.eventDateUid);
     message.memberEmail !== undefined && (obj.memberEmail = message.memberEmail);
     return obj;
   },
@@ -953,26 +1287,77 @@ export const WriteableRegistration = {
     const message = createBaseWriteableRegistration();
     message.kind = object.kind ?? 0;
     message.eventName = object.eventName ?? "";
-    message.eventDate = object.eventDate ?? undefined;
+    message.eventDateUid = object.eventDateUid ?? undefined;
     message.memberEmail = object.memberEmail ?? "";
     return message;
   },
 };
 
-function createBaseMemberRegistration(): MemberRegistration {
-  return { kind: 0, eventName: "", eventDate: undefined, memberFirstName: "", memberLastName: "" };
+function createBaseDeleteRegistrationOptions(): DeleteRegistrationOptions {
+  return { confCode: "" };
 }
 
-export const MemberRegistration = {
-  encode(message: MemberRegistration, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const DeleteRegistrationOptions = {
+  encode(message: DeleteRegistrationOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.confCode !== "") {
+      writer.uint32(18).string(message.confCode);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DeleteRegistrationOptions {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteRegistrationOptions();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          message.confCode = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteRegistrationOptions {
+    return { confCode: isSet(object.confCode) ? String(object.confCode) : "" };
+  },
+
+  toJSON(message: DeleteRegistrationOptions): unknown {
+    const obj: any = {};
+    message.confCode !== undefined && (obj.confCode = message.confCode);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteRegistrationOptions>, I>>(base?: I): DeleteRegistrationOptions {
+    return DeleteRegistrationOptions.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DeleteRegistrationOptions>, I>>(object: I): DeleteRegistrationOptions {
+    const message = createBaseDeleteRegistrationOptions();
+    message.confCode = object.confCode ?? "";
+    return message;
+  },
+};
+
+function createBaseRegisterOptions(): RegisterOptions {
+  return { kind: 0, eventName: "", eventDateUid: undefined, memberFirstName: "", memberLastName: "" };
+}
+
+export const RegisterOptions = {
+  encode(message: RegisterOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.kind !== 0) {
       writer.uint32(8).int32(message.kind);
     }
     if (message.eventName !== "") {
       writer.uint32(18).string(message.eventName);
     }
-    if (message.eventDate !== undefined) {
-      writer.uint32(26).string(message.eventDate);
+    if (message.eventDateUid !== undefined) {
+      writer.uint32(26).string(message.eventDateUid);
     }
     if (message.memberFirstName !== "") {
       writer.uint32(34).string(message.memberFirstName);
@@ -983,10 +1368,10 @@ export const MemberRegistration = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MemberRegistration {
+  decode(input: _m0.Reader | Uint8Array, length?: number): RegisterOptions {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMemberRegistration();
+    const message = createBaseRegisterOptions();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -997,7 +1382,7 @@ export const MemberRegistration = {
           message.eventName = reader.string();
           break;
         case 3:
-          message.eventDate = reader.string();
+          message.eventDateUid = reader.string();
           break;
         case 4:
           message.memberFirstName = reader.string();
@@ -1013,35 +1398,35 @@ export const MemberRegistration = {
     return message;
   },
 
-  fromJSON(object: any): MemberRegistration {
+  fromJSON(object: any): RegisterOptions {
     return {
       kind: isSet(object.kind) ? registrationKindFromJSON(object.kind) : 0,
       eventName: isSet(object.eventName) ? String(object.eventName) : "",
-      eventDate: isSet(object.eventDate) ? String(object.eventDate) : undefined,
+      eventDateUid: isSet(object.eventDateUid) ? String(object.eventDateUid) : undefined,
       memberFirstName: isSet(object.memberFirstName) ? String(object.memberFirstName) : "",
       memberLastName: isSet(object.memberLastName) ? String(object.memberLastName) : "",
     };
   },
 
-  toJSON(message: MemberRegistration): unknown {
+  toJSON(message: RegisterOptions): unknown {
     const obj: any = {};
     message.kind !== undefined && (obj.kind = registrationKindToJSON(message.kind));
     message.eventName !== undefined && (obj.eventName = message.eventName);
-    message.eventDate !== undefined && (obj.eventDate = message.eventDate);
+    message.eventDateUid !== undefined && (obj.eventDateUid = message.eventDateUid);
     message.memberFirstName !== undefined && (obj.memberFirstName = message.memberFirstName);
     message.memberLastName !== undefined && (obj.memberLastName = message.memberLastName);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<MemberRegistration>, I>>(base?: I): MemberRegistration {
-    return MemberRegistration.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<RegisterOptions>, I>>(base?: I): RegisterOptions {
+    return RegisterOptions.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<MemberRegistration>, I>>(object: I): MemberRegistration {
-    const message = createBaseMemberRegistration();
+  fromPartial<I extends Exact<DeepPartial<RegisterOptions>, I>>(object: I): RegisterOptions {
+    const message = createBaseRegisterOptions();
     message.kind = object.kind ?? 0;
     message.eventName = object.eventName ?? "";
-    message.eventDate = object.eventDate ?? undefined;
+    message.eventDateUid = object.eventDateUid ?? undefined;
     message.memberFirstName = object.memberFirstName ?? "";
     message.memberLastName = object.memberLastName ?? "";
     return message;
@@ -1977,13 +2362,13 @@ export const CompleteVerificationResult = {
 };
 
 function createBaseListMembersOptions(): ListMembersOptions {
-  return { email: "" };
+  return { search: undefined };
 }
 
 export const ListMembersOptions = {
   encode(message: ListMembersOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.email !== "") {
-      writer.uint32(10).string(message.email);
+    if (message.search !== undefined) {
+      writer.uint32(10).string(message.search);
     }
     return writer;
   },
@@ -1996,7 +2381,7 @@ export const ListMembersOptions = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.email = reader.string();
+          message.search = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -2007,12 +2392,12 @@ export const ListMembersOptions = {
   },
 
   fromJSON(object: any): ListMembersOptions {
-    return { email: isSet(object.email) ? String(object.email) : "" };
+    return { search: isSet(object.search) ? String(object.search) : undefined };
   },
 
   toJSON(message: ListMembersOptions): unknown {
     const obj: any = {};
-    message.email !== undefined && (obj.email = message.email);
+    message.search !== undefined && (obj.search = message.search);
     return obj;
   },
 
@@ -2022,7 +2407,7 @@ export const ListMembersOptions = {
 
   fromPartial<I extends Exact<DeepPartial<ListMembersOptions>, I>>(object: I): ListMembersOptions {
     const message = createBaseListMembersOptions();
-    message.email = object.email ?? "";
+    message.search = object.search ?? undefined;
     return message;
   },
 };
@@ -2301,14 +2686,18 @@ export interface LightEvent {
   GetEvent(request: ByName): Promise<Event>;
   CreateEvent(request: Event): Promise<Event>;
   UpdateEvent(request: Event): Promise<Event>;
+  CancelEventDate(request: CancelEventDateOptions): Promise<EventDate>;
   /** Registrations */
   ListEventRegistrations(request: ListEventRegistrationsOptions): Promise<RegistrationList>;
   GetRegistration(request: ByConfCode): Promise<Registration>;
   CreateRegistration(request: WriteableRegistration): Promise<Registration>;
+  DeleteRegistration(request: DeleteRegistrationOptions): Promise<Result>;
   /** Members */
   CreateMember(request: WriteableMember): Promise<Member>;
   ListMembers(request: ListMembersOptions): Promise<MemberList>;
   GetMember(request: GetMemberOptions): Promise<Member>;
+  UpdateMember(request: WriteableMember): Promise<Member>;
+  ListMemberRegistrations(request: ListMemberRegistrationsOptions): Promise<MemberRegistrationList>;
   /** Users */
   CreateUser(request: WriteableUser): Promise<User>;
   ListUsers(request: ListUsersOptions): Promise<UserList>;
@@ -2321,7 +2710,7 @@ export interface LightEvent {
   UpdateSettings(request: UpdateSettingsOptions): Promise<SettingsList>;
   BeginVerification(request: BeginVerificationOptions): Promise<BeginVerificationResult>;
   CompleteVerification(request: CompleteVerificationOptions): Promise<CompleteVerificationResult>;
-  Register(request: MemberRegistration): Promise<Registration>;
+  Register(request: RegisterOptions): Promise<Registration>;
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;

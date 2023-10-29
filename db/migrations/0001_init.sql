@@ -12,6 +12,7 @@ CREATE UNIQUE INDEX events_name_idx ON events(name);
 
 CREATE TABLE event_dates (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	uid TEXT NOT NULL,
 	event_id INTEGER NOT NULL,
 	value TIMESTAMP NOT NULL,
 	cancelled INTEGER NOT NULL,
@@ -20,6 +21,7 @@ CREATE TABLE event_dates (
 );
 
 CREATE UNIQUE INDEX event_dates_value ON event_dates(event_id, value);
+CREATE UNIQUE INDEX event_dates_uid ON event_dates(uid);
 
 CREATE TABLE registrations (
 	id integer PRIMARY KEY AUTOINCREMENT,
@@ -29,10 +31,11 @@ CREATE TABLE registrations (
 	event_date_id INTEGER,
 	member_id INTEGER NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	deleted_at TIMESTAMP,
 
 	FOREIGN KEY (event_id) REFERENCES events(id),
-	FOREIGN KEY (event_date_id) REFERENCES event_dates(id)
-	-- FOREIGN KEY (member_id) REFERENCES members(id)
+	FOREIGN KEY (event_date_id) REFERENCES event_dates(id),
+	FOREIGN KEY (member_id) REFERENCES members(id)
 );
 
 CREATE UNIQUE INDEX registrations_member_event_id

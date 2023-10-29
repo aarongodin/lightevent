@@ -1,10 +1,15 @@
-import { Fragment } from "react"
+import { formatRFC3339 } from "date-fns"
+import { DateTime } from "luxon"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
+import { TwirpError } from "twirp-ts"
+
+import { ErrorMessage } from "@hookform/error-message"
 
 import { useClient } from "../client"
 import { eventRoute } from "../router"
-import { Event as Evt } from "../rpc"
+import { Event as Evt, EventDate } from "../rpc"
+import { Alert } from "../units/alert"
 import { Button } from "../units/button"
 
 type EventFormProps = {
@@ -13,38 +18,52 @@ type EventFormProps = {
 }
 
 function EventDatesField({ control }: { control: any }) {
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: "dates",
   })
 
   const addDate: React.EventHandler<React.MouseEvent> = (e) => {
     e.preventDefault()
-    append({ id: "", value: "" })
+    append({ uid: "", value: "", cancelled: false })
+  }
+
+  const removeDate = (idx: number) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    remove(idx)
   }
 
   return (
     <div className="grid grid-cols-1 gap-4">
       {fields.map((item, idx) => {
         return (
-          <Fragment key={item.id}>
-            <Controller
-              render={({ field }: any) => <input {...field} type="hidden" />}
-              name={`dates.${idx}.id`}
-              control={control}
-            />
+          <div key={item.id} className="flex justify-between">
             <Controller
               render={({ field }: any) => (
                 <input
+                  type="datetime-local"
                   {...field}
-                  className="rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
+                  disabled={item.cancelled}
+                  className="rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow grow mr-4"
                   required
                 />
               )}
               name={`dates.${idx}.value`}
               control={control}
             />
-          </Fragment>
+            <Button color="white" className="px-2" onClick={removeDate(idx)}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          </div>
         )
       })}
       <Button color="white" onClick={addDate}>
@@ -54,19 +73,39 @@ function EventDatesField({ control }: { control: any }) {
   )
 }
 
+function formValuesFromEventDates(eventDates: EventDate[]): EventDate[] {
+  return eventDates.map((d) => ({
+    ...d,
+    value: DateTime.fromISO(d.value).toFormat("yyyy-MM-dd'T'HH:mm"),
+  }))
+}
+
 export function EventForm({ event }: EventFormProps) {
-  const { handleSubmit, register, formState, control } = useForm({
+  const { handleSubmit, register, formState, control, setError } = useForm({
     defaultValues: {
       ...event,
-      dates: event !== undefined ? event.dates : [{ id: "", value: "" }],
+      dates: event !== undefined ? formValuesFromEventDates(event.dates) : [{ uid: "", value: "", cancelled: false }],
     },
   })
   const client = useClient()
   const navigate = useNavigate()
 
   async function onSubmit(data: any) {
-    const resp = event === undefined ? await client.CreateEvent(data) : await client.UpdateEvent(data)
-    navigate(eventRoute(resp.name))
+    // TODO(aarongodin): improve this?
+    const payload: Evt = {
+      ...data,
+      dates: data.dates.map((d: EventDate) => ({
+        ...d,
+        value: formatRFC3339(DateTime.fromISO(d.value).toMillis()),
+      })),
+    }
+    try {
+      const resp = event === undefined ? await client.CreateEvent(payload) : await client.UpdateEvent(payload)
+      navigate(eventRoute(resp.name))
+    } catch (err) {
+      const message = err instanceof TwirpError ? err.message : (err as Error).message
+      setError("root.submit", { type: "custom", message })
+    }
   }
 
   return (
@@ -99,7 +138,7 @@ export function EventForm({ event }: EventFormProps) {
             />
             <span className="flex items-center justify-end text-sm text-gray-800">Hidden</span>
             <label htmlFor="hidden" className="col-span-2 flex items-center gap-x-2">
-              <input id="hidden" type="checkbox" {...register("hidden")} className="w-4 h-4" />
+              <input id="hidden" type="checkbox" {...register("hidden", { value: true })} className="w-4 h-4" />
               <span className="text-sm">Hide this event in the event listing</span>
             </label>
             <span className="flex items-center justify-end text-sm text-gray-800">Closed</span>
@@ -115,6 +154,12 @@ export function EventForm({ event }: EventFormProps) {
           </div>
         </div>
       </div>
+      <ErrorMessage
+        name="root.submit"
+        errors={formState.errors}
+        render={({ message }) => <Alert variant="error" title="Error" content={message} />}
+      />
+
       <div className="mt-4">
         <Button color="primary" disabled={formState.isSubmitting}>
           Save Event

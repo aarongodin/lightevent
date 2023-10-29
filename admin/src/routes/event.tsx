@@ -1,73 +1,82 @@
 import { DateTime } from "luxon"
 import { useParams } from "react-router-dom"
 
-import { WithRequest } from "../client"
-import { formatRegistrationKind } from "../domain/registration"
+import { useClient, WithRequest } from "../client"
+import { usePrompt } from "../prompt"
 import { editEventRoute, newEventRegistrationRoute } from "../router"
-import { Event as Evt, RegistrationKind, registrationKindFromJSON, RegistrationList } from "../rpc"
+import { Event as Evt, EventDate, RegistrationList } from "../rpc"
 import { LinkButton } from "../units/button"
 import { Content } from "../units/content"
+import { DefinitionListItem } from "../units/list"
 import { TableLoader } from "../units/loader"
 import { PageTitle } from "../units/page-title"
-import { boolToString } from "../units/value"
+import { boolToString, formatConfCode, RegistrationKindBadge } from "../units/value"
 
 const WithEvent = WithRequest<Evt>
 const WithEventRegistrations = WithRequest<RegistrationList>
 
-function EventView({ evt }: { evt: Evt }) {
-  // TODO(aarongodin): turn the below into a unit
+function EventView({ evt, reload }: { evt: Evt; reload: () => void }) {
+  const prompt = usePrompt()
+  const client = useClient()
+  function cancelEventDate(eventDate: EventDate) {
+    return () => {
+      prompt
+        .confirm(
+          `This will cancel the event date on ${DateTime.fromISO(eventDate.value).toLocaleString(
+            DateTime.DATETIME_SHORT,
+          )}. You cannot undo a cancellation, are you sure you would like to cancel?`,
+        )
+        .then(({ ok }) => {
+          if (ok) {
+            client
+              .CancelEventDate({
+                eventDateUid: eventDate.uid,
+              })
+              .then(() => {
+                reload()
+              })
+          }
+        })
+    }
+  }
+
   const dates = evt.dates.map((date, idx) => {
-    const classNames = ["p-4 text-sm text-gray-900 flex justify-between"]
-    classNames.push(idx % 2 == 0 ? "bg-white" : "bg-gray-50")
+    const data = date.cancelled ? (
+      "Cancelled"
+    ) : (
+      <button className="text-sky-700 hover:text-sky-600" onClick={cancelEventDate(date)}>
+        Cancel
+      </button>
+    )
     return (
-      <div key={date.id} className={classNames.join(" ")}>
-        <div>{DateTime.fromISO(date.value).toLocaleString(DateTime.DATETIME_MED)}</div>
-        <div>
-          <button className="text-sky-700 hover:text-sky-600">Modify</button>
-        </div>
-      </div>
+      <DefinitionListItem
+        key={date.value}
+        stripe={idx % 2 !== 0}
+        title={DateTime.fromISO(date.value).toLocaleString(DateTime.DATETIME_SHORT)}
+        data={data}
+        variant="flex"
+      />
     )
   })
 
   return (
-    // TODO(aarongodin): fix repetition below
     <div className="grid grid-cols-2 gap-6">
       <dl className="drop-shadow">
-        <div className="bg-white p-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt className="text-sm font-medium text-gray-500">Name</dt>
-          <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 font-mono text-sm">{evt.name}</dd>
-        </div>
-        <div className="bg-gray-50 p-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt className="text-sm font-medium text-gray-500">Title</dt>
-          <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{evt.title}</dd>
-        </div>
-        <div className="bg-white p-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt className="text-sm font-medium text-gray-500">Hidden</dt>
-          <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{boolToString(evt.hidden)}</dd>
-        </div>
-        <div className="bg-gray-50 p-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-          <dt className="text-sm font-medium text-gray-500">Closed</dt>
-          <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{boolToString(evt.closed)}</dd>
-        </div>
+        <DefinitionListItem variant="grid" title="Name" data={evt.name} />
+        <DefinitionListItem variant="grid" stripe title="Title" data={evt.title} />
+        <DefinitionListItem variant="grid" title="Hidden" data={boolToString(evt.hidden)} />
+        <DefinitionListItem variant="grid" stripe title="Closed" data={boolToString(evt.closed)} />
       </dl>
       <div className="drop-shadow">{dates}</div>
     </div>
   )
 }
 
-type EventRegistrationsViewProps = {
+type EventRegistrationsTableProps = {
   registrations: RegistrationList["registrations"]
 }
 
-function EventRegistrationsView({ registrations }: EventRegistrationsViewProps) {
-  return <RegistrationsTable registrations={registrations} />
-}
-
-type RegistrationsTableProps = {
-  registrations: RegistrationList["registrations"]
-}
-
-function RegistrationsTable({ registrations }: RegistrationsTableProps) {
+function EventRegistrationsTable({ registrations }: EventRegistrationsTableProps) {
   const rows = registrations.map((reg, idx) => {
     const className = `${idx % 2 == 1 && "bg-gray-50"} p-2`
     return (
@@ -76,8 +85,10 @@ function RegistrationsTable({ registrations }: RegistrationsTableProps) {
           {reg.member?.firstName} {reg.member?.lastName}
         </td>
         <td className="p-4 text-left">{reg.member?.email}</td>
-        <td className="p-4 text-left text-sm">{formatRegistrationKind(registrationKindFromJSON(reg.kind))}</td>
-        <td className="p-4 text-right text-xs font-mono">{reg.confCode}</td>
+        <td className="p-4 text-left">
+          <RegistrationKindBadge kind={reg.kind} />
+        </td>
+        <td className="p-4 text-right text-xs font-mono">{formatConfCode(reg.confCode)}</td>
       </tr>
     )
   })
@@ -121,17 +132,16 @@ export default function Event() {
           <h3 className="mb-4">Dates</h3>
         </div>
         <WithEvent load={(client) => client.GetEvent({ name: eventName })} deps={[eventName]} loader={TableLoader}>
-          {(resp) => <EventView evt={resp} />}
+          {(resp, _, reload) => <EventView evt={resp} reload={reload} />}
         </WithEvent>
         <div className="mt-4">
           <h3 className="mb-4">Registrations</h3>
-
           <WithEventRegistrations
             load={(client) => client.ListEventRegistrations({ eventName })}
             deps={[eventName]}
             loader={TableLoader}
           >
-            {(resp) => <EventRegistrationsView registrations={resp.registrations} />}
+            {(resp) => <EventRegistrationsTable registrations={resp.registrations} />}
           </WithEventRegistrations>
         </div>
       </Content>

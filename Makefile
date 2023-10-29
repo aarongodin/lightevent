@@ -11,7 +11,7 @@ install-tools: download
 
 protoc:
 	@echo Compiling rpc/lightevent/service.proto
-	@mkdir ./generated
+	@rm -rf ./.protoc-tmp && mkdir ./.protoc-tmp
 	@protoc \
 		--twirp_out=. \
 		--go_out=. \
@@ -19,13 +19,13 @@ protoc:
     --plugin=protoc-gen-twirp_ts=./node_modules/.bin/protoc-gen-twirp_ts \
     --ts_proto_opt=esModuleInterop=true \
     --ts_proto_opt=outputClientImpl=false \
-    --ts_proto_out=./generated \
+    --ts_proto_out=./.protoc-tmp \
     --twirp_ts_opt="ts_proto" \
-    --twirp_ts_out=./generated \
+    --twirp_ts_out=./.protoc-tmp \
 		rpc/lightevent/service.proto
-	@cp ./generated/rpc/lightevent/* admin/src/rpc/
-	@cp ./generated/rpc/lightevent/* e2e/src/rpc/
-	@rm -rf ./generated
+	@cp ./.protoc-tmp/rpc/lightevent/* admin/src/rpc/
+	@cp ./.protoc-tmp/rpc/lightevent/* e2e/src/rpc/
+	@rm -rf ./.protoc-tmp
 
 test-api:
 	@npm -w e2e run test:api

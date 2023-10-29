@@ -4,7 +4,7 @@ import { PageTitle } from "../units/page-title"
 export default function Dashboard() {
   return (
     <>
-      <PageTitle title="Dashboard" />
+      <PageTitle title="Overview" />
       <Content>hi there</Content>
     </>
   )

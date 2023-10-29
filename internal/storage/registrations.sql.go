@@ -16,7 +16,7 @@ INSERT INTO registrations (
   event_id, event_date_id,
   member_id
 ) VALUES (?, ?, ?, ?, ?)
-RETURNING id, conf_code, kind, event_id, event_date_id, member_id, created_at
+RETURNING id, conf_code, kind, event_id, event_date_id, member_id, created_at, deleted_at
 `
 
 type CreateRegistrationParams struct {
@@ -44,12 +44,24 @@ func (q *Queries) CreateRegistration(ctx context.Context, arg CreateRegistration
 		&i.EventDateID,
 		&i.MemberID,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
+const deleteRegistrationByConfCode = `-- name: DeleteRegistrationByConfCode :exec
+UPDATE registrations
+SET deleted_at = CURRENT_TIMESTAMP
+WHERE conf_code = ?
+`
+
+func (q *Queries) DeleteRegistrationByConfCode(ctx context.Context, confCode string) error {
+	_, err := q.db.ExecContext(ctx, deleteRegistrationByConfCode, confCode)
+	return err
+}
+
 const getRegistrationByConfCode = `-- name: GetRegistrationByConfCode :one
-SELECT id, conf_code, kind, event_id, event_date_id, member_id, created_at FROM registrations
+SELECT id, conf_code, kind, event_id, event_date_id, member_id, created_at, deleted_at FROM registrations
 WHERE conf_code = ?
 `
 
@@ -64,12 +76,13 @@ func (q *Queries) GetRegistrationByConfCode(ctx context.Context, confCode string
 		&i.EventDateID,
 		&i.MemberID,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const listEventRegistrations = `-- name: ListEventRegistrations :many
-SELECT id, conf_code, kind, event_id, event_date_id, member_id, created_at FROM registrations
+SELECT id, conf_code, kind, event_id, event_date_id, member_id, created_at, deleted_at FROM registrations
 WHERE event_id = ?
 `
 
@@ -90,6 +103,51 @@ func (q *Queries) ListEventRegistrations(ctx context.Context, eventID int64) ([]
 			&i.EventDateID,
 			&i.MemberID,
 			&i.CreatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMemberRegistrations = `-- name: ListMemberRegistrations :many
+SELECT
+  reg.conf_code, reg.kind, reg.event_date_id,
+  ev.name as event_name
+FROM registrations reg
+INNER JOIN events ev ON reg.event_id = ev.id
+WHERE member_id = ?
+`
+
+type ListMemberRegistrationsRow struct {
+	ConfCode    string
+	Kind        string
+	EventDateID sql.NullInt64
+	EventName   string
+}
+
+func (q *Queries) ListMemberRegistrations(ctx context.Context, memberID int64) ([]ListMemberRegistrationsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listMemberRegistrations, memberID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListMemberRegistrationsRow
+	for rows.Next() {
+		var i ListMemberRegistrationsRow
+		if err := rows.Scan(
+			&i.ConfCode,
+			&i.Kind,
+			&i.EventDateID,
+			&i.EventName,
 		); err != nil {
 			return nil, err
 		}

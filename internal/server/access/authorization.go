@@ -97,10 +97,10 @@ func GetAllowedSchemes() map[string]byte {
 	)
 
 	allowSchemes(m, accessAdmin,
-		"CreateEvent", "UpdateEvent",
-		"ListEventRegistrations", "CreateRegistration",
+		"CreateEvent", "UpdateEvent", "CancelEventDate",
+		"ListEventRegistrations", "CreateRegistration", "ListMemberRegistrations", "DeleteRegistration",
 		"ListSettings", "UpdateSettings",
-		"ListMembers", "CreateMember", "GetMember",
+		"ListMembers", "CreateMember", "GetMember", "UpdateMember",
 		"CreateUser", "ListUsers",
 		"ListSessions",
 		"CreateAPIKey",

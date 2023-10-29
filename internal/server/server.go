@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/aarongodin/lightevent/internal/config"
+	"github.com/aarongodin/lightevent/internal/provider"
 	"github.com/aarongodin/lightevent/internal/storage"
 	"github.com/aarongodin/lightevent/internal/validation"
 	"github.com/mattn/go-sqlite3"
@@ -13,16 +14,18 @@ import (
 )
 
 type Server struct {
-	db      *sql.DB
-	queries *storage.Queries
-	rc      *config.RuntimeConfig
+	db        *sql.DB
+	queries   *storage.Queries
+	rc        *config.RuntimeConfig
+	providers *provider.Providers
 }
 
-func NewServer(db *sql.DB, queries *storage.Queries, rc *config.RuntimeConfig) *Server {
+func NewServer(db *sql.DB, queries *storage.Queries, rc *config.RuntimeConfig, p *provider.Providers) *Server {
 	return &Server{
-		db:      db,
-		queries: queries,
-		rc:      rc,
+		db:        db,
+		queries:   queries,
+		rc:        rc,
+		providers: p,
 	}
 }
 

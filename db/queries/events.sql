@@ -38,20 +38,23 @@ WHERE event_id = ?;
 SELECT * FROM event_dates
 WHERE id = ?;
 
--- name: GetEventDateByValue :one
+-- name: GetEventDateByUid :one
 SELECT * FROM event_dates
-WHERE event_id = ? AND value = ?;
+WHERE uid = ?;
 
 -- name: CreateEventDate :one
 INSERT INTO event_dates (
-  event_id, value, cancelled
-) VALUES (?, ?, ?)
+  event_id, uid, value, cancelled
+) VALUES (?, ?, ?, ?)
 RETURNING *;
 
--- name: UpsertEventDate :one
-INSERT INTO event_dates (
-  event_id, value, cancelled
-) VALUES (?, ?, ?)
-ON CONFLICT DO UPDATE SET
-  cancelled = excluded.cancelled
+-- name: UpdateEventDate :one
+UPDATE event_dates
+SET value = ?,
+    cancelled = ?
+WHERE id = ?
 RETURNING *;
+
+-- name: DeleteEventDate :exec
+DELETE FROM event_dates
+WHERE id = ?;

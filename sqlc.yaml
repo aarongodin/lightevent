@@ -7,3 +7,4 @@ sql:
       go:
         package: "storage"
         out: "internal/storage"
+

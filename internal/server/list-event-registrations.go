@@ -54,6 +54,8 @@ func (s *Server) ListEventRegistrations(ctx context.Context, message *service.Li
 			}
 			reg.EventDate = translateEventDate(eventDate)
 		}
+
+		regs = append(regs, reg)
 	}
 
 	return &service.RegistrationList{

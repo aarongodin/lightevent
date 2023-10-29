@@ -13,16 +13,20 @@ service LightEvent {
 	rpc GetEvent(ByName) returns (Event);
 	rpc CreateEvent(Event) returns (Event);
 	rpc UpdateEvent(Event) returns (Event);
+	rpc CancelEventDate(CancelEventDateOptions) returns (EventDate);
 
 	// Registrations
 	rpc ListEventRegistrations(ListEventRegistrationsOptions) returns (RegistrationList);
 	rpc GetRegistration(ByConfCode) returns (Registration);
 	rpc CreateRegistration(WriteableRegistration) returns (Registration);
+	rpc DeleteRegistration(DeleteRegistrationOptions) returns (Result);
 
 	// Members
 	rpc CreateMember(WriteableMember) returns (Member);
 	rpc ListMembers(ListMembersOptions) returns (MemberList);
 	rpc GetMember(GetMemberOptions) returns (Member);
+	rpc UpdateMember(WriteableMember) returns (Member);
+	rpc ListMemberRegistrations(ListMemberRegistrationsOptions) returns (MemberRegistrationList);
 
 	// Users
 	rpc CreateUser(WriteableUser) returns (User);
@@ -40,7 +44,11 @@ service LightEvent {
 
 	rpc BeginVerification(BeginVerificationOptions) returns (BeginVerificationResult);
 	rpc CompleteVerification(CompleteVerificationOptions) returns (CompleteVerificationResult);
-	rpc Register(MemberRegistration) returns (Registration);
+	rpc Register(RegisterOptions) returns (Registration);
+}
+
+message Result {
+	string message = 1;
 }
 
 message PingOptions {}
@@ -74,8 +82,13 @@ message Event {
 }
 
 message EventDate {
-	string value = 1;
-	bool cancelled = 2;
+	string uid = 1;
+	string value = 2;
+	bool cancelled = 3;
+}
+
+message CancelEventDateOptions {
+	string event_date_uid = 2;
 }
 
 message ListEventRegistrationsOptions {
@@ -84,6 +97,14 @@ message ListEventRegistrationsOptions {
 
 message RegistrationList {
 	repeated Registration registrations = 1;
+}
+
+message MemberRegistrationList {
+	repeated MemberRegistration registrations = 1;
+}
+
+message ListMemberRegistrationsOptions {
+	string member_email = 1;
 }
 
 enum RegistrationKind {
@@ -99,17 +120,28 @@ message Registration {
 	Member member = 5;
 }
 
+message MemberRegistration {
+	string conf_code = 1;
+	RegistrationKind kind = 2;
+	string event_name = 3;
+	optional EventDate event_date = 4;
+}
+
 message WriteableRegistration {
 	RegistrationKind kind = 1;
 	string event_name = 2;
-	optional string event_date = 3;
+	optional string event_date_uid = 3;
 	string member_email = 4;
 }
 
-message MemberRegistration {
+message DeleteRegistrationOptions {
+	string conf_code = 2;
+}
+
+message RegisterOptions {
 	RegistrationKind kind = 1;
 	string event_name = 2;
-	optional string event_date = 3;
+	optional string event_date_uid = 3;
 	string member_first_name = 4;
 	string member_last_name = 5;
 }
@@ -184,7 +216,7 @@ message CompleteVerificationOptions {
 message CompleteVerificationResult {}
 
 message ListMembersOptions {
-	string email = 1;
+	optional string search = 1;
 }
 
 message MemberList {
@@ -208,4 +240,3 @@ message WriteableMember {
 message GetMemberOptions {
 	string email = 1;
 }
-

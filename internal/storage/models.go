@@ -28,6 +28,7 @@ type Event struct {
 
 type EventDate struct {
 	ID        int64
+	Uid       string
 	EventID   int64
 	Value     time.Time
 	Cancelled int64
@@ -50,6 +51,7 @@ type Registration struct {
 	EventDateID sql.NullInt64
 	MemberID    int64
 	CreatedAt   time.Time
+	DeletedAt   sql.NullTime
 }
 
 type Session struct {

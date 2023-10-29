@@ -2,27 +2,31 @@ import { DateTime } from "luxon"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
+import { TwirpError } from "twirp-ts"
+
+import { ErrorMessage } from "@hookform/error-message"
 
 import { useClient } from "../client"
 import { eventRoute } from "../router"
 import { Event as Evt, RegistrationKind, registrationKindFromJSON, WriteableRegistration } from "../rpc"
 import { Button } from "../units/button"
+import { MemberSelect } from "./components/member-select"
 
 type EventFormProps = {
   event: Evt
 }
 
 export function RegistrationForm({ event }: EventFormProps) {
-  const { handleSubmit, register, unregister, watch, formState } = useForm()
+  const { handleSubmit, register, unregister, watch, formState, setError } = useForm()
   const kind = watch("kind")
   const client = useClient()
   const navigate = useNavigate()
 
   useEffect(() => {
     if (parseInt(kind, 10) === RegistrationKind.REG_ONCE) {
-      register("eventDate")
+      register("eventDateUid")
     } else {
-      unregister("eventDate")
+      unregister("eventDateUid")
     }
   }, [register, unregister, kind])
 
@@ -32,17 +36,29 @@ export function RegistrationForm({ event }: EventFormProps) {
       kind: registrationKindFromJSON(parseInt(data.kind, 10)),
       eventName: event.name,
     }
-    if (data.eventDate && data.eventDate.length > 0) {
-      payload.eventDate = data.eventDate
+    console.log(payload, data)
+    if (data.eventDateUid && data.eventDateUid.length > 0) {
+      payload.eventDateUid = data.eventDateUid
     }
-    const resp = await client.CreateRegistration(payload)
-    console.log(resp)
+    try {
+      await client.CreateRegistration(payload)
+    } catch (err) {
+      let message = ""
+      if (err instanceof TwirpError) {
+        message = err.message
+      } else {
+        message = (err as Error).message
+      }
+      setError("root.submit", { type: "custom", message })
+      return
+    }
     navigate(eventRoute(event.name))
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="max-w-2xl mx-auto">
+        <ErrorMessage name="root.submit" errors={formState.errors} />
         <div className="grid grid-cols-3 gap-4 max-w-xl bg-white p-4 rounded-lg drop-shadow">
           <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
             Member
@@ -66,19 +82,19 @@ export function RegistrationForm({ event }: EventFormProps) {
           </select>
           {parseInt(kind, 10) === RegistrationKind.REG_ONCE && (
             <>
-              <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="eventDate">
+              <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="eventDateUid">
                 Event Date
               </label>
               <select
-                {...register("eventDate")}
+                {...register("eventDateUid")}
                 required
                 className="col-span-2 rounded-md border-2 border-slate-200 px-1 py-1 focus:drop-shadow"
               >
                 <option value="" />
                 {event.dates.map((eventDate) => {
                   return (
-                    <option key={eventDate.id} value={eventDate.value}>
-                      {DateTime.fromISO(eventDate.value).toLocaleString(DateTime.DATETIME_MED)}
+                    <option key={eventDate.uid} value={eventDate.uid}>
+                      {DateTime.fromISO(eventDate.value).toLocaleString(DateTime.DATETIME_SHORT)}
                     </option>
                   )
                 })}

@@ -15,6 +15,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var initSQLite = `
+	PRAGMA foreign_keys = ON;
+`
+
 var lightEventMigrationsKey = "lightevent"
 
 var createMigrationsTable = `
@@ -111,7 +115,7 @@ func (s Storage) Migrate(ctx context.Context) error {
 				return fmt.Errorf("error setting migration version for [%s]: %w", version.filename, err)
 			}
 
-			log.Info().Int("version", version.n).Msg("storage_migration_complete")
+			log.Info().Int("version", version.n).Msg("storage migration complete")
 			latest = version.n
 		}
 	}
@@ -144,6 +148,12 @@ func Init(ctx context.Context, cfg *config.RuntimeConfig) (*Storage, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	_, err = db.Exec(initSQLite)
+	if err != nil {
+		return nil, err
+	}
+
 	storage := &Storage{DB: db}
 	if err := storage.Migrate(ctx); err != nil {
 		return nil, err

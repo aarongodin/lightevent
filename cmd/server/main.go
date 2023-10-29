@@ -5,15 +5,23 @@ import (
 	"encoding/gob"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/aarongodin/lightevent"
 	"github.com/aarongodin/lightevent/internal/config"
+	"github.com/aarongodin/lightevent/internal/events"
+	"github.com/aarongodin/lightevent/internal/middleware"
+	"github.com/aarongodin/lightevent/internal/notifications"
+	"github.com/aarongodin/lightevent/internal/provider"
 	"github.com/aarongodin/lightevent/internal/server"
 	"github.com/aarongodin/lightevent/internal/server/access"
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
 	"github.com/julienschmidt/httprouter"
 	"github.com/twitchtv/twirp"
+	"github.com/urfave/negroni"
 
 	_ "embed"
 
@@ -28,7 +36,8 @@ func main() {
 
 	runtimeConfig, err := config.NewRuntimeConfig()
 	if err != nil {
-		os.Exit(server.EXIT_STARTUP_ERR)
+		log.Err(err).Msg("error parsing runtime config")
+		return
 	}
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -47,13 +56,20 @@ func main() {
 	}
 	queries := storage.New(store.DB)
 
-	s := server.NewServer(store.DB, queries, runtimeConfig)
+	providers, err := provider.New(runtimeConfig)
+	if err != nil {
+		log.Err(err).Msg("failed to init providers")
+	}
+
+	notifications.Init(events.Default, providers.Email)
+
+	s := server.NewServer(store.DB, queries, runtimeConfig, providers)
 	twirpHandler := service.NewLightEventServer(s, twirp.WithServerPathPrefix("/rpc"), twirp.WithServerHooks(server.NewLoggingHooks()))
 
 	authHandler := httprouter.New()
 	if err := access.Register(authHandler, queries, runtimeConfig); err != nil {
 		log.Err(err).Msg("failed to register access routes")
-		os.Exit(server.EXIT_STARTUP_ERR)
+		return
 	}
 	access.InitCookies(runtimeConfig)
 
@@ -64,8 +80,39 @@ func main() {
 	)
 	mux.Handle("/", authHandler)
 
-	log.Info().Int("port", runtimeConfig.Port).Str("host", runtimeConfig.Host).Msg("starting http server")
-	if err := http.ListenAndServe(runtimeConfig.ServerAddr(), mux); err != nil {
-		log.Err(err).Msg("failed to start http server")
+	mw := negroni.New()
+	mw.Use(middleware.NewLoggingMiddleware())
+	mw.UseHandler(mux)
+
+	httpServer := &http.Server{
+		Addr:    runtimeConfig.ServerAddr(),
+		Handler: mw,
 	}
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Err(err).Msg("failed to start http server")
+		}
+	}()
+	log.Info().Int("port", runtimeConfig.Port).Str("host", runtimeConfig.Host).Msg("started http server")
+
+	<-done
+	log.Debug().Msg("starting graceful shutdown")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		if err := store.DB.Close(); err != nil {
+			log.Err(err).Msg("failed to close DB")
+		}
+		cancel()
+	}()
+
+	if err := httpServer.Shutdown(ctx); err != nil {
+		log.Err(err).Msg("failed to shutdown http server")
+	}
+
+	log.Debug().Msg("shutdown complete")
 }

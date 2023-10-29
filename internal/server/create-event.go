@@ -7,6 +7,7 @@ import (
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
 	"github.com/aarongodin/lightevent/internal/validation"
+	"github.com/google/uuid"
 )
 
 func (s *Server) CreateEvent(ctx context.Context, message *service.Event) (*service.Event, error) {
@@ -46,11 +47,13 @@ func (s *Server) CreateEvent(ctx context.Context, message *service.Event) (*serv
 		if err != nil {
 			return nil, errorResponse(err, "event")
 		}
-		eventDate, err := qtx.CreateEventDate(ctx, storage.CreateEventDateParams{
-			EventID:   rec.ID,
-			Value:     value,
-			Cancelled: 0,
-		})
+		eventDateParams := storage.CreateEventDateParams{
+			EventID: rec.ID,
+			Uid:     uuid.New().String(),
+			Value:   value,
+		}
+		storage.SetInt64FromBool(&eventDateParams.Cancelled, date.Cancelled)
+		eventDate, err := qtx.CreateEventDate(ctx, eventDateParams)
 		if err != nil {
 			return nil, errorResponse(err, "event")
 		}

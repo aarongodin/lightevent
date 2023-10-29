@@ -15,16 +15,22 @@ import {
   EventList,
   ByName,
   Event,
+  CancelEventDateOptions,
+  EventDate,
   ListEventRegistrationsOptions,
   RegistrationList,
   ByConfCode,
   Registration,
   WriteableRegistration,
+  DeleteRegistrationOptions,
+  Result,
   WriteableMember,
   Member,
   ListMembersOptions,
   MemberList,
   GetMemberOptions,
+  ListMemberRegistrationsOptions,
+  MemberRegistrationList,
   WriteableUser,
   User,
   ListUsersOptions,
@@ -40,7 +46,7 @@ import {
   BeginVerificationResult,
   CompleteVerificationOptions,
   CompleteVerificationResult,
-  MemberRegistration,
+  RegisterOptions,
 } from "./service";
 
 //==================================//
@@ -62,14 +68,20 @@ export interface LightEventClient {
   GetEvent(request: ByName): Promise<Event>;
   CreateEvent(request: Event): Promise<Event>;
   UpdateEvent(request: Event): Promise<Event>;
+  CancelEventDate(request: CancelEventDateOptions): Promise<EventDate>;
   ListEventRegistrations(
     request: ListEventRegistrationsOptions
   ): Promise<RegistrationList>;
   GetRegistration(request: ByConfCode): Promise<Registration>;
   CreateRegistration(request: WriteableRegistration): Promise<Registration>;
+  DeleteRegistration(request: DeleteRegistrationOptions): Promise<Result>;
   CreateMember(request: WriteableMember): Promise<Member>;
   ListMembers(request: ListMembersOptions): Promise<MemberList>;
   GetMember(request: GetMemberOptions): Promise<Member>;
+  UpdateMember(request: WriteableMember): Promise<Member>;
+  ListMemberRegistrations(
+    request: ListMemberRegistrationsOptions
+  ): Promise<MemberRegistrationList>;
   CreateUser(request: WriteableUser): Promise<User>;
   ListUsers(request: ListUsersOptions): Promise<UserList>;
   ListSessions(request: ListSessionsOptions): Promise<SessionList>;
@@ -82,7 +94,7 @@ export interface LightEventClient {
   CompleteVerification(
     request: CompleteVerificationOptions
   ): Promise<CompleteVerificationResult>;
-  Register(request: MemberRegistration): Promise<Registration>;
+  Register(request: RegisterOptions): Promise<Registration>;
 }
 
 export class LightEventClientJSON implements LightEventClient {
@@ -94,12 +106,16 @@ export class LightEventClientJSON implements LightEventClient {
     this.GetEvent.bind(this);
     this.CreateEvent.bind(this);
     this.UpdateEvent.bind(this);
+    this.CancelEventDate.bind(this);
     this.ListEventRegistrations.bind(this);
     this.GetRegistration.bind(this);
     this.CreateRegistration.bind(this);
+    this.DeleteRegistration.bind(this);
     this.CreateMember.bind(this);
     this.ListMembers.bind(this);
     this.GetMember.bind(this);
+    this.UpdateMember.bind(this);
+    this.ListMemberRegistrations.bind(this);
     this.CreateUser.bind(this);
     this.ListUsers.bind(this);
     this.ListSessions.bind(this);
@@ -165,6 +181,17 @@ export class LightEventClientJSON implements LightEventClient {
     return promise.then((data) => Event.fromJSON(data as any));
   }
 
+  CancelEventDate(request: CancelEventDateOptions): Promise<EventDate> {
+    const data = CancelEventDateOptions.toJSON(request);
+    const promise = this.rpc.request(
+      "LightEvent",
+      "CancelEventDate",
+      "application/json",
+      data as object
+    );
+    return promise.then((data) => EventDate.fromJSON(data as any));
+  }
+
   ListEventRegistrations(
     request: ListEventRegistrationsOptions
   ): Promise<RegistrationList> {
@@ -200,6 +227,17 @@ export class LightEventClientJSON implements LightEventClient {
     return promise.then((data) => Registration.fromJSON(data as any));
   }
 
+  DeleteRegistration(request: DeleteRegistrationOptions): Promise<Result> {
+    const data = DeleteRegistrationOptions.toJSON(request);
+    const promise = this.rpc.request(
+      "LightEvent",
+      "DeleteRegistration",
+      "application/json",
+      data as object
+    );
+    return promise.then((data) => Result.fromJSON(data as any));
+  }
+
   CreateMember(request: WriteableMember): Promise<Member> {
     const data = WriteableMember.toJSON(request);
     const promise = this.rpc.request(
@@ -231,6 +269,30 @@ export class LightEventClientJSON implements LightEventClient {
       data as object
     );
     return promise.then((data) => Member.fromJSON(data as any));
+  }
+
+  UpdateMember(request: WriteableMember): Promise<Member> {
+    const data = WriteableMember.toJSON(request);
+    const promise = this.rpc.request(
+      "LightEvent",
+      "UpdateMember",
+      "application/json",
+      data as object
+    );
+    return promise.then((data) => Member.fromJSON(data as any));
+  }
+
+  ListMemberRegistrations(
+    request: ListMemberRegistrationsOptions
+  ): Promise<MemberRegistrationList> {
+    const data = ListMemberRegistrationsOptions.toJSON(request);
+    const promise = this.rpc.request(
+      "LightEvent",
+      "ListMemberRegistrations",
+      "application/json",
+      data as object
+    );
+    return promise.then((data) => MemberRegistrationList.fromJSON(data as any));
   }
 
   CreateUser(request: WriteableUser): Promise<User> {
@@ -329,8 +391,8 @@ export class LightEventClientJSON implements LightEventClient {
     );
   }
 
-  Register(request: MemberRegistration): Promise<Registration> {
-    const data = MemberRegistration.toJSON(request);
+  Register(request: RegisterOptions): Promise<Registration> {
+    const data = RegisterOptions.toJSON(request);
     const promise = this.rpc.request(
       "LightEvent",
       "Register",
@@ -350,12 +412,16 @@ export class LightEventClientProtobuf implements LightEventClient {
     this.GetEvent.bind(this);
     this.CreateEvent.bind(this);
     this.UpdateEvent.bind(this);
+    this.CancelEventDate.bind(this);
     this.ListEventRegistrations.bind(this);
     this.GetRegistration.bind(this);
     this.CreateRegistration.bind(this);
+    this.DeleteRegistration.bind(this);
     this.CreateMember.bind(this);
     this.ListMembers.bind(this);
     this.GetMember.bind(this);
+    this.UpdateMember.bind(this);
+    this.ListMemberRegistrations.bind(this);
     this.CreateUser.bind(this);
     this.ListUsers.bind(this);
     this.ListSessions.bind(this);
@@ -421,6 +487,17 @@ export class LightEventClientProtobuf implements LightEventClient {
     return promise.then((data) => Event.decode(data as Uint8Array));
   }
 
+  CancelEventDate(request: CancelEventDateOptions): Promise<EventDate> {
+    const data = CancelEventDateOptions.encode(request).finish();
+    const promise = this.rpc.request(
+      "LightEvent",
+      "CancelEventDate",
+      "application/protobuf",
+      data
+    );
+    return promise.then((data) => EventDate.decode(data as Uint8Array));
+  }
+
   ListEventRegistrations(
     request: ListEventRegistrationsOptions
   ): Promise<RegistrationList> {
@@ -456,6 +533,17 @@ export class LightEventClientProtobuf implements LightEventClient {
     return promise.then((data) => Registration.decode(data as Uint8Array));
   }
 
+  DeleteRegistration(request: DeleteRegistrationOptions): Promise<Result> {
+    const data = DeleteRegistrationOptions.encode(request).finish();
+    const promise = this.rpc.request(
+      "LightEvent",
+      "DeleteRegistration",
+      "application/protobuf",
+      data
+    );
+    return promise.then((data) => Result.decode(data as Uint8Array));
+  }
+
   CreateMember(request: WriteableMember): Promise<Member> {
     const data = WriteableMember.encode(request).finish();
     const promise = this.rpc.request(
@@ -487,6 +575,32 @@ export class LightEventClientProtobuf implements LightEventClient {
       data
     );
     return promise.then((data) => Member.decode(data as Uint8Array));
+  }
+
+  UpdateMember(request: WriteableMember): Promise<Member> {
+    const data = WriteableMember.encode(request).finish();
+    const promise = this.rpc.request(
+      "LightEvent",
+      "UpdateMember",
+      "application/protobuf",
+      data
+    );
+    return promise.then((data) => Member.decode(data as Uint8Array));
+  }
+
+  ListMemberRegistrations(
+    request: ListMemberRegistrationsOptions
+  ): Promise<MemberRegistrationList> {
+    const data = ListMemberRegistrationsOptions.encode(request).finish();
+    const promise = this.rpc.request(
+      "LightEvent",
+      "ListMemberRegistrations",
+      "application/protobuf",
+      data
+    );
+    return promise.then((data) =>
+      MemberRegistrationList.decode(data as Uint8Array)
+    );
   }
 
   CreateUser(request: WriteableUser): Promise<User> {
@@ -585,8 +699,8 @@ export class LightEventClientProtobuf implements LightEventClient {
     );
   }
 
-  Register(request: MemberRegistration): Promise<Registration> {
-    const data = MemberRegistration.encode(request).finish();
+  Register(request: RegisterOptions): Promise<Registration> {
+    const data = RegisterOptions.encode(request).finish();
     const promise = this.rpc.request(
       "LightEvent",
       "Register",
@@ -607,6 +721,7 @@ export interface LightEventTwirp<T extends TwirpContext = TwirpContext> {
   GetEvent(ctx: T, request: ByName): Promise<Event>;
   CreateEvent(ctx: T, request: Event): Promise<Event>;
   UpdateEvent(ctx: T, request: Event): Promise<Event>;
+  CancelEventDate(ctx: T, request: CancelEventDateOptions): Promise<EventDate>;
   ListEventRegistrations(
     ctx: T,
     request: ListEventRegistrationsOptions
@@ -616,9 +731,18 @@ export interface LightEventTwirp<T extends TwirpContext = TwirpContext> {
     ctx: T,
     request: WriteableRegistration
   ): Promise<Registration>;
+  DeleteRegistration(
+    ctx: T,
+    request: DeleteRegistrationOptions
+  ): Promise<Result>;
   CreateMember(ctx: T, request: WriteableMember): Promise<Member>;
   ListMembers(ctx: T, request: ListMembersOptions): Promise<MemberList>;
   GetMember(ctx: T, request: GetMemberOptions): Promise<Member>;
+  UpdateMember(ctx: T, request: WriteableMember): Promise<Member>;
+  ListMemberRegistrations(
+    ctx: T,
+    request: ListMemberRegistrationsOptions
+  ): Promise<MemberRegistrationList>;
   CreateUser(ctx: T, request: WriteableUser): Promise<User>;
   ListUsers(ctx: T, request: ListUsersOptions): Promise<UserList>;
   ListSessions(ctx: T, request: ListSessionsOptions): Promise<SessionList>;
@@ -633,7 +757,7 @@ export interface LightEventTwirp<T extends TwirpContext = TwirpContext> {
     ctx: T,
     request: CompleteVerificationOptions
   ): Promise<CompleteVerificationResult>;
-  Register(ctx: T, request: MemberRegistration): Promise<Registration>;
+  Register(ctx: T, request: RegisterOptions): Promise<Registration>;
 }
 
 export enum LightEventMethod {
@@ -642,12 +766,16 @@ export enum LightEventMethod {
   GetEvent = "GetEvent",
   CreateEvent = "CreateEvent",
   UpdateEvent = "UpdateEvent",
+  CancelEventDate = "CancelEventDate",
   ListEventRegistrations = "ListEventRegistrations",
   GetRegistration = "GetRegistration",
   CreateRegistration = "CreateRegistration",
+  DeleteRegistration = "DeleteRegistration",
   CreateMember = "CreateMember",
   ListMembers = "ListMembers",
   GetMember = "GetMember",
+  UpdateMember = "UpdateMember",
+  ListMemberRegistrations = "ListMemberRegistrations",
   CreateUser = "CreateUser",
   ListUsers = "ListUsers",
   ListSessions = "ListSessions",
@@ -665,12 +793,16 @@ export const LightEventMethodList = [
   LightEventMethod.GetEvent,
   LightEventMethod.CreateEvent,
   LightEventMethod.UpdateEvent,
+  LightEventMethod.CancelEventDate,
   LightEventMethod.ListEventRegistrations,
   LightEventMethod.GetRegistration,
   LightEventMethod.CreateRegistration,
+  LightEventMethod.DeleteRegistration,
   LightEventMethod.CreateMember,
   LightEventMethod.ListMembers,
   LightEventMethod.GetMember,
+  LightEventMethod.UpdateMember,
+  LightEventMethod.ListMemberRegistrations,
   LightEventMethod.CreateUser,
   LightEventMethod.ListUsers,
   LightEventMethod.ListSessions,
@@ -774,6 +906,22 @@ function matchLightEventRoute<T extends TwirpContext = TwirpContext>(
           interceptors
         );
       };
+    case "CancelEventDate":
+      return async (
+        ctx: T,
+        service: LightEventTwirp,
+        data: Buffer,
+        interceptors?: Interceptor<T, CancelEventDateOptions, EventDate>[]
+      ) => {
+        ctx = { ...ctx, methodName: "CancelEventDate" };
+        await events.onMatch(ctx);
+        return handleLightEventCancelEventDateRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
+      };
     case "ListEventRegistrations":
       return async (
         ctx: T,
@@ -826,6 +974,22 @@ function matchLightEventRoute<T extends TwirpContext = TwirpContext>(
           interceptors
         );
       };
+    case "DeleteRegistration":
+      return async (
+        ctx: T,
+        service: LightEventTwirp,
+        data: Buffer,
+        interceptors?: Interceptor<T, DeleteRegistrationOptions, Result>[]
+      ) => {
+        ctx = { ...ctx, methodName: "DeleteRegistration" };
+        await events.onMatch(ctx);
+        return handleLightEventDeleteRegistrationRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
+      };
     case "CreateMember":
       return async (
         ctx: T,
@@ -868,6 +1032,42 @@ function matchLightEventRoute<T extends TwirpContext = TwirpContext>(
         ctx = { ...ctx, methodName: "GetMember" };
         await events.onMatch(ctx);
         return handleLightEventGetMemberRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
+      };
+    case "UpdateMember":
+      return async (
+        ctx: T,
+        service: LightEventTwirp,
+        data: Buffer,
+        interceptors?: Interceptor<T, WriteableMember, Member>[]
+      ) => {
+        ctx = { ...ctx, methodName: "UpdateMember" };
+        await events.onMatch(ctx);
+        return handleLightEventUpdateMemberRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
+      };
+    case "ListMemberRegistrations":
+      return async (
+        ctx: T,
+        service: LightEventTwirp,
+        data: Buffer,
+        interceptors?: Interceptor<
+          T,
+          ListMemberRegistrationsOptions,
+          MemberRegistrationList
+        >[]
+      ) => {
+        ctx = { ...ctx, methodName: "ListMemberRegistrations" };
+        await events.onMatch(ctx);
+        return handleLightEventListMemberRegistrationsRequest(
           ctx,
           service,
           data,
@@ -1015,7 +1215,7 @@ function matchLightEventRoute<T extends TwirpContext = TwirpContext>(
         ctx: T,
         service: LightEventTwirp,
         data: Buffer,
-        interceptors?: Interceptor<T, MemberRegistration, Registration>[]
+        interceptors?: Interceptor<T, RegisterOptions, Registration>[]
       ) => {
         ctx = { ...ctx, methodName: "Register" };
         await events.onMatch(ctx);
@@ -1159,6 +1359,35 @@ function handleLightEventUpdateEventRequest<
   }
 }
 
+function handleLightEventCancelEventDateRequest<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, CancelEventDateOptions, EventDate>[]
+): Promise<string | Uint8Array> {
+  switch (ctx.contentType) {
+    case TwirpContentType.JSON:
+      return handleLightEventCancelEventDateJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    case TwirpContentType.Protobuf:
+      return handleLightEventCancelEventDateProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    default:
+      const msg = "unexpected Content-Type";
+      throw new TwirpError(TwirpErrorCode.BadRoute, msg);
+  }
+}
+
 function handleLightEventListEventRegistrationsRequest<
   T extends TwirpContext = TwirpContext
 >(
@@ -1250,6 +1479,35 @@ function handleLightEventCreateRegistrationRequest<
   }
 }
 
+function handleLightEventDeleteRegistrationRequest<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, DeleteRegistrationOptions, Result>[]
+): Promise<string | Uint8Array> {
+  switch (ctx.contentType) {
+    case TwirpContentType.JSON:
+      return handleLightEventDeleteRegistrationJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    case TwirpContentType.Protobuf:
+      return handleLightEventDeleteRegistrationProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    default:
+      const msg = "unexpected Content-Type";
+      throw new TwirpError(TwirpErrorCode.BadRoute, msg);
+  }
+}
+
 function handleLightEventCreateMemberRequest<
   T extends TwirpContext = TwirpContext
 >(
@@ -1321,6 +1579,68 @@ function handleLightEventGetMemberRequest<
       return handleLightEventGetMemberJSON<T>(ctx, service, data, interceptors);
     case TwirpContentType.Protobuf:
       return handleLightEventGetMemberProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    default:
+      const msg = "unexpected Content-Type";
+      throw new TwirpError(TwirpErrorCode.BadRoute, msg);
+  }
+}
+
+function handleLightEventUpdateMemberRequest<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, WriteableMember, Member>[]
+): Promise<string | Uint8Array> {
+  switch (ctx.contentType) {
+    case TwirpContentType.JSON:
+      return handleLightEventUpdateMemberJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    case TwirpContentType.Protobuf:
+      return handleLightEventUpdateMemberProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    default:
+      const msg = "unexpected Content-Type";
+      throw new TwirpError(TwirpErrorCode.BadRoute, msg);
+  }
+}
+
+function handleLightEventListMemberRegistrationsRequest<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<
+    T,
+    ListMemberRegistrationsOptions,
+    MemberRegistrationList
+  >[]
+): Promise<string | Uint8Array> {
+  switch (ctx.contentType) {
+    case TwirpContentType.JSON:
+      return handleLightEventListMemberRegistrationsJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    case TwirpContentType.Protobuf:
+      return handleLightEventListMemberRegistrationsProtobuf<T>(
         ctx,
         service,
         data,
@@ -1571,7 +1891,7 @@ function handleLightEventRegisterRequest<T extends TwirpContext = TwirpContext>(
   ctx: T,
   service: LightEventTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, MemberRegistration, Registration>[]
+  interceptors?: Interceptor<T, RegisterOptions, Registration>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
@@ -1771,6 +2091,43 @@ async function handleLightEventUpdateEventJSON<
   return JSON.stringify(Event.toJSON(response) as string);
 }
 
+async function handleLightEventCancelEventDateJSON<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, CancelEventDateOptions, EventDate>[]
+) {
+  let request: CancelEventDateOptions;
+  let response: EventDate;
+
+  try {
+    const body = JSON.parse(data.toString() || "{}");
+    request = CancelEventDateOptions.fromJSON(body);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      CancelEventDateOptions,
+      EventDate
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.CancelEventDate(ctx, inputReq);
+    });
+  } else {
+    response = await service.CancelEventDate(ctx, request!);
+  }
+
+  return JSON.stringify(EventDate.toJSON(response) as string);
+}
+
 async function handleLightEventListEventRegistrationsJSON<
   T extends TwirpContext = TwirpContext
 >(
@@ -1886,6 +2243,43 @@ async function handleLightEventCreateRegistrationJSON<
   return JSON.stringify(Registration.toJSON(response) as string);
 }
 
+async function handleLightEventDeleteRegistrationJSON<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, DeleteRegistrationOptions, Result>[]
+) {
+  let request: DeleteRegistrationOptions;
+  let response: Result;
+
+  try {
+    const body = JSON.parse(data.toString() || "{}");
+    request = DeleteRegistrationOptions.fromJSON(body);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      DeleteRegistrationOptions,
+      Result
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.DeleteRegistration(ctx, inputReq);
+    });
+  } else {
+    response = await service.DeleteRegistration(ctx, request!);
+  }
+
+  return JSON.stringify(Result.toJSON(response) as string);
+}
+
 async function handleLightEventCreateMemberJSON<
   T extends TwirpContext = TwirpContext
 >(
@@ -1995,6 +2389,84 @@ async function handleLightEventGetMemberJSON<
   }
 
   return JSON.stringify(Member.toJSON(response) as string);
+}
+
+async function handleLightEventUpdateMemberJSON<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, WriteableMember, Member>[]
+) {
+  let request: WriteableMember;
+  let response: Member;
+
+  try {
+    const body = JSON.parse(data.toString() || "{}");
+    request = WriteableMember.fromJSON(body);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      WriteableMember,
+      Member
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.UpdateMember(ctx, inputReq);
+    });
+  } else {
+    response = await service.UpdateMember(ctx, request!);
+  }
+
+  return JSON.stringify(Member.toJSON(response) as string);
+}
+
+async function handleLightEventListMemberRegistrationsJSON<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<
+    T,
+    ListMemberRegistrationsOptions,
+    MemberRegistrationList
+  >[]
+) {
+  let request: ListMemberRegistrationsOptions;
+  let response: MemberRegistrationList;
+
+  try {
+    const body = JSON.parse(data.toString() || "{}");
+    request = ListMemberRegistrationsOptions.fromJSON(body);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      ListMemberRegistrationsOptions,
+      MemberRegistrationList
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.ListMemberRegistrations(ctx, inputReq);
+    });
+  } else {
+    response = await service.ListMemberRegistrations(ctx, request!);
+  }
+
+  return JSON.stringify(MemberRegistrationList.toJSON(response) as string);
 }
 
 async function handleLightEventCreateUserJSON<
@@ -2307,14 +2779,14 @@ async function handleLightEventRegisterJSON<
   ctx: T,
   service: LightEventTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, MemberRegistration, Registration>[]
+  interceptors?: Interceptor<T, RegisterOptions, Registration>[]
 ) {
-  let request: MemberRegistration;
+  let request: RegisterOptions;
   let response: Registration;
 
   try {
     const body = JSON.parse(data.toString() || "{}");
-    request = MemberRegistration.fromJSON(body);
+    request = RegisterOptions.fromJSON(body);
   } catch (e) {
     if (e instanceof Error) {
       const msg = "the json request could not be decoded";
@@ -2325,7 +2797,7 @@ async function handleLightEventRegisterJSON<
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
       T,
-      MemberRegistration,
+      RegisterOptions,
       Registration
     >;
     response = await interceptor(ctx, request!, (ctx, inputReq) => {
@@ -2517,6 +2989,42 @@ async function handleLightEventUpdateEventProtobuf<
   return Buffer.from(Event.encode(response).finish());
 }
 
+async function handleLightEventCancelEventDateProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, CancelEventDateOptions, EventDate>[]
+) {
+  let request: CancelEventDateOptions;
+  let response: EventDate;
+
+  try {
+    request = CancelEventDateOptions.decode(data);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      CancelEventDateOptions,
+      EventDate
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.CancelEventDate(ctx, inputReq);
+    });
+  } else {
+    response = await service.CancelEventDate(ctx, request!);
+  }
+
+  return Buffer.from(EventDate.encode(response).finish());
+}
+
 async function handleLightEventListEventRegistrationsProtobuf<
   T extends TwirpContext = TwirpContext
 >(
@@ -2629,6 +3137,42 @@ async function handleLightEventCreateRegistrationProtobuf<
   return Buffer.from(Registration.encode(response).finish());
 }
 
+async function handleLightEventDeleteRegistrationProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, DeleteRegistrationOptions, Result>[]
+) {
+  let request: DeleteRegistrationOptions;
+  let response: Result;
+
+  try {
+    request = DeleteRegistrationOptions.decode(data);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      DeleteRegistrationOptions,
+      Result
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.DeleteRegistration(ctx, inputReq);
+    });
+  } else {
+    response = await service.DeleteRegistration(ctx, request!);
+  }
+
+  return Buffer.from(Result.encode(response).finish());
+}
+
 async function handleLightEventCreateMemberProtobuf<
   T extends TwirpContext = TwirpContext
 >(
@@ -2735,6 +3279,82 @@ async function handleLightEventGetMemberProtobuf<
   }
 
   return Buffer.from(Member.encode(response).finish());
+}
+
+async function handleLightEventUpdateMemberProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, WriteableMember, Member>[]
+) {
+  let request: WriteableMember;
+  let response: Member;
+
+  try {
+    request = WriteableMember.decode(data);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      WriteableMember,
+      Member
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.UpdateMember(ctx, inputReq);
+    });
+  } else {
+    response = await service.UpdateMember(ctx, request!);
+  }
+
+  return Buffer.from(Member.encode(response).finish());
+}
+
+async function handleLightEventListMemberRegistrationsProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<
+    T,
+    ListMemberRegistrationsOptions,
+    MemberRegistrationList
+  >[]
+) {
+  let request: ListMemberRegistrationsOptions;
+  let response: MemberRegistrationList;
+
+  try {
+    request = ListMemberRegistrationsOptions.decode(data);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      ListMemberRegistrationsOptions,
+      MemberRegistrationList
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.ListMemberRegistrations(ctx, inputReq);
+    });
+  } else {
+    response = await service.ListMemberRegistrations(ctx, request!);
+  }
+
+  return Buffer.from(MemberRegistrationList.encode(response).finish());
 }
 
 async function handleLightEventCreateUserProtobuf<
@@ -3039,13 +3659,13 @@ async function handleLightEventRegisterProtobuf<
   ctx: T,
   service: LightEventTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, MemberRegistration, Registration>[]
+  interceptors?: Interceptor<T, RegisterOptions, Registration>[]
 ) {
-  let request: MemberRegistration;
+  let request: RegisterOptions;
   let response: Registration;
 
   try {
-    request = MemberRegistration.decode(data);
+    request = RegisterOptions.decode(data);
   } catch (e) {
     if (e instanceof Error) {
       const msg = "the protobuf request could not be decoded";
@@ -3056,7 +3676,7 @@ async function handleLightEventRegisterProtobuf<
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
       T,
-      MemberRegistration,
+      RegisterOptions,
       Registration
     >;
     response = await interceptor(ctx, request!, (ctx, inputReq) => {

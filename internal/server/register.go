@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/aarongodin/lightevent/internal/server/access"
 	"github.com/aarongodin/lightevent/internal/service"
@@ -12,7 +11,7 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
-func (s *Server) Register(ctx context.Context, message *service.MemberRegistration) (*service.Registration, error) {
+func (s *Server) Register(ctx context.Context, message *service.RegisterOptions) (*service.Registration, error) {
 	sub := access.GetSubject(ctx)
 	if sub == "" {
 		return nil, twirp.InternalError("expected subject on a member authorized route")
@@ -43,18 +42,10 @@ func (s *Server) Register(ctx context.Context, message *service.MemberRegistrati
 	}
 
 	if message.Kind == service.RegistrationKind_REG_ONCE {
-		if message.EventDate == nil {
+		if message.EventDateUid == nil {
 			return nil, twirp.InvalidArgumentError("event_date", "must be present when kind is once")
 		}
-
-		value, err := time.Parse(time.RFC3339, *message.EventDate)
-		if err != nil {
-			return nil, twirp.InvalidArgumentError("event_date", "must be a valid RFC3339 time when present")
-		}
-		eventDate, err := s.queries.GetEventDateByValue(ctx, storage.GetEventDateByValueParams{
-			EventID: event.ID,
-			Value:   value,
-		})
+		eventDate, err := s.queries.GetEventDateByUid(ctx, *message.EventDateUid)
 		if err != nil {
 			return nil, errorResponse(err, "event_date")
 		}

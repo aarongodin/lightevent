@@ -9,7 +9,9 @@ import EventRegistrationsCreate from "./routes/event-registrations-create"
 import Events from "./routes/events"
 import EventsCreate from "./routes/events-create"
 import Member from "./routes/member"
+import MemberEdit from "./routes/member-edit"
 import Members from "./routes/members"
+import MembersCreate from "./routes/members-create"
 import Registrations from "./routes/registrations"
 import Root from "./routes/root"
 
@@ -27,6 +29,8 @@ export const memberRoute = (email: string) => {
 export const memberEmailFromRoute = (path: string) => {
   return base64.decode(path.replace("/members/", ""))
 }
+export const newMemberRoute = `/members/_create`
+export const editMemberRoute = (email: string) => `${memberRoute(email)}/_edit`
 
 export default createBrowserRouter([
   {
@@ -67,8 +71,16 @@ export default createBrowserRouter([
         element: <Members />,
       },
       {
+        path: "members/_create",
+        element: <MembersCreate />,
+      },
+      {
         path: "members/:emailEncoded",
         element: <Member />,
+      },
+      {
+        path: "members/:emailEncoded/_edit",
+        element: <MemberEdit />,
       },
     ],
   },

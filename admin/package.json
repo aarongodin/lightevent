@@ -12,8 +12,10 @@
 	},
 	"prettier": "@aarongodin/eslint-config/prettier.json",
 	"dependencies": {
+		"@hookform/error-message": "^2.0.1",
 		"base-64": "^1.0.0",
 		"classnames": "^2.3.2",
+		"date-fns": "^2.30.0",
 		"google-protobuf": "^3.21.2",
 		"luxon": "^3.3.0",
 		"react": "^18.2.0",

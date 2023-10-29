@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
@@ -22,7 +21,7 @@ func (s *Server) CreateRegistration(ctx context.Context, message *service.Writea
 		return nil, errorResponse(err, "member")
 	}
 
-	confCode, err := util.RandomHexUpper(8)
+	confCode, err := util.RandomHexUpper(4)
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -35,18 +34,10 @@ func (s *Server) CreateRegistration(ctx context.Context, message *service.Writea
 	}
 
 	if message.Kind == service.RegistrationKind_REG_ONCE {
-		if message.EventDate == nil {
+		if message.EventDateUid == nil {
 			return nil, twirp.InvalidArgumentError("event_date", "must be present when kind is once")
 		}
-
-		value, err := time.Parse(time.RFC3339, *message.EventDate)
-		if err != nil {
-			return nil, twirp.InvalidArgumentError("event_date", "must be a valid RFC3339 time when present")
-		}
-		eventDate, err := s.queries.GetEventDateByValue(ctx, storage.GetEventDateByValueParams{
-			EventID: event.ID,
-			Value:   value,
-		})
+		eventDate, err := s.queries.GetEventDateByUid(ctx, *message.EventDateUid)
 		if err != nil {
 			return nil, errorResponse(err, "event_date")
 		}

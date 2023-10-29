@@ -13,7 +13,7 @@ export function useClient(): LightEventClientProtobuf {
 }
 
 type WithRequestProps<T> = {
-  children: (response: T, refreshing: boolean) => any
+  children: (response: T, refreshing: boolean, reload: () => void) => any
   load: (client: LightEventClientProtobuf) => Promise<T>
   deps: any[]
   loader: React.FunctionComponent
@@ -26,7 +26,11 @@ export function WithRequest<T>({ children, load, deps, loader: Loader }: WithReq
   const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
-    if (response !== null) {
+    handleLoading(response !== null)
+  }, deps)
+
+  function handleLoading(initialLoad: boolean) {
+    if (initialLoad) {
       setRefreshing(true)
     }
     load(client)
@@ -38,7 +42,7 @@ export function WithRequest<T>({ children, load, deps, loader: Loader }: WithReq
         setError(err)
         setRefreshing(false)
       })
-  }, deps)
+  }
 
   if (error !== null) {
     throw error
@@ -48,5 +52,5 @@ export function WithRequest<T>({ children, load, deps, loader: Loader }: WithReq
     return <Loader />
   }
 
-  return children(response, refreshing)
+  return children(response, refreshing, () => handleLoading(false))
 }

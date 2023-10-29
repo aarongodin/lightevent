@@ -18,7 +18,7 @@ function ExternalActions() {
   const params = useParams()
 
   function onCancel() {
-    prompt.confirm("This will discard any progress. Are you sure?").then(({ ok }) => {
+    prompt.confirm("This will discard any unsaved changes. Are you sure?").then(({ ok }) => {
       if (ok) {
         navigate(eventRoute(String(params.eventName)))
       }

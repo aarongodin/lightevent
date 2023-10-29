@@ -1,5 +1,7 @@
+import { DateTime } from "luxon"
+
 import { WithRequest } from "../client"
-import { memberRoute } from "../router"
+import { memberRoute, newMemberRoute } from "../router"
 import { MemberList } from "../rpc"
 import { LinkButton } from "../units/button"
 import { Content } from "../units/content"
@@ -20,7 +22,9 @@ function MembersTable({ members }: MembersTableProps) {
         <td className="p-4 text-left">{member.email}</td>
         <td className="p-4 text-left">{member.firstName}</td>
         <td className="p-4 text-left">{member.lastName}</td>
-        <td className="p-4 text-left text-sm">{member.createdAt}</td>
+        <td className="p-4 text-left text-sm">
+          {DateTime.fromISO(member.createdAt).toLocaleString(DateTime.DATETIME_SHORT)}
+        </td>
         <td className="p-4 text-right text-xs">
           <LinkButton color="white" to={memberRoute(member.email)}>
             View
@@ -46,12 +50,16 @@ function MembersTable({ members }: MembersTableProps) {
   )
 }
 
+function ExternalActions() {
+  return <LinkButton to={newMemberRoute}>New Member</LinkButton>
+}
+
 export default function Members() {
   return (
     <>
-      <PageTitle title="Members" />
+      <PageTitle title="Members" externalActions={<ExternalActions />} />
       <Content>
-        <WithMemberList load={(client) => client.ListMembers({ email: "" })} deps={[]} loader={TableLoader}>
+        <WithMemberList load={(client) => client.ListMembers({})} deps={[]} loader={TableLoader}>
           {(resp) => <MembersTable members={resp.members} />}
         </WithMemberList>
       </Content>

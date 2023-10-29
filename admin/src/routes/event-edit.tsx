@@ -16,7 +16,7 @@ function ExternalActions({ eventName }: { eventName: string }) {
   const navigate = useNavigate()
   const prompt = usePrompt()
   function onCancel() {
-    prompt.confirm("This will discard any progress. Are you sure?").then(({ ok }) => {
+    prompt.confirm("This will discard any unsaved changes. Are you sure?").then(({ ok }) => {
       if (ok) {
         navigate(eventRoute(eventName))
       }

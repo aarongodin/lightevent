@@ -14,3 +14,11 @@
 # export COOKIE_HMAC_SECRET=test
 # export ALLOW_ADMIN_USER=true
 # export ADMIN_USER_PASSWORD=admin
+
+### Email Providers
+# export EMAIL_PROVIDER=smtp
+# export EMAIL_SMTP_USERNAME=
+# export EMAIL_SMTP_PASSWORD=
+# export EMAIL_SMTP_SENDER=
+# export EMAIL_SMTP_HOST=
+# export EMAIL_SMTP_PORT=
