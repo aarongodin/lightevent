@@ -8,6 +8,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createRegistration = `-- name: CreateRegistration :one
@@ -63,6 +64,7 @@ func (q *Queries) DeleteRegistrationByConfCode(ctx context.Context, confCode str
 const getRegistrationByConfCode = `-- name: GetRegistrationByConfCode :one
 SELECT id, conf_code, kind, event_id, event_date_id, member_id, created_at, deleted_at FROM registrations
 WHERE conf_code = ?
+  AND deleted_at IS NULL
 `
 
 func (q *Queries) GetRegistrationByConfCode(ctx context.Context, confCode string) (Registration, error) {
@@ -81,9 +83,55 @@ func (q *Queries) GetRegistrationByConfCode(ctx context.Context, confCode string
 	return i, err
 }
 
+const listEventDateRegistrations = `-- name: ListEventDateRegistrations :many
+SELECT id, conf_code, kind, event_id, event_date_id, member_id, created_at, deleted_at FROM registrations
+WHERE
+  (kind = 'series' AND event_id = ?1)
+  OR (kind = 'once' AND event_id = ?1 AND event_date_id = ?2)
+  AND deleted_at IS NULL
+`
+
+type ListEventDateRegistrationsParams struct {
+	EventID     int64
+	EventDateID sql.NullInt64
+}
+
+func (q *Queries) ListEventDateRegistrations(ctx context.Context, arg ListEventDateRegistrationsParams) ([]Registration, error) {
+	rows, err := q.db.QueryContext(ctx, listEventDateRegistrations, arg.EventID, arg.EventDateID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Registration
+	for rows.Next() {
+		var i Registration
+		if err := rows.Scan(
+			&i.ID,
+			&i.ConfCode,
+			&i.Kind,
+			&i.EventID,
+			&i.EventDateID,
+			&i.MemberID,
+			&i.CreatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listEventRegistrations = `-- name: ListEventRegistrations :many
 SELECT id, conf_code, kind, event_id, event_date_id, member_id, created_at, deleted_at FROM registrations
 WHERE event_id = ?
+  AND deleted_at IS NULL
 `
 
 func (q *Queries) ListEventRegistrations(ctx context.Context, eventID int64) ([]Registration, error) {
@@ -120,17 +168,19 @@ func (q *Queries) ListEventRegistrations(ctx context.Context, eventID int64) ([]
 
 const listMemberRegistrations = `-- name: ListMemberRegistrations :many
 SELECT
-  reg.conf_code, reg.kind, reg.event_date_id,
+  reg.conf_code, reg.kind, reg.event_date_id, reg.created_at,
   ev.name as event_name
 FROM registrations reg
 INNER JOIN events ev ON reg.event_id = ev.id
 WHERE member_id = ?
+  AND deleted_at IS NULL
 `
 
 type ListMemberRegistrationsRow struct {
 	ConfCode    string
 	Kind        string
 	EventDateID sql.NullInt64
+	CreatedAt   time.Time
 	EventName   string
 }
 
@@ -147,6 +197,7 @@ func (q *Queries) ListMemberRegistrations(ctx context.Context, memberID int64) (
 			&i.ConfCode,
 			&i.Kind,
 			&i.EventDateID,
+			&i.CreatedAt,
 			&i.EventName,
 		); err != nil {
 			return nil, err

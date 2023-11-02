@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/aarongodin/lightevent/internal/server/access"
 	"github.com/aarongodin/lightevent/internal/service"
@@ -62,6 +63,7 @@ func (s *Server) Register(ctx context.Context, message *service.RegisterOptions)
 		Kind:      registrationKindFromString(rec.Kind),
 		EventName: event.Name,
 		Member:    translateMember(member),
+		CreatedAt: rec.CreatedAt.Format(time.RFC3339),
 	}
 	if rec.EventDateID.Valid {
 		eventDate, err := s.queries.GetEventDate(ctx, rec.EventDateID.Int64)

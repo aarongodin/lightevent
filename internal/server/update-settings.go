@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/aarongodin/lightevent/internal/repository"
 	"github.com/aarongodin/lightevent/internal/service"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func (s *Server) UpdateSettings(ctx context.Context, message *service.UpdateSettingsOptions) (*service.SettingsList, error) {
@@ -15,7 +15,11 @@ func (s *Server) UpdateSettings(ctx context.Context, message *service.UpdateSett
 	}
 
 	// Set the requested settings changes before persisting
-	for k, v := range message.Settings.AsMap() {
+	newSettings := make(map[string]any)
+	if err := json.Unmarshal([]byte(message.Settings), &newSettings); err != nil {
+		return nil, errorResponse(err, "settings")
+	}
+	for k, v := range newSettings {
 		list[k] = v
 	}
 
@@ -23,9 +27,9 @@ func (s *Server) UpdateSettings(ctx context.Context, message *service.UpdateSett
 		return nil, errorResponse(err, "settings")
 	}
 
-	settings, err := structpb.NewStruct(list)
+	newList, err := json.Marshal(&list)
 	if err != nil {
 		return nil, errorResponse(err, "settings")
 	}
-	return &service.SettingsList{Settings: settings}, nil
+	return &service.SettingsList{Settings: string(newList)}, nil
 }

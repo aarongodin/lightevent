@@ -29,19 +29,11 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
-// PUBLIC_RPCS can be requested by unauthenticated users (authorization is skipped)
-// This type is a map to ensure o(1) lookup by RPC name
-var PUBLIC_RPCS = map[string]bool{
-	"BeginVerification":    true,
-	"CompleteVerification": true,
-	"ListEvents":           true,
-	"GetEvent":             true,
-}
-
 const (
-	AUTHZ_SCHEME_MEMBER  = "member"
-	AUTHZ_SCHEME_USER    = "user"
-	AUTHZ_SCHEME_API_KEY = "api-key"
+	AUTHZ_SCHEME_ANONYMOUS = "anon"
+	AUTHZ_SCHEME_MEMBER    = "member"
+	AUTHZ_SCHEME_USER      = "user"
+	AUTHZ_SCHEME_API_KEY   = "api-key"
 	// accessMember allows only Members
 	accessMember = byte(0b001)
 	// accessAdmin allows only Users and API keys
@@ -62,6 +54,20 @@ const (
 	keySubject contextKey = iota + 1
 	keyScheme
 )
+
+// PUBLIC_RPCS can be requested by anonymous identities.
+// This type is a map to ensure o(1) lookup by RPC name
+var PUBLIC_RPCS = map[string]bool{
+	"BeginVerification":    true,
+	"CompleteVerification": true,
+	"ListEvents":           true,
+	"GetEvent":             true,
+}
+
+func IsPublicRPC(method string) bool {
+	_, exists := PUBLIC_RPCS[method]
+	return exists
+}
 
 // GetSubject finds the string value for the identity subject authenticated on the request.
 func GetSubject(ctx context.Context) string {
@@ -93,15 +99,15 @@ func GetAllowedSchemes() map[string]byte {
 	m := make(map[string]byte)
 
 	allowSchemes(m, accessAny,
-		"Ping", "GetRegistration",
+		"Ping", "GetRegistration", "ListEvents", "GetEvent",
 	)
 
 	allowSchemes(m, accessAdmin,
-		"CreateEvent", "UpdateEvent", "CancelEventDate",
+		"CreateEvent", "UpdateEvent", "CancelEventDate", "ListEventDates",
 		"ListEventRegistrations", "CreateRegistration", "ListMemberRegistrations", "DeleteRegistration",
 		"ListSettings", "UpdateSettings",
 		"ListMembers", "CreateMember", "GetMember", "UpdateMember",
-		"CreateUser", "ListUsers",
+		"CreateUser", "ListUsers", "UpdateUser",
 		"ListSessions",
 		"CreateAPIKey",
 	)
@@ -177,21 +183,17 @@ func WithAuthorization(base http.Handler, queries *storage.Queries, rc *config.R
 			return
 		}
 
-		if _, exists := PUBLIC_RPCS[method]; exists {
-			// Continue the request without authorization
-			base.ServeHTTP(w, r)
-			return
-		}
-
 		schemes, ok := rpcAuthorization[method]
-		if !ok {
+		if !ok && !IsPublicRPC(method) {
+
 			twirp.WriteError(w, twirp.BadRoute.Error("unexpected rpc route"))
 			return
+
 		}
 
 		var subject, scheme = "", ""
 
-		// Check each bitmask against the allowed schemes for the current route
+		// Check each bitmask against the allowed schemes for the current method
 		switch {
 		case schemes&maskMember > 0:
 			// member scheme is allowed
@@ -242,12 +244,13 @@ func WithAuthorization(base http.Handler, queries *storage.Queries, rc *config.R
 				scheme = AUTHZ_SCHEME_API_KEY
 				break
 			}
-		default:
-			twirp.WriteError(w, twirp.InternalError("unknown authorization scheme"))
-			return
 		}
 
-		if subject == "" || scheme == "" {
+		if scheme == "" {
+			if IsPublicRPC(method) {
+				base.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), keyScheme, AUTHZ_SCHEME_ANONYMOUS)))
+				return
+			}
 			twirp.WriteError(w, twirp.Unauthenticated.Error("authentication required"))
 			return
 		}

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/aarongodin/lightevent/internal/service"
 )
@@ -21,6 +22,7 @@ func (s *Server) GetRegistration(ctx context.Context, message *service.ByConfCod
 		ConfCode:  rec.ConfCode,
 		Kind:      registrationKindFromString(rec.Kind),
 		EventName: event.Name,
+		CreatedAt: rec.CreatedAt.Format(time.RFC3339),
 	}
 
 	// TODO(aarongodin): combine with logic from list-event-registrations.go

@@ -17,13 +17,14 @@ type ApiKey struct {
 }
 
 type Event struct {
-	ID        int64
-	Name      string
-	Title     string
-	Hidden    int64
-	Closed    int64
-	CreatedAt time.Time
-	UpdatedAt sql.NullTime
+	ID          int64
+	Name        string
+	Title       string
+	Description sql.NullString
+	Hidden      int64
+	Closed      int64
+	CreatedAt   time.Time
+	UpdatedAt   sql.NullTime
 }
 
 type EventDate struct {
@@ -72,10 +73,12 @@ type Setting struct {
 
 type User struct {
 	ID           int64
+	Uid          string
 	Username     string
 	PasswordHash string
 	FirstName    sql.NullString
 	LastName     sql.NullString
+	Email        sql.NullString
 	CreatedAt    time.Time
 	UpdatedAt    sql.NullTime
 }

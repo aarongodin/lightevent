@@ -9,6 +9,7 @@ import (
 
 	"github.com/aarongodin/lightevent/internal/config"
 	"github.com/aarongodin/lightevent/internal/storage"
+	"github.com/aarongodin/lightevent/internal/util"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/zerolog/log"
 	"github.com/twitchtv/twirp"
@@ -54,20 +55,12 @@ func (ar accessRoutes) handleAuthentication(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	SetCookie(w, &http.Cookie{
-		Name:     COOKIE_USER_SESSION,
-		Value:    session.Key,
-		HttpOnly: true,
-		// TODO(aarongodin): enable this when local dev is using ssl
-		// Secure:   true,
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-	})
+	SetCookie(w, true, NewCookie(COOKIE_USER_SESSION, session.Key, int(ar.rc.SessionMaxAge.Seconds())))
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // handleLogin renders a login page to the user
-func (ar accessRoutes) handleLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (ar accessRoutes) handleLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// TODO(aarongodin): CSRF protection
 	data := loginData{Styles: template.CSS(loginCSS)}
 	q := r.URL.Query()
@@ -80,6 +73,24 @@ func (ar accessRoutes) handleLogin(w http.ResponseWriter, r *http.Request, p htt
 		twirp.WriteError(w, err)
 		return
 	}
+}
+
+func (ar accessRoutes) handleLogout(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	sess, err := authorizeWithCookie(r, ar.queries, COOKIE_USER_SESSION)
+	if err != nil {
+		twirp.WriteError(w, err)
+		return
+	}
+
+	if err := ar.queries.DeleteSession(r.Context(), sess.ID); err != nil {
+		twirp.WriteError(w, err)
+		return
+	}
+
+	SetCookie(w, true, NewCookie(COOKIE_USER_SESSION, "", int(ar.rc.SessionMaxAge.Seconds())))
+	util.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "Logout successful.",
+	})
 }
 
 // Register attaches the route handlers to the given router
@@ -97,6 +108,7 @@ func Register(router *httprouter.Router, queries *storage.Queries, rc *config.Ru
 
 	router.GET("/login", routes.handleLogin)
 	router.POST("/auth/login", routes.handleAuthentication)
+	router.POST("/auth/logout", routes.handleLogout)
 
 	if rc.AllowAdminUser {
 		log.Info().Msg("admin user enabled")

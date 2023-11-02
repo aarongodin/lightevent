@@ -1,6 +1,5 @@
-import { DateTime } from "luxon"
-
 import { WithRequest } from "../client"
+import dayjs from "../dayjs"
 import { memberRoute, newMemberRoute } from "../router"
 import { MemberList } from "../rpc"
 import { LinkButton } from "../units/button"
@@ -22,9 +21,7 @@ function MembersTable({ members }: MembersTableProps) {
         <td className="p-4 text-left">{member.email}</td>
         <td className="p-4 text-left">{member.firstName}</td>
         <td className="p-4 text-left">{member.lastName}</td>
-        <td className="p-4 text-left text-sm">
-          {DateTime.fromISO(member.createdAt).toLocaleString(DateTime.DATETIME_SHORT)}
-        </td>
+        <td className="p-4 text-left text-sm">{dayjs(member.createdAt).format("l LTS")}</td>
         <td className="p-4 text-right text-xs">
           <LinkButton color="white" to={memberRoute(member.email)}>
             View

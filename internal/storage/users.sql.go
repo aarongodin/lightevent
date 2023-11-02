@@ -12,32 +12,60 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-  username, password_hash, first_name, last_name
-) VALUES (?, ?, ?, ?)
-RETURNING id, username, password_hash, first_name, last_name, created_at, updated_at
+  uid, username, password_hash, first_name, last_name, email
+) VALUES (?, ?, ?, ?, ?, ?)
+RETURNING id, uid, username, password_hash, first_name, last_name, email, created_at, updated_at
 `
 
 type CreateUserParams struct {
+	Uid          string
 	Username     string
 	PasswordHash string
 	FirstName    sql.NullString
 	LastName     sql.NullString
+	Email        sql.NullString
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Uid,
 		arg.Username,
 		arg.PasswordHash,
 		arg.FirstName,
 		arg.LastName,
+		arg.Email,
 	)
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.Uid,
 		&i.Username,
 		&i.PasswordHash,
 		&i.FirstName,
 		&i.LastName,
+		&i.Email,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByUID = `-- name: GetUserByUID :one
+SELECT id, uid, username, password_hash, first_name, last_name, email, created_at, updated_at FROM users
+WHERE uid = ?
+`
+
+func (q *Queries) GetUserByUID(ctx context.Context, uid string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByUID, uid)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Uid,
+		&i.Username,
+		&i.PasswordHash,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -45,7 +73,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, password_hash, first_name, last_name, created_at, updated_at FROM users
+SELECT id, uid, username, password_hash, first_name, last_name, email, created_at, updated_at FROM users
 WHERE username = ?
 `
 
@@ -54,10 +82,12 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.Uid,
 		&i.Username,
 		&i.PasswordHash,
 		&i.FirstName,
 		&i.LastName,
+		&i.Email,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -65,7 +95,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, username, password_hash, first_name, last_name, created_at, updated_at FROM users
+SELECT id, uid, username, password_hash, first_name, last_name, email, created_at, updated_at FROM users
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
@@ -79,10 +109,12 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 		var i User
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uid,
 			&i.Username,
 			&i.PasswordHash,
 			&i.FirstName,
 			&i.LastName,
+			&i.Email,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -97,4 +129,49 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET username = COALESCE(?2, username),
+    password_hash = COALESCE(?3, password_hash),
+    first_name = COALESCE(?4, first_name),
+    last_name = COALESCE(?5, last_name),
+    email = COALESCE(?6, email),
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = ?
+RETURNING id, uid, username, password_hash, first_name, last_name, email, created_at, updated_at
+`
+
+type UpdateUserParams struct {
+	Username     sql.NullString
+	PasswordHash sql.NullString
+	FirstName    sql.NullString
+	LastName     sql.NullString
+	Email        sql.NullString
+	ID           int64
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUser,
+		arg.Username,
+		arg.PasswordHash,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.ID,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Uid,
+		&i.Username,
+		&i.PasswordHash,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

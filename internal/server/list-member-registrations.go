@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/aarongodin/lightevent/internal/service"
 )
@@ -28,6 +29,7 @@ func (s *Server) ListMemberRegistrations(ctx context.Context, message *service.L
 			ConfCode:  rec.ConfCode,
 			Kind:      registrationKindFromString(rec.Kind),
 			EventName: rec.EventName,
+			CreatedAt: rec.CreatedAt.Format(time.RFC3339),
 		}
 
 		if rec.EventDateID.Valid {

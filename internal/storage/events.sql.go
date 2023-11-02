@@ -7,29 +7,32 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
 const createEvent = `-- name: CreateEvent :one
 INSERT INTO events (
-  name, title, hidden, closed
+  name, title, description,  hidden, closed
 ) VALUES (
-  ?, ?, ?, ?
+  ?, ?, ?, ?, ?
 )
-RETURNING id, name, title, hidden, closed, created_at, updated_at
+RETURNING id, name, title, description, hidden, closed, created_at, updated_at
 `
 
 type CreateEventParams struct {
-	Name   string
-	Title  string
-	Hidden int64
-	Closed int64
+	Name        string
+	Title       string
+	Description sql.NullString
+	Hidden      int64
+	Closed      int64
 }
 
 func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error) {
 	row := q.db.QueryRowContext(ctx, createEvent,
 		arg.Name,
 		arg.Title,
+		arg.Description,
 		arg.Hidden,
 		arg.Closed,
 	)
@@ -38,6 +41,7 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event
 		&i.ID,
 		&i.Name,
 		&i.Title,
+		&i.Description,
 		&i.Hidden,
 		&i.Closed,
 		&i.CreatedAt,
@@ -89,7 +93,7 @@ func (q *Queries) DeleteEventDate(ctx context.Context, id int64) error {
 }
 
 const getEvent = `-- name: GetEvent :one
-SELECT id, name, title, hidden, closed, created_at, updated_at
+SELECT id, name, title, description, hidden, closed, created_at, updated_at
 FROM events
 WHERE id = ?
 `
@@ -101,6 +105,7 @@ func (q *Queries) GetEvent(ctx context.Context, id int64) (Event, error) {
 		&i.ID,
 		&i.Name,
 		&i.Title,
+		&i.Description,
 		&i.Hidden,
 		&i.Closed,
 		&i.CreatedAt,
@@ -110,7 +115,7 @@ func (q *Queries) GetEvent(ctx context.Context, id int64) (Event, error) {
 }
 
 const getEventByName = `-- name: GetEventByName :one
-SELECT id, name, title, hidden, closed, created_at, updated_at
+SELECT id, name, title, description, hidden, closed, created_at, updated_at
 FROM events
 WHERE name = ?
 `
@@ -122,6 +127,7 @@ func (q *Queries) GetEventByName(ctx context.Context, name string) (Event, error
 		&i.ID,
 		&i.Name,
 		&i.Title,
+		&i.Description,
 		&i.Hidden,
 		&i.Closed,
 		&i.CreatedAt,
@@ -169,11 +175,48 @@ func (q *Queries) GetEventDateByUid(ctx context.Context, uid string) (EventDate,
 const listEventDates = `-- name: ListEventDates :many
 SELECT id, uid, event_id, value, cancelled
 FROM event_dates
+WHERE value > CURRENT_TIMESTAMP
+ORDER BY value ASC
+LIMIT ?
+`
+
+func (q *Queries) ListEventDates(ctx context.Context, limit int64) ([]EventDate, error) {
+	rows, err := q.db.QueryContext(ctx, listEventDates, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []EventDate
+	for rows.Next() {
+		var i EventDate
+		if err := rows.Scan(
+			&i.ID,
+			&i.Uid,
+			&i.EventID,
+			&i.Value,
+			&i.Cancelled,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEventDatesByEventID = `-- name: ListEventDatesByEventID :many
+SELECT id, uid, event_id, value, cancelled
+FROM event_dates
 WHERE event_id = ?
 `
 
-func (q *Queries) ListEventDates(ctx context.Context, eventID int64) ([]EventDate, error) {
-	rows, err := q.db.QueryContext(ctx, listEventDates, eventID)
+func (q *Queries) ListEventDatesByEventID(ctx context.Context, eventID int64) ([]EventDate, error) {
+	rows, err := q.db.QueryContext(ctx, listEventDatesByEventID, eventID)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +245,7 @@ func (q *Queries) ListEventDates(ctx context.Context, eventID int64) ([]EventDat
 }
 
 const listEvents = `-- name: ListEvents :many
-SELECT id, name, title, hidden, closed, created_at, updated_at
+SELECT id, name, title, description, hidden, closed, created_at, updated_at
 FROM events
 `
 
@@ -219,6 +262,50 @@ func (q *Queries) ListEvents(ctx context.Context) ([]Event, error) {
 			&i.ID,
 			&i.Name,
 			&i.Title,
+			&i.Description,
+			&i.Hidden,
+			&i.Closed,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listVisibleEvents = `-- name: ListVisibleEvents :many
+SELECT events.id, events.name, events.title, events.description, events.hidden, events.closed, events.created_at, events.updated_at
+FROM events
+INNER JOIN (
+  SELECT DISTINCT event_id
+  FROM event_dates
+  WHERE value > CURRENT_TIMESTAMP
+) event_dates ON events.id = event_dates.event_id
+WHERE events.hidden = 0
+`
+
+func (q *Queries) ListVisibleEvents(ctx context.Context) ([]Event, error) {
+	rows, err := q.db.QueryContext(ctx, listVisibleEvents)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Title,
+			&i.Description,
 			&i.Hidden,
 			&i.Closed,
 			&i.CreatedAt,
@@ -241,22 +328,25 @@ const updateEvent = `-- name: UpdateEvent :one
 UPDATE events
 SET
   title = ?,
+  description = ?,
   hidden = ?,
   closed = ?
 WHERE name = ?
-RETURNING id, name, title, hidden, closed, created_at, updated_at
+RETURNING id, name, title, description, hidden, closed, created_at, updated_at
 `
 
 type UpdateEventParams struct {
-	Title  string
-	Hidden int64
-	Closed int64
-	Name   string
+	Title       string
+	Description sql.NullString
+	Hidden      int64
+	Closed      int64
+	Name        string
 }
 
 func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event, error) {
 	row := q.db.QueryRowContext(ctx, updateEvent,
 		arg.Title,
+		arg.Description,
 		arg.Hidden,
 		arg.Closed,
 		arg.Name,
@@ -266,6 +356,7 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event
 		&i.ID,
 		&i.Name,
 		&i.Title,
+		&i.Description,
 		&i.Hidden,
 		&i.Closed,
 		&i.CreatedAt,

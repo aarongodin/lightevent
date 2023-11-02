@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/aarongodin/lightevent/internal/repository"
 	"github.com/aarongodin/lightevent/internal/service"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func (s *Server) ListSettings(ctx context.Context, message *service.ListSettingsOptions) (*service.SettingsList, error) {
@@ -13,9 +13,9 @@ func (s *Server) ListSettings(ctx context.Context, message *service.ListSettings
 	if err != nil {
 		return nil, errorResponse(err, "settings")
 	}
-	settings, err := structpb.NewStruct(list)
+	settings, err := json.Marshal(list)
 	if err != nil {
 		return nil, errorResponse(err, "settings")
 	}
-	return &service.SettingsList{Settings: settings}, nil
+	return &service.SettingsList{Settings: string(settings)}, nil
 }

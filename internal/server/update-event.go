@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/aarongodin/lightevent/internal/service"
@@ -14,14 +15,15 @@ func (s *Server) UpdateEvent(ctx context.Context, message *service.Event) (*serv
 	if err != nil {
 		return nil, errorResponse(err, "event")
 	}
-	currentEventDates, err := s.queries.ListEventDates(ctx, current.ID)
+	currentEventDates, err := s.queries.ListEventDatesByEventID(ctx, current.ID)
 	if err != nil {
 		return nil, errorResponse(err, "event date")
 	}
 
 	params := storage.UpdateEventParams{
-		Name:  message.Name,
-		Title: message.Title,
+		Name:        message.Name,
+		Title:       message.Title,
+		Description: sql.NullString{String: message.Description, Valid: message.Description != ""},
 	}
 	storage.SetInt64FromBool(&params.Hidden, message.Hidden)
 	storage.SetInt64FromBool(&params.Closed, message.Closed)

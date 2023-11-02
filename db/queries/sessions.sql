@@ -15,3 +15,7 @@ WHERE key = ?;
 -- name: GetSessionByIdentity :one
 SELECT * FROM sessions
 WHERE subject = ? AND kind = ?;
+
+-- name: DeleteSession :exec
+DELETE FROM sessions
+WHERE id = ?;

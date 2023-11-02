@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
@@ -31,6 +32,7 @@ func (s *Server) ListEventRegistrations(ctx context.Context, message *service.Li
 			ConfCode:  rec.ConfCode,
 			Kind:      registrationKindFromString(rec.Kind),
 			EventName: event.Name,
+			CreatedAt: rec.CreatedAt.Format(time.RFC3339),
 		}
 
 		member, ok := members[rec.MemberID]

@@ -43,6 +43,28 @@ func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Mem
 	return i, err
 }
 
+const createOrVerifyMemberEmail = `-- name: CreateOrVerifyMemberEmail :one
+INSERT INTO members (
+  email, verified
+) VALUES (?, 1)
+ON CONFLICT DO UPDATE SET verified = 1
+RETURNING id, email, verified, first_name, last_name, created_at
+`
+
+func (q *Queries) CreateOrVerifyMemberEmail(ctx context.Context, email string) (Member, error) {
+	row := q.db.QueryRowContext(ctx, createOrVerifyMemberEmail, email)
+	var i Member
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Verified,
+		&i.FirstName,
+		&i.LastName,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getMember = `-- name: GetMember :one
 SELECT id, email, verified, first_name, last_name, created_at FROM members
 WHERE id = ?

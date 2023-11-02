@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
@@ -11,7 +12,7 @@ func (s *Server) ListMembers(ctx context.Context, message *service.ListMembersOp
 	var recs []storage.Member
 	var err error
 	if message.Search != nil {
-		recs, err = s.queries.ListMembersBySearch(ctx, *message.Search)
+		recs, err = s.queries.ListMembersBySearch(ctx, fmt.Sprintf("%s%%", *message.Search))
 	} else {
 		recs, err = s.queries.ListMembers(ctx)
 	}

@@ -1,0 +1,37 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/lightevent-client.umd.cjs",
+  "module": "./dist/lightevent-client.js",
+  "exports": {
+    ".": {
+      "import": "./dist/lightevent-client.js",
+      "require": "./dist/lightevent-client.umd.cjs"
+    }
+  },
+  "prettier": "@aarongodin/eslint-config/prettier.json",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "clsx": "^2.0.0",
+    "dayjs": "^1.11.10",
+    "preact": "^10.18.1",
+    "twirp-ts": "^2.5.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.6.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5"
+  }
+}

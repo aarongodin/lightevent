@@ -9,6 +9,9 @@ install-tools: download
 	@echo Installing tools from tools.go
 	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
 
+mkcert:
+	@mkdir -p .cert && mkcert -key-file ./.cert/key.pem -cert-file ./.cert/cert.pem 'localhost'
+
 protoc:
 	@echo Compiling rpc/lightevent/service.proto
 	@rm -rf ./.protoc-tmp && mkdir ./.protoc-tmp
@@ -24,6 +27,7 @@ protoc:
     --twirp_ts_out=./.protoc-tmp \
 		rpc/lightevent/service.proto
 	@cp ./.protoc-tmp/rpc/lightevent/* admin/src/rpc/
+	@cp ./.protoc-tmp/rpc/lightevent/* client/src/rpc/
 	@cp ./.protoc-tmp/rpc/lightevent/* e2e/src/rpc/
 	@rm -rf ./.protoc-tmp
 

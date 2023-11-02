@@ -4,6 +4,13 @@ INSERT INTO members (
 ) VALUES (?, ?, ?, ?)
 RETURNING *;
 
+-- name: CreateOrVerifyMemberEmail :one
+INSERT INTO members (
+  email, verified
+) VALUES (?, 1)
+ON CONFLICT DO UPDATE SET verified = 1
+RETURNING *;
+
 -- name: GetMember :one
 SELECT * FROM members
 WHERE id = ?;

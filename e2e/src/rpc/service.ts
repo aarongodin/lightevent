@@ -1,6 +1,5 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Struct } from "../../google/protobuf/struct";
 
 export const protobufPackage = "";
 
@@ -49,8 +48,8 @@ export interface PingResult {
 }
 
 export interface ListEventsOptions {
-  hidden: boolean;
-  closed: boolean;
+  hidden?: boolean | undefined;
+  closed?: boolean | undefined;
 }
 
 export interface ByName {
@@ -71,12 +70,27 @@ export interface Event {
   hidden: boolean;
   closed: boolean;
   dates: EventDate[];
+  description: string;
 }
 
 export interface EventDate {
   uid: string;
   value: string;
   cancelled: boolean;
+}
+
+export interface ListEventDatesOptions {
+  count: number;
+}
+
+export interface EventDateList {
+  eventDates: EventDateSummary[];
+}
+
+export interface EventDateSummary {
+  eventDate: EventDate | undefined;
+  event: Event | undefined;
+  registrations: Registration[];
 }
 
 export interface CancelEventDateOptions {
@@ -105,6 +119,7 @@ export interface Registration {
   eventName: string;
   eventDate?: EventDate | undefined;
   member: Member | undefined;
+  createdAt: string;
 }
 
 export interface MemberRegistration {
@@ -112,6 +127,7 @@ export interface MemberRegistration {
   kind: RegistrationKind;
   eventName: string;
   eventDate?: EventDate | undefined;
+  createdAt: string;
 }
 
 export interface WriteableRegistration {
@@ -137,11 +153,11 @@ export interface ListSettingsOptions {
 }
 
 export interface UpdateSettingsOptions {
-  settings: { [key: string]: any } | undefined;
+  settings: string;
 }
 
 export interface SettingsList {
-  settings: { [key: string]: any } | undefined;
+  settings: string;
 }
 
 export interface ListSessionsOptions {
@@ -159,18 +175,22 @@ export interface Session {
 }
 
 export interface User {
+  uid: string;
   username: string;
   firstName: string;
   lastName: string;
   createdAt: string;
   updatedAt: string;
+  email: string;
 }
 
 export interface WriteableUser {
+  uid: string;
   username: string;
   password: string;
   firstName?: string | undefined;
   lastName?: string | undefined;
+  email?: string | undefined;
 }
 
 export interface ListUsersOptions {
@@ -199,7 +219,6 @@ export interface BeginVerificationResult {
 }
 
 export interface CompleteVerificationOptions {
-  email: string;
   key: string;
   challenge: string;
 }
@@ -379,15 +398,15 @@ export const PingResult = {
 };
 
 function createBaseListEventsOptions(): ListEventsOptions {
-  return { hidden: false, closed: false };
+  return { hidden: undefined, closed: undefined };
 }
 
 export const ListEventsOptions = {
   encode(message: ListEventsOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.hidden === true) {
+    if (message.hidden !== undefined) {
       writer.uint32(8).bool(message.hidden);
     }
-    if (message.closed === true) {
+    if (message.closed !== undefined) {
       writer.uint32(16).bool(message.closed);
     }
     return writer;
@@ -416,8 +435,8 @@ export const ListEventsOptions = {
 
   fromJSON(object: any): ListEventsOptions {
     return {
-      hidden: isSet(object.hidden) ? Boolean(object.hidden) : false,
-      closed: isSet(object.closed) ? Boolean(object.closed) : false,
+      hidden: isSet(object.hidden) ? Boolean(object.hidden) : undefined,
+      closed: isSet(object.closed) ? Boolean(object.closed) : undefined,
     };
   },
 
@@ -434,8 +453,8 @@ export const ListEventsOptions = {
 
   fromPartial<I extends Exact<DeepPartial<ListEventsOptions>, I>>(object: I): ListEventsOptions {
     const message = createBaseListEventsOptions();
-    message.hidden = object.hidden ?? false;
-    message.closed = object.closed ?? false;
+    message.hidden = object.hidden ?? undefined;
+    message.closed = object.closed ?? undefined;
     return message;
   },
 };
@@ -598,7 +617,7 @@ export const EventList = {
 };
 
 function createBaseEvent(): Event {
-  return { name: "", title: "", hidden: false, closed: false, dates: [] };
+  return { name: "", title: "", hidden: false, closed: false, dates: [], description: "" };
 }
 
 export const Event = {
@@ -617,6 +636,9 @@ export const Event = {
     }
     for (const v of message.dates) {
       EventDate.encode(v!, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.description !== "") {
+      writer.uint32(50).string(message.description);
     }
     return writer;
   },
@@ -643,6 +665,9 @@ export const Event = {
         case 5:
           message.dates.push(EventDate.decode(reader, reader.uint32()));
           break;
+        case 6:
+          message.description = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -658,6 +683,7 @@ export const Event = {
       hidden: isSet(object.hidden) ? Boolean(object.hidden) : false,
       closed: isSet(object.closed) ? Boolean(object.closed) : false,
       dates: Array.isArray(object?.dates) ? object.dates.map((e: any) => EventDate.fromJSON(e)) : [],
+      description: isSet(object.description) ? String(object.description) : "",
     };
   },
 
@@ -672,6 +698,7 @@ export const Event = {
     } else {
       obj.dates = [];
     }
+    message.description !== undefined && (obj.description = message.description);
     return obj;
   },
 
@@ -686,6 +713,7 @@ export const Event = {
     message.hidden = object.hidden ?? false;
     message.closed = object.closed ?? false;
     message.dates = object.dates?.map((e) => EventDate.fromPartial(e)) || [];
+    message.description = object.description ?? "";
     return message;
   },
 };
@@ -757,6 +785,196 @@ export const EventDate = {
     message.uid = object.uid ?? "";
     message.value = object.value ?? "";
     message.cancelled = object.cancelled ?? false;
+    return message;
+  },
+};
+
+function createBaseListEventDatesOptions(): ListEventDatesOptions {
+  return { count: 0 };
+}
+
+export const ListEventDatesOptions = {
+  encode(message: ListEventDatesOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.count !== 0) {
+      writer.uint32(8).int32(message.count);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListEventDatesOptions {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListEventDatesOptions();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.count = reader.int32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListEventDatesOptions {
+    return { count: isSet(object.count) ? Number(object.count) : 0 };
+  },
+
+  toJSON(message: ListEventDatesOptions): unknown {
+    const obj: any = {};
+    message.count !== undefined && (obj.count = Math.round(message.count));
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListEventDatesOptions>, I>>(base?: I): ListEventDatesOptions {
+    return ListEventDatesOptions.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ListEventDatesOptions>, I>>(object: I): ListEventDatesOptions {
+    const message = createBaseListEventDatesOptions();
+    message.count = object.count ?? 0;
+    return message;
+  },
+};
+
+function createBaseEventDateList(): EventDateList {
+  return { eventDates: [] };
+}
+
+export const EventDateList = {
+  encode(message: EventDateList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.eventDates) {
+      EventDateSummary.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): EventDateList {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEventDateList();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.eventDates.push(EventDateSummary.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): EventDateList {
+    return {
+      eventDates: Array.isArray(object?.eventDates)
+        ? object.eventDates.map((e: any) => EventDateSummary.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: EventDateList): unknown {
+    const obj: any = {};
+    if (message.eventDates) {
+      obj.eventDates = message.eventDates.map((e) => e ? EventDateSummary.toJSON(e) : undefined);
+    } else {
+      obj.eventDates = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<EventDateList>, I>>(base?: I): EventDateList {
+    return EventDateList.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<EventDateList>, I>>(object: I): EventDateList {
+    const message = createBaseEventDateList();
+    message.eventDates = object.eventDates?.map((e) => EventDateSummary.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseEventDateSummary(): EventDateSummary {
+  return { eventDate: undefined, event: undefined, registrations: [] };
+}
+
+export const EventDateSummary = {
+  encode(message: EventDateSummary, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.eventDate !== undefined) {
+      EventDate.encode(message.eventDate, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.event !== undefined) {
+      Event.encode(message.event, writer.uint32(18).fork()).ldelim();
+    }
+    for (const v of message.registrations) {
+      Registration.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): EventDateSummary {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseEventDateSummary();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.eventDate = EventDate.decode(reader, reader.uint32());
+          break;
+        case 2:
+          message.event = Event.decode(reader, reader.uint32());
+          break;
+        case 3:
+          message.registrations.push(Registration.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): EventDateSummary {
+    return {
+      eventDate: isSet(object.eventDate) ? EventDate.fromJSON(object.eventDate) : undefined,
+      event: isSet(object.event) ? Event.fromJSON(object.event) : undefined,
+      registrations: Array.isArray(object?.registrations)
+        ? object.registrations.map((e: any) => Registration.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: EventDateSummary): unknown {
+    const obj: any = {};
+    message.eventDate !== undefined &&
+      (obj.eventDate = message.eventDate ? EventDate.toJSON(message.eventDate) : undefined);
+    message.event !== undefined && (obj.event = message.event ? Event.toJSON(message.event) : undefined);
+    if (message.registrations) {
+      obj.registrations = message.registrations.map((e) => e ? Registration.toJSON(e) : undefined);
+    } else {
+      obj.registrations = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<EventDateSummary>, I>>(base?: I): EventDateSummary {
+    return EventDateSummary.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<EventDateSummary>, I>>(object: I): EventDateSummary {
+    const message = createBaseEventDateSummary();
+    message.eventDate = (object.eventDate !== undefined && object.eventDate !== null)
+      ? EventDate.fromPartial(object.eventDate)
+      : undefined;
+    message.event = (object.event !== undefined && object.event !== null) ? Event.fromPartial(object.event) : undefined;
+    message.registrations = object.registrations?.map((e) => Registration.fromPartial(e)) || [];
     return message;
   },
 };
@@ -1037,7 +1255,7 @@ export const ListMemberRegistrationsOptions = {
 };
 
 function createBaseRegistration(): Registration {
-  return { confCode: "", kind: 0, eventName: "", eventDate: undefined, member: undefined };
+  return { confCode: "", kind: 0, eventName: "", eventDate: undefined, member: undefined, createdAt: "" };
 }
 
 export const Registration = {
@@ -1056,6 +1274,9 @@ export const Registration = {
     }
     if (message.member !== undefined) {
       Member.encode(message.member, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(50).string(message.createdAt);
     }
     return writer;
   },
@@ -1082,6 +1303,9 @@ export const Registration = {
         case 5:
           message.member = Member.decode(reader, reader.uint32());
           break;
+        case 6:
+          message.createdAt = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1097,6 +1321,7 @@ export const Registration = {
       eventName: isSet(object.eventName) ? String(object.eventName) : "",
       eventDate: isSet(object.eventDate) ? EventDate.fromJSON(object.eventDate) : undefined,
       member: isSet(object.member) ? Member.fromJSON(object.member) : undefined,
+      createdAt: isSet(object.createdAt) ? String(object.createdAt) : "",
     };
   },
 
@@ -1108,6 +1333,7 @@ export const Registration = {
     message.eventDate !== undefined &&
       (obj.eventDate = message.eventDate ? EventDate.toJSON(message.eventDate) : undefined);
     message.member !== undefined && (obj.member = message.member ? Member.toJSON(message.member) : undefined);
+    message.createdAt !== undefined && (obj.createdAt = message.createdAt);
     return obj;
   },
 
@@ -1126,12 +1352,13 @@ export const Registration = {
     message.member = (object.member !== undefined && object.member !== null)
       ? Member.fromPartial(object.member)
       : undefined;
+    message.createdAt = object.createdAt ?? "";
     return message;
   },
 };
 
 function createBaseMemberRegistration(): MemberRegistration {
-  return { confCode: "", kind: 0, eventName: "", eventDate: undefined };
+  return { confCode: "", kind: 0, eventName: "", eventDate: undefined, createdAt: "" };
 }
 
 export const MemberRegistration = {
@@ -1147,6 +1374,9 @@ export const MemberRegistration = {
     }
     if (message.eventDate !== undefined) {
       EventDate.encode(message.eventDate, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(42).string(message.createdAt);
     }
     return writer;
   },
@@ -1170,6 +1400,9 @@ export const MemberRegistration = {
         case 4:
           message.eventDate = EventDate.decode(reader, reader.uint32());
           break;
+        case 5:
+          message.createdAt = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1184,6 +1417,7 @@ export const MemberRegistration = {
       kind: isSet(object.kind) ? registrationKindFromJSON(object.kind) : 0,
       eventName: isSet(object.eventName) ? String(object.eventName) : "",
       eventDate: isSet(object.eventDate) ? EventDate.fromJSON(object.eventDate) : undefined,
+      createdAt: isSet(object.createdAt) ? String(object.createdAt) : "",
     };
   },
 
@@ -1194,6 +1428,7 @@ export const MemberRegistration = {
     message.eventName !== undefined && (obj.eventName = message.eventName);
     message.eventDate !== undefined &&
       (obj.eventDate = message.eventDate ? EventDate.toJSON(message.eventDate) : undefined);
+    message.createdAt !== undefined && (obj.createdAt = message.createdAt);
     return obj;
   },
 
@@ -1209,6 +1444,7 @@ export const MemberRegistration = {
     message.eventDate = (object.eventDate !== undefined && object.eventDate !== null)
       ? EventDate.fromPartial(object.eventDate)
       : undefined;
+    message.createdAt = object.createdAt ?? "";
     return message;
   },
 };
@@ -1477,13 +1713,13 @@ export const ListSettingsOptions = {
 };
 
 function createBaseUpdateSettingsOptions(): UpdateSettingsOptions {
-  return { settings: undefined };
+  return { settings: "" };
 }
 
 export const UpdateSettingsOptions = {
   encode(message: UpdateSettingsOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.settings !== undefined) {
-      Struct.encode(Struct.wrap(message.settings), writer.uint32(10).fork()).ldelim();
+    if (message.settings !== "") {
+      writer.uint32(10).string(message.settings);
     }
     return writer;
   },
@@ -1496,7 +1732,7 @@ export const UpdateSettingsOptions = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.settings = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          message.settings = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1507,7 +1743,7 @@ export const UpdateSettingsOptions = {
   },
 
   fromJSON(object: any): UpdateSettingsOptions {
-    return { settings: isObject(object.settings) ? object.settings : undefined };
+    return { settings: isSet(object.settings) ? String(object.settings) : "" };
   },
 
   toJSON(message: UpdateSettingsOptions): unknown {
@@ -1522,19 +1758,19 @@ export const UpdateSettingsOptions = {
 
   fromPartial<I extends Exact<DeepPartial<UpdateSettingsOptions>, I>>(object: I): UpdateSettingsOptions {
     const message = createBaseUpdateSettingsOptions();
-    message.settings = object.settings ?? undefined;
+    message.settings = object.settings ?? "";
     return message;
   },
 };
 
 function createBaseSettingsList(): SettingsList {
-  return { settings: undefined };
+  return { settings: "" };
 }
 
 export const SettingsList = {
   encode(message: SettingsList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.settings !== undefined) {
-      Struct.encode(Struct.wrap(message.settings), writer.uint32(10).fork()).ldelim();
+    if (message.settings !== "") {
+      writer.uint32(10).string(message.settings);
     }
     return writer;
   },
@@ -1547,7 +1783,7 @@ export const SettingsList = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.settings = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          message.settings = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1558,7 +1794,7 @@ export const SettingsList = {
   },
 
   fromJSON(object: any): SettingsList {
-    return { settings: isObject(object.settings) ? object.settings : undefined };
+    return { settings: isSet(object.settings) ? String(object.settings) : "" };
   },
 
   toJSON(message: SettingsList): unknown {
@@ -1573,7 +1809,7 @@ export const SettingsList = {
 
   fromPartial<I extends Exact<DeepPartial<SettingsList>, I>>(object: I): SettingsList {
     const message = createBaseSettingsList();
-    message.settings = object.settings ?? undefined;
+    message.settings = object.settings ?? "";
     return message;
   },
 };
@@ -1757,25 +1993,31 @@ export const Session = {
 };
 
 function createBaseUser(): User {
-  return { username: "", firstName: "", lastName: "", createdAt: "", updatedAt: "" };
+  return { uid: "", username: "", firstName: "", lastName: "", createdAt: "", updatedAt: "", email: "" };
 }
 
 export const User = {
   encode(message: User, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.uid !== "") {
+      writer.uint32(10).string(message.uid);
+    }
     if (message.username !== "") {
-      writer.uint32(10).string(message.username);
+      writer.uint32(18).string(message.username);
     }
     if (message.firstName !== "") {
-      writer.uint32(18).string(message.firstName);
+      writer.uint32(26).string(message.firstName);
     }
     if (message.lastName !== "") {
-      writer.uint32(26).string(message.lastName);
+      writer.uint32(34).string(message.lastName);
     }
     if (message.createdAt !== "") {
-      writer.uint32(34).string(message.createdAt);
+      writer.uint32(42).string(message.createdAt);
     }
     if (message.updatedAt !== "") {
-      writer.uint32(42).string(message.updatedAt);
+      writer.uint32(50).string(message.updatedAt);
+    }
+    if (message.email !== "") {
+      writer.uint32(58).string(message.email);
     }
     return writer;
   },
@@ -1788,19 +2030,25 @@ export const User = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.username = reader.string();
+          message.uid = reader.string();
           break;
         case 2:
-          message.firstName = reader.string();
+          message.username = reader.string();
           break;
         case 3:
-          message.lastName = reader.string();
+          message.firstName = reader.string();
           break;
         case 4:
-          message.createdAt = reader.string();
+          message.lastName = reader.string();
           break;
         case 5:
+          message.createdAt = reader.string();
+          break;
+        case 6:
           message.updatedAt = reader.string();
+          break;
+        case 7:
+          message.email = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1812,21 +2060,25 @@ export const User = {
 
   fromJSON(object: any): User {
     return {
+      uid: isSet(object.uid) ? String(object.uid) : "",
       username: isSet(object.username) ? String(object.username) : "",
       firstName: isSet(object.firstName) ? String(object.firstName) : "",
       lastName: isSet(object.lastName) ? String(object.lastName) : "",
       createdAt: isSet(object.createdAt) ? String(object.createdAt) : "",
       updatedAt: isSet(object.updatedAt) ? String(object.updatedAt) : "",
+      email: isSet(object.email) ? String(object.email) : "",
     };
   },
 
   toJSON(message: User): unknown {
     const obj: any = {};
+    message.uid !== undefined && (obj.uid = message.uid);
     message.username !== undefined && (obj.username = message.username);
     message.firstName !== undefined && (obj.firstName = message.firstName);
     message.lastName !== undefined && (obj.lastName = message.lastName);
     message.createdAt !== undefined && (obj.createdAt = message.createdAt);
     message.updatedAt !== undefined && (obj.updatedAt = message.updatedAt);
+    message.email !== undefined && (obj.email = message.email);
     return obj;
   },
 
@@ -1836,32 +2088,40 @@ export const User = {
 
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
+    message.uid = object.uid ?? "";
     message.username = object.username ?? "";
     message.firstName = object.firstName ?? "";
     message.lastName = object.lastName ?? "";
     message.createdAt = object.createdAt ?? "";
     message.updatedAt = object.updatedAt ?? "";
+    message.email = object.email ?? "";
     return message;
   },
 };
 
 function createBaseWriteableUser(): WriteableUser {
-  return { username: "", password: "", firstName: undefined, lastName: undefined };
+  return { uid: "", username: "", password: "", firstName: undefined, lastName: undefined, email: undefined };
 }
 
 export const WriteableUser = {
   encode(message: WriteableUser, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.uid !== "") {
+      writer.uint32(10).string(message.uid);
+    }
     if (message.username !== "") {
-      writer.uint32(10).string(message.username);
+      writer.uint32(18).string(message.username);
     }
     if (message.password !== "") {
-      writer.uint32(18).string(message.password);
+      writer.uint32(26).string(message.password);
     }
     if (message.firstName !== undefined) {
-      writer.uint32(26).string(message.firstName);
+      writer.uint32(34).string(message.firstName);
     }
     if (message.lastName !== undefined) {
-      writer.uint32(34).string(message.lastName);
+      writer.uint32(42).string(message.lastName);
+    }
+    if (message.email !== undefined) {
+      writer.uint32(50).string(message.email);
     }
     return writer;
   },
@@ -1874,16 +2134,22 @@ export const WriteableUser = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.username = reader.string();
+          message.uid = reader.string();
           break;
         case 2:
-          message.password = reader.string();
+          message.username = reader.string();
           break;
         case 3:
-          message.firstName = reader.string();
+          message.password = reader.string();
           break;
         case 4:
+          message.firstName = reader.string();
+          break;
+        case 5:
           message.lastName = reader.string();
+          break;
+        case 6:
+          message.email = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1895,19 +2161,23 @@ export const WriteableUser = {
 
   fromJSON(object: any): WriteableUser {
     return {
+      uid: isSet(object.uid) ? String(object.uid) : "",
       username: isSet(object.username) ? String(object.username) : "",
       password: isSet(object.password) ? String(object.password) : "",
       firstName: isSet(object.firstName) ? String(object.firstName) : undefined,
       lastName: isSet(object.lastName) ? String(object.lastName) : undefined,
+      email: isSet(object.email) ? String(object.email) : undefined,
     };
   },
 
   toJSON(message: WriteableUser): unknown {
     const obj: any = {};
+    message.uid !== undefined && (obj.uid = message.uid);
     message.username !== undefined && (obj.username = message.username);
     message.password !== undefined && (obj.password = message.password);
     message.firstName !== undefined && (obj.firstName = message.firstName);
     message.lastName !== undefined && (obj.lastName = message.lastName);
+    message.email !== undefined && (obj.email = message.email);
     return obj;
   },
 
@@ -1917,10 +2187,12 @@ export const WriteableUser = {
 
   fromPartial<I extends Exact<DeepPartial<WriteableUser>, I>>(object: I): WriteableUser {
     const message = createBaseWriteableUser();
+    message.uid = object.uid ?? "";
     message.username = object.username ?? "";
     message.password = object.password ?? "";
     message.firstName = object.firstName ?? undefined;
     message.lastName = object.lastName ?? undefined;
+    message.email = object.email ?? undefined;
     return message;
   },
 };
@@ -2248,19 +2520,16 @@ export const BeginVerificationResult = {
 };
 
 function createBaseCompleteVerificationOptions(): CompleteVerificationOptions {
-  return { email: "", key: "", challenge: "" };
+  return { key: "", challenge: "" };
 }
 
 export const CompleteVerificationOptions = {
   encode(message: CompleteVerificationOptions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.email !== "") {
-      writer.uint32(10).string(message.email);
-    }
     if (message.key !== "") {
-      writer.uint32(18).string(message.key);
+      writer.uint32(10).string(message.key);
     }
     if (message.challenge !== "") {
-      writer.uint32(26).string(message.challenge);
+      writer.uint32(18).string(message.challenge);
     }
     return writer;
   },
@@ -2273,12 +2542,9 @@ export const CompleteVerificationOptions = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.email = reader.string();
-          break;
-        case 2:
           message.key = reader.string();
           break;
-        case 3:
+        case 2:
           message.challenge = reader.string();
           break;
         default:
@@ -2291,7 +2557,6 @@ export const CompleteVerificationOptions = {
 
   fromJSON(object: any): CompleteVerificationOptions {
     return {
-      email: isSet(object.email) ? String(object.email) : "",
       key: isSet(object.key) ? String(object.key) : "",
       challenge: isSet(object.challenge) ? String(object.challenge) : "",
     };
@@ -2299,7 +2564,6 @@ export const CompleteVerificationOptions = {
 
   toJSON(message: CompleteVerificationOptions): unknown {
     const obj: any = {};
-    message.email !== undefined && (obj.email = message.email);
     message.key !== undefined && (obj.key = message.key);
     message.challenge !== undefined && (obj.challenge = message.challenge);
     return obj;
@@ -2311,7 +2575,6 @@ export const CompleteVerificationOptions = {
 
   fromPartial<I extends Exact<DeepPartial<CompleteVerificationOptions>, I>>(object: I): CompleteVerificationOptions {
     const message = createBaseCompleteVerificationOptions();
-    message.email = object.email ?? "";
     message.key = object.key ?? "";
     message.challenge = object.challenge ?? "";
     return message;
@@ -2683,6 +2946,7 @@ export interface LightEvent {
   Ping(request: PingOptions): Promise<PingResult>;
   /** Events */
   ListEvents(request: ListEventsOptions): Promise<EventList>;
+  ListEventDates(request: ListEventDatesOptions): Promise<EventDateList>;
   GetEvent(request: ByName): Promise<Event>;
   CreateEvent(request: Event): Promise<Event>;
   UpdateEvent(request: Event): Promise<Event>;
@@ -2700,6 +2964,7 @@ export interface LightEvent {
   ListMemberRegistrations(request: ListMemberRegistrationsOptions): Promise<MemberRegistrationList>;
   /** Users */
   CreateUser(request: WriteableUser): Promise<User>;
+  UpdateUser(request: WriteableUser): Promise<User>;
   ListUsers(request: ListUsersOptions): Promise<UserList>;
   /** Sessions */
   ListSessions(request: ListSessionsOptions): Promise<SessionList>;
@@ -2723,10 +2988,6 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function isObject(value: any): boolean {
-  return typeof value === "object" && value !== null;
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

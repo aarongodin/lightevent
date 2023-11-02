@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"net/http"
 
 	"github.com/aarongodin/lightevent/internal/repository"
 	"github.com/aarongodin/lightevent/internal/server/access"
@@ -14,10 +13,14 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
+// TODO(aarongodin): transaction this function for DB writes
 func (s *Server) CompleteVerification(ctx context.Context, message *service.CompleteVerificationOptions) (*service.CompleteVerificationResult, error) {
 	verification, err := s.queries.GetVerificationByKey(ctx, message.Key)
 	if err != nil {
 		return nil, errorResponse(err, "verification")
+	}
+	if verification.Completed == 1 {
+		return nil, twirp.InvalidArgumentError("key", "verification already complete")
 	}
 
 	if verification.Challenge != message.Challenge {
@@ -28,46 +31,30 @@ func (s *Server) CompleteVerification(ctx context.Context, message *service.Comp
 		return nil, errorResponse(err, "verification")
 	}
 
-	// TODO(aarongodin): need to update the member that they are now verified, if they already existed
-	if _, err := s.queries.CreateMember(ctx, storage.CreateMemberParams{
-		Email:    message.Email,
-		Verified: 1,
-	}); err != nil {
+	member, err := s.queries.CreateOrVerifyMemberEmail(ctx, verification.Email)
+	if err != nil {
 		return nil, errorResponse(err, "member")
 	}
 
-	// create a session and set the cookie
 	session, err := s.queries.GetSessionByIdentity(ctx, storage.GetSessionByIdentityParams{
-		Subject: message.Email,
+		Subject: member.Email,
 		Kind:    repository.SESSION_KIND_USER,
 	})
-
 	if err != nil {
 		if errors.Is(sql.ErrNoRows, err) {
-			if err != nil {
-				return nil, err
-			}
-			session, err = s.queries.CreateSession(ctx, storage.CreateSessionParams{
-				Subject: message.Email,
+			if session, err = s.queries.CreateSession(ctx, storage.CreateSessionParams{
+				Subject: member.Email,
 				Kind:    repository.SESSION_KIND_MEMBER,
 				Key:     uuid.New().String(),
-			})
-			if err != nil {
+			}); err != nil {
 				return nil, err
 			}
 		} else {
-			return nil, err
+			return nil, errorResponse(err, "session")
 		}
 	}
 
-	cookie := &http.Cookie{
-		Name:     access.COOKIE_MEMBER_SESSION,
-		Value:    session.Key,
-		HttpOnly: true,
-		// Secure:   true,
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-	}
+	cookie := access.NewCookie(access.COOKIE_MEMBER_SESSION, session.Key, int(s.rc.SessionMaxAge.Seconds()))
 	if err := access.EncodeCookie(cookie, cookie.Value); err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}

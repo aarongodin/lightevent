@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/caarlos0/env/v7 v7.1.0
+	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/securecookie v1.1.1
 	github.com/julienschmidt/httprouter v1.3.0
@@ -18,7 +19,6 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

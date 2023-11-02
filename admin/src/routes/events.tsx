@@ -1,6 +1,5 @@
-import { DateTime } from "luxon"
-
 import { WithRequest } from "../client"
+import dayjs from "../dayjs"
 import { eventRoute, newEventRoute } from "../router"
 import { EventDate, EventList } from "../rpc"
 import { Badge } from "../units/badge"
@@ -15,16 +14,19 @@ type EventsTableProps = {
   events: EventList["events"]
 }
 
-function EventDates({ eventDates }: { eventDates: EventDate[] }) {
-  const firstDate = DateTime.fromISO(eventDates[0].value).toLocaleString(DateTime.DATETIME_SHORT)
+function EventDatesSummary({ eventDates }: { eventDates: EventDate[] }) {
+  const firstDateFormatted = dayjs(eventDates[0].value).format("l LT")
+
   if (eventDates.length === 1) {
-    return <span>{firstDate}</span>
+    return <span>{firstDateFormatted}</span>
   }
 
+  const lastDateFormatted = dayjs(eventDates[0].value).format("l LT")
   return (
-    <span>
-      {firstDate} <span className="italic">and {eventDates.length - 1} more</span>
-    </span>
+    <div className="inline-flex gap-2">
+      <span>{firstDateFormatted}</span>
+      <span>{lastDateFormatted}</span>
+    </div>
   )
 }
 
@@ -35,13 +37,13 @@ function EventsTable({ events }: EventsTableProps) {
       <tr key={evt.name} className={className}>
         <td className="p-4 text-left">{evt.title}</td>
         <td className="p-4 text-left text-sm">
-          <EventDates eventDates={evt.dates} />
+          <EventDatesSummary eventDates={evt.dates} />
         </td>
         <td className="p-4 text-center flex justify-center gap-2">
-          {evt.hidden && <Badge content="Hidden" />}
-          {evt.closed && <Badge content="Closed" />}
-          {!evt.hidden && <Badge content="Visible" />}
-          {!evt.closed && <Badge content="Open" />}
+          {evt.hidden && <Badge variant="gray">Hidden</Badge>}
+          {evt.closed && <Badge variant="gray">Closed</Badge>}
+          {!evt.hidden && <Badge variant="gray">Visible</Badge>}
+          {!evt.closed && <Badge variant="gray">Open</Badge>}
         </td>
         <td className="p-4 text-right text-xs">
           <LinkButton color="white" to={eventRoute(evt.name)}>

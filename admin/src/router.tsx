@@ -1,6 +1,8 @@
 import base64 from "base-64"
 import { createBrowserRouter } from "react-router-dom"
 
+import Account from "./routes/account"
+import ApplicationSettings from "./routes/application-settings"
 import Dashboard from "./routes/dashboard"
 import ErrorPage from "./routes/error"
 import Event from "./routes/event"
@@ -8,12 +10,14 @@ import EventEdit from "./routes/event-edit"
 import EventRegistrationsCreate from "./routes/event-registrations-create"
 import Events from "./routes/events"
 import EventsCreate from "./routes/events-create"
+import Logout from "./routes/logout"
 import Member from "./routes/member"
 import MemberEdit from "./routes/member-edit"
 import Members from "./routes/members"
 import MembersCreate from "./routes/members-create"
-import Registrations from "./routes/registrations"
 import Root from "./routes/root"
+import Settings from "./routes/settings"
+import Users from "./routes/users"
 
 // Event Routes
 export const eventsRoute = "/events"
@@ -41,10 +45,6 @@ export default createBrowserRouter([
       {
         index: true,
         element: <Dashboard />,
-      },
-      {
-        path: "registrations",
-        element: <Registrations />,
       },
       {
         path: "events/:eventName/registrations/_create",
@@ -81,6 +81,28 @@ export default createBrowserRouter([
       {
         path: "members/:emailEncoded/_edit",
         element: <MemberEdit />,
+      },
+      {
+        path: "logout",
+        element: <Logout />,
+      },
+      {
+        path: "settings/",
+        element: <Settings />,
+        children: [
+          {
+            path: "application",
+            element: <ApplicationSettings />,
+          },
+          {
+            path: "account",
+            element: <Account />,
+          },
+          {
+            path: "users",
+            element: <Users />,
+          },
+        ],
       },
     ],
   },

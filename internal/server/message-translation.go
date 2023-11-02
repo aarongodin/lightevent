@@ -14,11 +14,12 @@ var (
 
 func translateEvent(rec storage.Event) *service.Event {
 	return &service.Event{
-		Name:   rec.Name,
-		Title:  rec.Title,
-		Hidden: rec.Hidden == 1,
-		Closed: rec.Closed == 1,
-		Dates:  []*service.EventDate{},
+		Name:        rec.Name,
+		Title:       rec.Title,
+		Description: rec.Description.String,
+		Hidden:      rec.Hidden == 1,
+		Closed:      rec.Closed == 1,
+		Dates:       []*service.EventDate{},
 	}
 }
 
@@ -43,6 +44,7 @@ func translateMember(rec storage.Member) *service.Member {
 
 func translateUser(rec storage.User) *service.User {
 	user := &service.User{
+		Uid:       rec.Uid,
 		Username:  rec.Username,
 		FirstName: rec.FirstName.String,
 		LastName:  rec.LastName.String,

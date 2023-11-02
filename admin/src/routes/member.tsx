@@ -1,16 +1,16 @@
 import base64 from "base-64"
-import { DateTime } from "luxon"
 import { Link, useParams } from "react-router-dom"
 
 import { WithRequest } from "../client"
+import dayjs from "../dayjs"
 import { editMemberRoute, eventRoute } from "../router"
-import { Member, MemberRegistrationList, registrationKindFromJSON } from "../rpc"
+import { Member, MemberRegistrationList } from "../rpc"
 import { LinkButton } from "../units/button"
 import { Content } from "../units/content"
 import { DefinitionListItem } from "../units/list"
 import { TableLoader } from "../units/loader"
 import { PageTitle } from "../units/page-title"
-import { boolToString, formatConfCode, formatRegistrationKind, RegistrationKindBadge } from "../units/value"
+import { boolToString, formatConfCode, RegistrationKindBadge } from "../units/value"
 
 const WithMember = WithRequest<Member>
 const WithMemberRegistrationList = WithRequest<MemberRegistrationList>
@@ -30,12 +30,7 @@ function MemberView({ member }: { member: Member }) {
       <DefinitionListItem variant="grid" stripe title="First Name" data={member.firstName} />
       <DefinitionListItem variant="grid" title="Last Name" data={member.lastName} />
       <DefinitionListItem variant="grid" stripe title="Verified" data={boolToString(member.verified)} />
-      <DefinitionListItem
-        variant="grid"
-        stripe
-        title="Created At"
-        data={DateTime.fromISO(member.createdAt).toLocaleString(DateTime.DATETIME_SHORT)}
-      />
+      <DefinitionListItem variant="grid" stripe title="Created At" data={dayjs(member.createdAt).format("l LTS")} />
     </dl>
   )
 }
@@ -58,11 +53,10 @@ function MemberRegistrationsTable({ registrations }: MemberRegistrationsTablePro
           <RegistrationKindBadge kind={reg.kind} />
         </td>
         <td className="p-4 text-left text-sm">
-          {reg.eventDate !== undefined
-            ? DateTime.fromISO(reg.eventDate.value).toLocaleString(DateTime.DATETIME_SHORT)
-            : "-"}
+          {reg.eventDate !== undefined ? dayjs(reg.eventDate.value).format("l LT") : "-"}
         </td>
         <td className="p-4 text-right text-xs font-mono">{formatConfCode(reg.confCode)}</td>
+        <td className="p-4 text-right text-xs font-mono">{dayjs(reg.createdAt).format("l LTS")}</td>
       </tr>
     )
   })
@@ -71,10 +65,11 @@ function MemberRegistrationsTable({ registrations }: MemberRegistrationsTablePro
     <table className="bg-white w-full rounded-lg drop-shadow">
       <thead className="text-xs bg-gray-50 text-gray-800">
         <tr>
-          <th className="px-4 py-2 text-left w-1/3">Event Name</th>
-          <th className="px-4 py-2 text-left w-1/3">Registration Kind</th>
-          <th className="px-4 py-2 text-left w-1/3">Event Date</th>
-          <th className="px-4 py-2 text-right">Conf Code</th>
+          <th className="px-4 py-2 text-left w-1/5">Event Name</th>
+          <th className="px-4 py-2 text-left w-1/5">Registration Kind</th>
+          <th className="px-4 py-2 text-left w-1/5">Event Date</th>
+          <th className="px-4 py-2 text-right w-1/5">Conf Code</th>
+          <th className="px-4 py-2 text-right w-1/5">Created At</th>
         </tr>
       </thead>
       <tbody>{rows}</tbody>

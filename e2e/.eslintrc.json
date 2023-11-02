@@ -1,4 +1,4 @@
 {
   "extends": "@aarongodin",
-  "ignorePatterns": ["dist", "__snapshots__/**", "src/service/**"]
+  "ignorePatterns": ["dist", "__snapshots__/**", "src/service/**", "src/rpc"]
 }

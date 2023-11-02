@@ -1,4 +1,4 @@
-import classNames from "classnames"
+import clsx from "clsx"
 import { ButtonHTMLAttributes, createElement, FunctionComponent } from "react"
 import { Link, LinkProps } from "react-router-dom"
 
@@ -13,7 +13,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Button({ using = "button", className, color = "primary", ...p }: ButtonProps) {
   const props = {
     ...p,
-    className: classNames(
+    className: clsx(
       "transition-colors px-4 py-2 text-sm drop-shadow rounded-full",
       {
         // Select a background color set based on desired color string

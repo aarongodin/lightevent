@@ -15,7 +15,7 @@ const (
 	SETTINGS_APP = "app"
 )
 
-// ListSettings finds a settings row by name and decodes the map stores as binary data on the row.
+// ListSettings finds a settings row by name and decodes the map stored as binary data on the row.
 func ListSettings(ctx context.Context, queries *storage.Queries, name string) (map[string]any, error) {
 	settings := make(map[string]any)
 	row, err := queries.GetSettings(ctx, name)

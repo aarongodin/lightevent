@@ -1,7 +1,7 @@
 {
 	"name": "admin",
 	"private": true,
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
@@ -14,10 +14,9 @@
 	"dependencies": {
 		"@hookform/error-message": "^2.0.1",
 		"base-64": "^1.0.0",
-		"classnames": "^2.3.2",
-		"date-fns": "^2.30.0",
-		"google-protobuf": "^3.21.2",
-		"luxon": "^3.3.0",
+		"clsx": "^2.0.0",
+		"dayjs": "^1.11.10",
+		"lodash-es": "^4.17.21",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-hook-form": "^7.43.7",
@@ -27,9 +26,10 @@
 	"devDependencies": {
 		"@aarongodin/eslint-config": "github:aarongodin/eslint-config#main",
 		"@types/base-64": "^1.0.0",
-		"@types/luxon": "^3.2.0",
+		"@types/lodash-es": "^4.17.10",
 		"@types/react": "^18.0.28",
 		"@types/react-dom": "^18.0.11",
+		"@vitejs/plugin-basic-ssl": "^1.0.1",
 		"@vitejs/plugin-react-swc": "^3.0.0",
 		"autoprefixer": "^10.4.14",
 		"postcss": "^8.4.21",

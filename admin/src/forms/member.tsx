@@ -43,6 +43,7 @@ export function MemberForm({ member }: MemberFormProps) {
                 Email Address
               </label>
               <input
+                type="email"
                 className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
                 {...register("email", { required: true })}
                 required

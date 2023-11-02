@@ -14,6 +14,12 @@ module.exports = {
 			cwd: "./admin",
 			script: "npm",
 			args: "run dev:login-css"
-		}
+		},
+		{
+			name: "client-dev",
+			cwd: "./client",
+			script: "npm",
+			args: "run dev"
+		},
 	]
 }

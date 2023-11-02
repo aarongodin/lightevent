@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-import "google/protobuf/struct.proto";
-
 option go_package = "./internal/service";
 
 service LightEvent {
@@ -10,6 +8,7 @@ service LightEvent {
 
 	// Events
 	rpc ListEvents(ListEventsOptions) returns (EventList);
+	rpc ListEventDates(ListEventDatesOptions) returns (EventDateList);
 	rpc GetEvent(ByName) returns (Event);
 	rpc CreateEvent(Event) returns (Event);
 	rpc UpdateEvent(Event) returns (Event);
@@ -30,6 +29,7 @@ service LightEvent {
 
 	// Users
 	rpc CreateUser(WriteableUser) returns (User);
+	rpc UpdateUser(WriteableUser) returns (User);
 	rpc ListUsers(ListUsersOptions) returns (UserList);
 
 	// Sessions
@@ -57,8 +57,8 @@ message PingResult {
 }
 
 message ListEventsOptions {
-	bool hidden = 1;
-	bool closed = 2;
+	optional bool hidden = 1;
+	optional bool closed = 2;
 }
 
 message ByName {
@@ -79,12 +79,27 @@ message Event {
 	bool hidden = 3;
 	bool closed = 4;
 	repeated EventDate dates = 5;
+	string description = 6;
 }
 
 message EventDate {
 	string uid = 1;
 	string value = 2;
 	bool cancelled = 3;
+}
+
+message ListEventDatesOptions {
+	int32 count = 1;
+}
+
+message EventDateList {
+	repeated EventDateSummary event_dates = 1;
+}
+
+message EventDateSummary {
+	EventDate event_date = 1;
+	Event event = 2;
+	repeated Registration registrations = 3;
 }
 
 message CancelEventDateOptions {
@@ -118,6 +133,7 @@ message Registration {
 	string event_name = 3;
 	optional EventDate event_date = 4;
 	Member member = 5;
+	string created_at = 6;
 }
 
 message MemberRegistration {
@@ -125,6 +141,7 @@ message MemberRegistration {
 	RegistrationKind kind = 2;
 	string event_name = 3;
 	optional EventDate event_date = 4;
+	string created_at = 5;
 }
 
 message WriteableRegistration {
@@ -148,11 +165,11 @@ message RegisterOptions {
 
 message ListSettingsOptions {}
 message UpdateSettingsOptions {
-	.google.protobuf.Struct settings = 1;
+	string settings = 1;
 }
 
 message SettingsList {
-	.google.protobuf.Struct settings = 1;
+	string settings = 1;
 }
 
 message ListSessionsOptions {}
@@ -169,18 +186,22 @@ message Session {
 }
 
 message User {
-	string username = 1;
-	string first_name = 2;
-	string last_name = 3;
-	string created_at = 4;
-	string updated_at = 5;
+	string uid = 1;
+	string username = 2;
+	string first_name = 3;
+	string last_name = 4;
+	string created_at = 5;
+	string updated_at = 6;
+	string email = 7;
 }
 
 message WriteableUser {
-	string username = 1;
-	string password = 2;
-	optional string first_name = 3;
-	optional string last_name = 4;
+	string uid = 1;
+	string username = 2;
+	string password = 3;
+	optional string first_name = 4;
+	optional string last_name = 5;
+	optional string email = 6;
 }
 
 message ListUsersOptions {}
@@ -208,9 +229,8 @@ message BeginVerificationResult {
 }
 
 message CompleteVerificationOptions {
-	string email = 1;
-	string key = 2;
-	string challenge = 3;
+	string key = 1;
+	string challenge = 2;
 }
 
 message CompleteVerificationResult {}

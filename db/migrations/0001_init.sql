@@ -2,6 +2,7 @@ CREATE TABLE events (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT NOT NULL,
 	title TEXT NOT NULL,
+	description TEXT,
 	hidden INTEGER NOT NULL,
 	closed INTEGER NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -59,10 +60,12 @@ CREATE UNIQUE INDEX members_email ON members(email);
 
 CREATE TABLE users (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	uid TEXT NOT NULL,
 	username TEXT NOT NULL,
 	password_hash TEXT NOT NULL,
 	first_name TEXT,
 	last_name TEXT,
+	email TEXT,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	updated_at TIMESTAMP
 );

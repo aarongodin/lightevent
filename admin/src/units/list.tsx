@@ -1,4 +1,4 @@
-import classNames from "classnames"
+import clsx from "clsx"
 
 type DefinitionListItemProps = {
   variant: "grid" | "flex"
@@ -9,7 +9,7 @@ type DefinitionListItemProps = {
 }
 
 export function DefinitionListItem({ title, data, stripe, variant, className }: DefinitionListItemProps) {
-  const dlClass = classNames(
+  const dlClass = clsx(
     "p-4 border-b",
     { "bg-white": !stripe },
     { "bg-gray-50": stripe },

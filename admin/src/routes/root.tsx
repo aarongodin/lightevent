@@ -20,11 +20,6 @@ export default function Root() {
                     </NavLink>
                   </li>
                   <li>
-                    <NavLink to="/registrations" className={navLinkClassName}>
-                      Registrations
-                    </NavLink>
-                  </li>
-                  <li>
                     <NavLink to="/events" className={navLinkClassName}>
                       Events
                     </NavLink>
@@ -42,7 +37,7 @@ export default function Root() {
             <nav>
               <ul className="flex gap-x-4">
                 <li>
-                  <NavLink to="/settings" className={navLinkClassName}>
+                  <NavLink to="/settings/application" className={navLinkClassName}>
                     Settings
                   </NavLink>
                 </li>

@@ -36,16 +36,18 @@ func EncodeCookie(cookie *http.Cookie, value any) error {
 	return nil
 }
 
-// setCookie calls the http.SetCookie func after encoding the cookie value
-func SetCookie(w http.ResponseWriter, cookie *http.Cookie) error {
-	if err := EncodeCookie(cookie, cookie.Value); err != nil {
-		return err
+// SetCookie calls the http.SetCookie func after encoding the cookie value
+func SetCookie(w http.ResponseWriter, encode bool, cookie *http.Cookie) error {
+	if encode {
+		if err := EncodeCookie(cookie, cookie.Value); err != nil {
+			return err
+		}
 	}
 	http.SetCookie(w, cookie)
 	return nil
 }
 
-// getCookie returns the cookie after decoding the cookie value
+// GetCookie returns the cookie after decoding the cookie value
 func GetCookie(r *http.Request, name string) (*http.Cookie, error) {
 	cookie, err := r.Cookie(name)
 	if err != nil {
@@ -55,4 +57,19 @@ func GetCookie(r *http.Request, name string) (*http.Cookie, error) {
 		return nil, err
 	}
 	return cookie, nil
+}
+
+// New is a helper for keeping cookie settings consistent across any usage of http.Cookie.
+// Do not create your own instance of http.Cookie and use this instead, to avoid failing
+// to set important security values.
+func NewCookie(name string, value string, maxAge int) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
+		HttpOnly: true,
+		MaxAge:   maxAge,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+	}
 }

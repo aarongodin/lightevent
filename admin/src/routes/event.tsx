@@ -1,7 +1,7 @@
-import { DateTime } from "luxon"
 import { useParams } from "react-router-dom"
 
 import { useClient, WithRequest } from "../client"
+import dayjs from "../dayjs"
 import { usePrompt } from "../prompt"
 import { editEventRoute, newEventRegistrationRoute } from "../router"
 import { Event as Evt, EventDate, RegistrationList } from "../rpc"
@@ -10,7 +10,7 @@ import { Content } from "../units/content"
 import { DefinitionListItem } from "../units/list"
 import { TableLoader } from "../units/loader"
 import { PageTitle } from "../units/page-title"
-import { boolToString, formatConfCode, RegistrationKindBadge } from "../units/value"
+import { boolToString, formatConfCode, formatRegistrationKind, RegistrationKindBadge } from "../units/value"
 
 const WithEvent = WithRequest<Evt>
 const WithEventRegistrations = WithRequest<RegistrationList>
@@ -22,8 +22,8 @@ function EventView({ evt, reload }: { evt: Evt; reload: () => void }) {
     return () => {
       prompt
         .confirm(
-          `This will cancel the event date on ${DateTime.fromISO(eventDate.value).toLocaleString(
-            DateTime.DATETIME_SHORT,
+          `This will cancel the event date on ${dayjs(eventDate.value).format(
+            "l LT",
           )}. You cannot undo a cancellation, are you sure you would like to cancel?`,
         )
         .then(({ ok }) => {
@@ -52,7 +52,7 @@ function EventView({ evt, reload }: { evt: Evt; reload: () => void }) {
       <DefinitionListItem
         key={date.value}
         stripe={idx % 2 !== 0}
-        title={DateTime.fromISO(date.value).toLocaleString(DateTime.DATETIME_SHORT)}
+        title={dayjs(date.value).format("l LT")}
         data={data}
         variant="flex"
       />
@@ -64,8 +64,9 @@ function EventView({ evt, reload }: { evt: Evt; reload: () => void }) {
       <dl className="drop-shadow">
         <DefinitionListItem variant="grid" title="Name" data={evt.name} />
         <DefinitionListItem variant="grid" stripe title="Title" data={evt.title} />
-        <DefinitionListItem variant="grid" title="Hidden" data={boolToString(evt.hidden)} />
-        <DefinitionListItem variant="grid" stripe title="Closed" data={boolToString(evt.closed)} />
+        <DefinitionListItem variant="grid" title="Description" data={evt.description} />
+        <DefinitionListItem variant="grid" stripe title="Hidden" data={boolToString(evt.hidden)} />
+        <DefinitionListItem variant="grid" title="Closed" data={boolToString(evt.closed)} />
       </dl>
       <div className="drop-shadow">{dates}</div>
     </div>
@@ -86,9 +87,12 @@ function EventRegistrationsTable({ registrations }: EventRegistrationsTableProps
         </td>
         <td className="p-4 text-left">{reg.member?.email}</td>
         <td className="p-4 text-left">
-          <RegistrationKindBadge kind={reg.kind} />
+          <RegistrationKindBadge kind={reg.kind}>{formatRegistrationKind(reg.kind)}</RegistrationKindBadge>
         </td>
-        <td className="p-4 text-right text-xs font-mono">{formatConfCode(reg.confCode)}</td>
+        <td className="p-4 text-left text-sm">
+          {reg.eventDate !== undefined ? dayjs(reg.eventDate.value).format("l LT") : "-"}
+        </td>
+        <td className="p-4 text-right text-sm font-mono">{formatConfCode(reg.confCode)}</td>
       </tr>
     )
   })
@@ -97,9 +101,10 @@ function EventRegistrationsTable({ registrations }: EventRegistrationsTableProps
     <table className="bg-white w-full rounded-lg drop-shadow">
       <thead className="text-xs bg-gray-50 text-gray-800">
         <tr>
-          <th className="px-4 py-2 text-left w-1/3">Member Name</th>
-          <th className="px-4 py-2 text-left w-1/3">Member Email</th>
-          <th className="px-4 py-2 text-left w-1/3">Registration Kind</th>
+          <th className="px-4 py-2 text-left">Member Name</th>
+          <th className="px-4 py-2 text-left">Member Email</th>
+          <th className="px-4 py-2 text-left">Registration Kind</th>
+          <th className="px-4 py-2 text-left">Event Date</th>
           <th className="px-4 py-2 text-right">Conf Code</th>
         </tr>
       </thead>

@@ -1,5 +1,4 @@
-import { formatRFC3339 } from "date-fns"
-import { DateTime } from "luxon"
+import dayjs from "dayjs"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { TwirpError } from "twirp-ts"
@@ -76,7 +75,7 @@ function EventDatesField({ control }: { control: any }) {
 function formValuesFromEventDates(eventDates: EventDate[]): EventDate[] {
   return eventDates.map((d) => ({
     ...d,
-    value: DateTime.fromISO(d.value).toFormat("yyyy-MM-dd'T'HH:mm"),
+    value: dayjs(d.value).format("YYYY-MM-DDTHH:mm"),
   }))
 }
 
@@ -96,7 +95,7 @@ export function EventForm({ event }: EventFormProps) {
       ...data,
       dates: data.dates.map((d: EventDate) => ({
         ...d,
-        value: formatRFC3339(DateTime.fromISO(d.value).toMillis()),
+        value: dayjs(d.value).toISOString(),
       })),
     }
     try {
@@ -135,6 +134,14 @@ export function EventForm({ event }: EventFormProps) {
               className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
               {...register("title", { required: true })}
               required
+            />
+            <label className="flex items-start justify-end text-sm text-gray-800 mt-1" htmlFor="description">
+              Description
+            </label>
+            <textarea
+              id="description"
+              className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
+              {...register("description")}
             />
             <span className="flex items-center justify-end text-sm text-gray-800">Hidden</span>
             <label htmlFor="hidden" className="col-span-2 flex items-center gap-x-2">

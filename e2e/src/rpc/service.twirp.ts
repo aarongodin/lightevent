@@ -13,6 +13,8 @@ import {
   PingResult,
   ListEventsOptions,
   EventList,
+  ListEventDatesOptions,
+  EventDateList,
   ByName,
   Event,
   CancelEventDateOptions,
@@ -65,6 +67,7 @@ interface Rpc {
 export interface LightEventClient {
   Ping(request: PingOptions): Promise<PingResult>;
   ListEvents(request: ListEventsOptions): Promise<EventList>;
+  ListEventDates(request: ListEventDatesOptions): Promise<EventDateList>;
   GetEvent(request: ByName): Promise<Event>;
   CreateEvent(request: Event): Promise<Event>;
   UpdateEvent(request: Event): Promise<Event>;
@@ -83,6 +86,7 @@ export interface LightEventClient {
     request: ListMemberRegistrationsOptions
   ): Promise<MemberRegistrationList>;
   CreateUser(request: WriteableUser): Promise<User>;
+  UpdateUser(request: WriteableUser): Promise<User>;
   ListUsers(request: ListUsersOptions): Promise<UserList>;
   ListSessions(request: ListSessionsOptions): Promise<SessionList>;
   CreateAPIKey(request: WriteableAPIKey): Promise<APIKeyWithSecret>;
@@ -103,6 +107,7 @@ export class LightEventClientJSON implements LightEventClient {
     this.rpc = rpc;
     this.Ping.bind(this);
     this.ListEvents.bind(this);
+    this.ListEventDates.bind(this);
     this.GetEvent.bind(this);
     this.CreateEvent.bind(this);
     this.UpdateEvent.bind(this);
@@ -117,6 +122,7 @@ export class LightEventClientJSON implements LightEventClient {
     this.UpdateMember.bind(this);
     this.ListMemberRegistrations.bind(this);
     this.CreateUser.bind(this);
+    this.UpdateUser.bind(this);
     this.ListUsers.bind(this);
     this.ListSessions.bind(this);
     this.CreateAPIKey.bind(this);
@@ -146,6 +152,17 @@ export class LightEventClientJSON implements LightEventClient {
       data as object
     );
     return promise.then((data) => EventList.fromJSON(data as any));
+  }
+
+  ListEventDates(request: ListEventDatesOptions): Promise<EventDateList> {
+    const data = ListEventDatesOptions.toJSON(request);
+    const promise = this.rpc.request(
+      "LightEvent",
+      "ListEventDates",
+      "application/json",
+      data as object
+    );
+    return promise.then((data) => EventDateList.fromJSON(data as any));
   }
 
   GetEvent(request: ByName): Promise<Event> {
@@ -306,6 +323,17 @@ export class LightEventClientJSON implements LightEventClient {
     return promise.then((data) => User.fromJSON(data as any));
   }
 
+  UpdateUser(request: WriteableUser): Promise<User> {
+    const data = WriteableUser.toJSON(request);
+    const promise = this.rpc.request(
+      "LightEvent",
+      "UpdateUser",
+      "application/json",
+      data as object
+    );
+    return promise.then((data) => User.fromJSON(data as any));
+  }
+
   ListUsers(request: ListUsersOptions): Promise<UserList> {
     const data = ListUsersOptions.toJSON(request);
     const promise = this.rpc.request(
@@ -409,6 +437,7 @@ export class LightEventClientProtobuf implements LightEventClient {
     this.rpc = rpc;
     this.Ping.bind(this);
     this.ListEvents.bind(this);
+    this.ListEventDates.bind(this);
     this.GetEvent.bind(this);
     this.CreateEvent.bind(this);
     this.UpdateEvent.bind(this);
@@ -423,6 +452,7 @@ export class LightEventClientProtobuf implements LightEventClient {
     this.UpdateMember.bind(this);
     this.ListMemberRegistrations.bind(this);
     this.CreateUser.bind(this);
+    this.UpdateUser.bind(this);
     this.ListUsers.bind(this);
     this.ListSessions.bind(this);
     this.CreateAPIKey.bind(this);
@@ -452,6 +482,17 @@ export class LightEventClientProtobuf implements LightEventClient {
       data
     );
     return promise.then((data) => EventList.decode(data as Uint8Array));
+  }
+
+  ListEventDates(request: ListEventDatesOptions): Promise<EventDateList> {
+    const data = ListEventDatesOptions.encode(request).finish();
+    const promise = this.rpc.request(
+      "LightEvent",
+      "ListEventDates",
+      "application/protobuf",
+      data
+    );
+    return promise.then((data) => EventDateList.decode(data as Uint8Array));
   }
 
   GetEvent(request: ByName): Promise<Event> {
@@ -614,6 +655,17 @@ export class LightEventClientProtobuf implements LightEventClient {
     return promise.then((data) => User.decode(data as Uint8Array));
   }
 
+  UpdateUser(request: WriteableUser): Promise<User> {
+    const data = WriteableUser.encode(request).finish();
+    const promise = this.rpc.request(
+      "LightEvent",
+      "UpdateUser",
+      "application/protobuf",
+      data
+    );
+    return promise.then((data) => User.decode(data as Uint8Array));
+  }
+
   ListUsers(request: ListUsersOptions): Promise<UserList> {
     const data = ListUsersOptions.encode(request).finish();
     const promise = this.rpc.request(
@@ -718,6 +770,10 @@ export class LightEventClientProtobuf implements LightEventClient {
 export interface LightEventTwirp<T extends TwirpContext = TwirpContext> {
   Ping(ctx: T, request: PingOptions): Promise<PingResult>;
   ListEvents(ctx: T, request: ListEventsOptions): Promise<EventList>;
+  ListEventDates(
+    ctx: T,
+    request: ListEventDatesOptions
+  ): Promise<EventDateList>;
   GetEvent(ctx: T, request: ByName): Promise<Event>;
   CreateEvent(ctx: T, request: Event): Promise<Event>;
   UpdateEvent(ctx: T, request: Event): Promise<Event>;
@@ -744,6 +800,7 @@ export interface LightEventTwirp<T extends TwirpContext = TwirpContext> {
     request: ListMemberRegistrationsOptions
   ): Promise<MemberRegistrationList>;
   CreateUser(ctx: T, request: WriteableUser): Promise<User>;
+  UpdateUser(ctx: T, request: WriteableUser): Promise<User>;
   ListUsers(ctx: T, request: ListUsersOptions): Promise<UserList>;
   ListSessions(ctx: T, request: ListSessionsOptions): Promise<SessionList>;
   CreateAPIKey(ctx: T, request: WriteableAPIKey): Promise<APIKeyWithSecret>;
@@ -763,6 +820,7 @@ export interface LightEventTwirp<T extends TwirpContext = TwirpContext> {
 export enum LightEventMethod {
   Ping = "Ping",
   ListEvents = "ListEvents",
+  ListEventDates = "ListEventDates",
   GetEvent = "GetEvent",
   CreateEvent = "CreateEvent",
   UpdateEvent = "UpdateEvent",
@@ -777,6 +835,7 @@ export enum LightEventMethod {
   UpdateMember = "UpdateMember",
   ListMemberRegistrations = "ListMemberRegistrations",
   CreateUser = "CreateUser",
+  UpdateUser = "UpdateUser",
   ListUsers = "ListUsers",
   ListSessions = "ListSessions",
   CreateAPIKey = "CreateAPIKey",
@@ -790,6 +849,7 @@ export enum LightEventMethod {
 export const LightEventMethodList = [
   LightEventMethod.Ping,
   LightEventMethod.ListEvents,
+  LightEventMethod.ListEventDates,
   LightEventMethod.GetEvent,
   LightEventMethod.CreateEvent,
   LightEventMethod.UpdateEvent,
@@ -804,6 +864,7 @@ export const LightEventMethodList = [
   LightEventMethod.UpdateMember,
   LightEventMethod.ListMemberRegistrations,
   LightEventMethod.CreateUser,
+  LightEventMethod.UpdateUser,
   LightEventMethod.ListUsers,
   LightEventMethod.ListSessions,
   LightEventMethod.CreateAPIKey,
@@ -852,6 +913,22 @@ function matchLightEventRoute<T extends TwirpContext = TwirpContext>(
         ctx = { ...ctx, methodName: "ListEvents" };
         await events.onMatch(ctx);
         return handleLightEventListEventsRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
+      };
+    case "ListEventDates":
+      return async (
+        ctx: T,
+        service: LightEventTwirp,
+        data: Buffer,
+        interceptors?: Interceptor<T, ListEventDatesOptions, EventDateList>[]
+      ) => {
+        ctx = { ...ctx, methodName: "ListEventDates" };
+        await events.onMatch(ctx);
+        return handleLightEventListEventDatesRequest(
           ctx,
           service,
           data,
@@ -1090,6 +1167,22 @@ function matchLightEventRoute<T extends TwirpContext = TwirpContext>(
           interceptors
         );
       };
+    case "UpdateUser":
+      return async (
+        ctx: T,
+        service: LightEventTwirp,
+        data: Buffer,
+        interceptors?: Interceptor<T, WriteableUser, User>[]
+      ) => {
+        ctx = { ...ctx, methodName: "UpdateUser" };
+        await events.onMatch(ctx);
+        return handleLightEventUpdateUserRequest(
+          ctx,
+          service,
+          data,
+          interceptors
+        );
+      };
     case "ListUsers":
       return async (
         ctx: T,
@@ -1268,6 +1361,35 @@ function handleLightEventListEventsRequest<
       );
     case TwirpContentType.Protobuf:
       return handleLightEventListEventsProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    default:
+      const msg = "unexpected Content-Type";
+      throw new TwirpError(TwirpErrorCode.BadRoute, msg);
+  }
+}
+
+function handleLightEventListEventDatesRequest<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, ListEventDatesOptions, EventDateList>[]
+): Promise<string | Uint8Array> {
+  switch (ctx.contentType) {
+    case TwirpContentType.JSON:
+      return handleLightEventListEventDatesJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    case TwirpContentType.Protobuf:
+      return handleLightEventListEventDatesProtobuf<T>(
         ctx,
         service,
         data,
@@ -1681,6 +1803,35 @@ function handleLightEventCreateUserRequest<
   }
 }
 
+function handleLightEventUpdateUserRequest<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, WriteableUser, User>[]
+): Promise<string | Uint8Array> {
+  switch (ctx.contentType) {
+    case TwirpContentType.JSON:
+      return handleLightEventUpdateUserJSON<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    case TwirpContentType.Protobuf:
+      return handleLightEventUpdateUserProtobuf<T>(
+        ctx,
+        service,
+        data,
+        interceptors
+      );
+    default:
+      const msg = "unexpected Content-Type";
+      throw new TwirpError(TwirpErrorCode.BadRoute, msg);
+  }
+}
+
 function handleLightEventListUsersRequest<
   T extends TwirpContext = TwirpContext
 >(
@@ -1978,6 +2129,43 @@ async function handleLightEventListEventsJSON<
   }
 
   return JSON.stringify(EventList.toJSON(response) as string);
+}
+
+async function handleLightEventListEventDatesJSON<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, ListEventDatesOptions, EventDateList>[]
+) {
+  let request: ListEventDatesOptions;
+  let response: EventDateList;
+
+  try {
+    const body = JSON.parse(data.toString() || "{}");
+    request = ListEventDatesOptions.fromJSON(body);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      ListEventDatesOptions,
+      EventDateList
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.ListEventDates(ctx, inputReq);
+    });
+  } else {
+    response = await service.ListEventDates(ctx, request!);
+  }
+
+  return JSON.stringify(EventDateList.toJSON(response) as string);
 }
 
 async function handleLightEventGetEventJSON<
@@ -2506,6 +2694,43 @@ async function handleLightEventCreateUserJSON<
   return JSON.stringify(User.toJSON(response) as string);
 }
 
+async function handleLightEventUpdateUserJSON<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, WriteableUser, User>[]
+) {
+  let request: WriteableUser;
+  let response: User;
+
+  try {
+    const body = JSON.parse(data.toString() || "{}");
+    request = WriteableUser.fromJSON(body);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the json request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      WriteableUser,
+      User
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.UpdateUser(ctx, inputReq);
+    });
+  } else {
+    response = await service.UpdateUser(ctx, request!);
+  }
+
+  return JSON.stringify(User.toJSON(response) as string);
+}
+
 async function handleLightEventListUsersJSON<
   T extends TwirpContext = TwirpContext
 >(
@@ -2879,6 +3104,42 @@ async function handleLightEventListEventsProtobuf<
   }
 
   return Buffer.from(EventList.encode(response).finish());
+}
+
+async function handleLightEventListEventDatesProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, ListEventDatesOptions, EventDateList>[]
+) {
+  let request: ListEventDatesOptions;
+  let response: EventDateList;
+
+  try {
+    request = ListEventDatesOptions.decode(data);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      ListEventDatesOptions,
+      EventDateList
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.ListEventDates(ctx, inputReq);
+    });
+  } else {
+    response = await service.ListEventDates(ctx, request!);
+  }
+
+  return Buffer.from(EventDateList.encode(response).finish());
 }
 
 async function handleLightEventGetEventProtobuf<
@@ -3388,6 +3649,42 @@ async function handleLightEventCreateUserProtobuf<
     });
   } else {
     response = await service.CreateUser(ctx, request!);
+  }
+
+  return Buffer.from(User.encode(response).finish());
+}
+
+async function handleLightEventUpdateUserProtobuf<
+  T extends TwirpContext = TwirpContext
+>(
+  ctx: T,
+  service: LightEventTwirp,
+  data: Buffer,
+  interceptors?: Interceptor<T, WriteableUser, User>[]
+) {
+  let request: WriteableUser;
+  let response: User;
+
+  try {
+    request = WriteableUser.decode(data);
+  } catch (e) {
+    if (e instanceof Error) {
+      const msg = "the protobuf request could not be decoded";
+      throw new TwirpError(TwirpErrorCode.Malformed, msg).withCause(e, true);
+    }
+  }
+
+  if (interceptors && interceptors.length > 0) {
+    const interceptor = chainInterceptors(...interceptors) as Interceptor<
+      T,
+      WriteableUser,
+      User
+    >;
+    response = await interceptor(ctx, request!, (ctx, inputReq) => {
+      return service.UpdateUser(ctx, inputReq);
+    });
+  } else {
+    response = await service.UpdateUser(ctx, request!);
   }
 
   return Buffer.from(User.encode(response).finish());

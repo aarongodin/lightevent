@@ -1,4 +1,4 @@
-import classNames from "classnames"
+import clsx from "clsx"
 
 type AlertProps = {
   variant: "error" | "warning" | "info" | "success" | "light" | "secondary"
@@ -7,7 +7,7 @@ type AlertProps = {
 }
 
 export function Alert({ variant, title, content }: AlertProps) {
-  const cls = classNames(
+  const cls = clsx(
     "border text-sm rounded-md p-4 my-4",
     { "bg-red-50 border-red-200 text-red-600": variant === "error" },
     { "bg-gray-800/[.1] border-gray-200 text-gray-600": variant === "secondary" },

@@ -23,7 +23,7 @@ Here's a quick guide to running the project locally.
 * [go 1.19](https://go.dev/)
 * [protoc](https://grpc.io/docs/protoc-installation/) (the protobuf compiler)
 * [node 16 or higher](https://nodejs.org/en)
-* [pm2](https://pm2.keymetrics.io/) - optional for easier management of web app dev servers
+* [pm2](https://pm2.keymetrics.io/) - optional, for easier management of web app dev servers
 
 ### Project setup
 
@@ -41,15 +41,25 @@ After that's complete, you can start the service with:
 go run cmd/server/main.go
 ```
 
-There is also an [air](https://github.com/cosmtrek/air) config in the project. After installing air you can run the go app by running `air` in the directory. This watches for file changes and restarts the server when detected.
+There is also an [air](https://github.com/cosmtrek/air) config in the project. After installing air, you can run the server app by running `air` in the directory. This watches for file changes and restarts the server when detected.
 
-The app takes in some configuration through environment variables. You can set any of these variables however you want. One recommendation is to use [direnv](https://direnv.net/). Check out `.envrc-example` for a list of variables to set.
+The app receives configuration through environment variables. You can set these variables however you want. One recommendation is to use [direnv](https://direnv.net/). Check out `.envrc-example` for a list of variables to set.
 
-When you make changes to any protobuf documents, you can rebuild the go and typescript code using:
+When you make changes to any protobuf documents, you can rebuild the go and typescript generated code using:
 
 ```sh
 make protoc
 ```
+
+You will need to generate an SSL cert for use by the local dev server hosting the `admin` and `client` frontend apps. You can do so with the following, assuming you are on macOS and use homebrew:
+
+```sh
+brew install mkcert
+mkcert -install
+make mkcert
+```
+
+The certs are gitignored, so if you need to regenerate them for the project, just run `make mkcert` to receive new ones. You will have to restart the dev sever before the new cert is used.
 
 Running the client and admin web apps can be done with pm2. Install the node modules in the root directory, install pm2 globally, and start the dev servers:
 
@@ -60,6 +70,8 @@ pm2 start
 ```
 
 Open the admin app at [https://localhost:5500](https://localhost:5500) and the client app at [https://localhost:6500](https://localhost:6500).
+
+A note about JavaScript package management: this project is using [npm workspaces](https://docs.npmjs.com/cli/v10/using-npm/workspaces). To install node modules, `npm install` in the root directory. To run any command in context of a workspace, use `-w [workspace]` (e.g. `npm add --dev typescript -w admin`). This also works with `npx`.
 
 ### Using the JSON API
 
@@ -80,9 +92,7 @@ Date: Wed, 21 Jun 2023 20:24:08 GMT
 }
 ```
 
-Since we haven't provided any authentication, we received a 401 status. There are three authentication methods provided, so depending on what aspect of the server you are testing, you'll need to authenticate with a credential that is allowed for the given RPC.
-
-An API Key is a straightforward way to test most endpoints.
+Since we haven't provided any authentication, we received a 401 status. There are three authentication methods provided, so depending on what aspect of the server you are testing, you'll need to authenticate with a credential that is allowed for the given RPC. An API Key is a straightforward way to test most endpoints, or you can use HTTP Basic Auth to provide user credentials.
 
 ## Pull Requests
 

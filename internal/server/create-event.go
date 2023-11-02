@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/aarongodin/lightevent/internal/service"
@@ -23,10 +24,11 @@ func (s *Server) CreateEvent(ctx context.Context, message *service.Event) (*serv
 		closed = 1
 	}
 	params := storage.CreateEventParams{
-		Name:   message.Name,
-		Title:  message.Title,
-		Hidden: hidden,
-		Closed: closed,
+		Name:        message.Name,
+		Title:       message.Title,
+		Description: sql.NullString{String: message.Description, Valid: message.Description != ""},
+		Hidden:      hidden,
+		Closed:      closed,
 	}
 
 	tx, err := s.db.Begin()

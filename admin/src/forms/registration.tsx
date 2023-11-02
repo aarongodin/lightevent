@@ -1,14 +1,15 @@
-import { DateTime } from "luxon"
 import { useEffect } from "react"
-import { useForm } from "react-hook-form"
+import { FormProvider, useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { TwirpError } from "twirp-ts"
 
 import { ErrorMessage } from "@hookform/error-message"
 
 import { useClient } from "../client"
+import dayjs from "../dayjs"
 import { eventRoute } from "../router"
 import { Event as Evt, RegistrationKind, registrationKindFromJSON, WriteableRegistration } from "../rpc"
+import { Alert } from "../units/alert"
 import { Button } from "../units/button"
 import { MemberSelect } from "./components/member-select"
 
@@ -17,7 +18,8 @@ type EventFormProps = {
 }
 
 export function RegistrationForm({ event }: EventFormProps) {
-  const { handleSubmit, register, unregister, watch, formState, setError } = useForm()
+  const methods = useForm()
+  const { handleSubmit, register, unregister, watch, formState, setError } = methods
   const kind = watch("kind")
   const client = useClient()
   const navigate = useNavigate()
@@ -36,7 +38,6 @@ export function RegistrationForm({ event }: EventFormProps) {
       kind: registrationKindFromJSON(parseInt(data.kind, 10)),
       eventName: event.name,
     }
-    console.log(payload, data)
     if (data.eventDateUid && data.eventDateUid.length > 0) {
       payload.eventDateUid = data.eventDateUid
     }
@@ -57,57 +58,60 @@ export function RegistrationForm({ event }: EventFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="max-w-2xl mx-auto">
-        <ErrorMessage name="root.submit" errors={formState.errors} />
-        <div className="grid grid-cols-3 gap-4 max-w-xl bg-white p-4 rounded-lg drop-shadow">
-          <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
-            Member
-          </label>
-          <input
-            className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
-            {...register("memberEmail", { required: true })}
-            required
+      <FormProvider {...methods}>
+        <div className="max-w-2xl mx-auto">
+          <div className="grid grid-cols-3 gap-4 max-w-xl bg-white p-4 rounded-lg drop-shadow">
+            <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
+              Member
+            </label>
+            <MemberSelect fieldName="memberEmail" />
+            <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="kind">
+              Kind
+            </label>
+            <select
+              {...register("kind", { required: true })}
+              className="col-span-2 rounded-md border-2 border-slate-200 px-1 py-1 focus:drop-shadow"
+              required
+            >
+              <option value="" />
+              <option value={RegistrationKind.REG_ONCE}>Once</option>
+              <option value={RegistrationKind.REG_SERIES}>Series</option>
+            </select>
+            {parseInt(kind, 10) === RegistrationKind.REG_ONCE && (
+              <>
+                <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="eventDateUid">
+                  Event Date
+                </label>
+                <select
+                  {...register("eventDateUid")}
+                  required
+                  className="col-span-2 rounded-md border-2 border-slate-200 px-1 py-1 focus:drop-shadow"
+                >
+                  <option value="" />
+                  {event.dates.map((eventDate) => {
+                    return (
+                      <option key={eventDate.uid} value={eventDate.uid}>
+                        {dayjs(eventDate.value).format("LLLL")}
+                      </option>
+                    )
+                  })}
+                </select>
+              </>
+            )}
+          </div>
+          <ErrorMessage
+            name="root.submit"
+            errors={formState.errors}
+            render={({ message }) => <Alert variant="error" title="Error" content={message} />}
           />
-          <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="kind">
-            Kind
-          </label>
-          <select
-            {...register("kind", { required: true })}
-            className="col-span-2 rounded-md border-2 border-slate-200 px-1 py-1 focus:drop-shadow"
-            required
-          >
-            <option value="" />
-            <option value={RegistrationKind.REG_ONCE}>Once</option>
-            <option value={RegistrationKind.REG_SERIES}>Series</option>
-          </select>
-          {parseInt(kind, 10) === RegistrationKind.REG_ONCE && (
-            <>
-              <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="eventDateUid">
-                Event Date
-              </label>
-              <select
-                {...register("eventDateUid")}
-                required
-                className="col-span-2 rounded-md border-2 border-slate-200 px-1 py-1 focus:drop-shadow"
-              >
-                <option value="" />
-                {event.dates.map((eventDate) => {
-                  return (
-                    <option key={eventDate.uid} value={eventDate.uid}>
-                      {DateTime.fromISO(eventDate.value).toLocaleString(DateTime.DATETIME_SHORT)}
-                    </option>
-                  )
-                })}
-              </select>
-            </>
-          )}
+
+          <div className="mt-4">
+            <Button color="primary" disabled={formState.isSubmitting}>
+              Save Registration
+            </Button>
+          </div>
         </div>
-        <div className="mt-4">
-          <Button color="primary" disabled={formState.isSubmitting}>
-            Save Registration
-          </Button>
-        </div>
-      </div>
+      </FormProvider>
     </form>
   )
 }
