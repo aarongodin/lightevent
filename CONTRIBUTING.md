@@ -16,8 +16,6 @@ When submitting a bug report, please follow the issue template and fill it out. 
 
 ## Developer Guide
 
-Here's a quick guide to running the project locally.
-
 ### Prerequisites
 
 * [go 1.19](https://go.dev/)
@@ -33,7 +31,7 @@ Install the required protoc plugins with:
 make install-tools
 ```
 
-This adds some binaries to your go `bin` folder, so be sure that this is added to your path. If you've installed go programs before with `go install ...` then you should be set. Otherwise, [see guides](https://www.digitalocean.com/community/tutorials/how-to-build-and-install-go-programs#step-5-installing-go-programs-with-go-install) on how to configure this.
+This adds some binaries to your go `bin` folder, so be sure that this is added to your path. If you've installed go programs before with `go install ...` then you should be set. Otherwise, [see the go docs](https://pkg.go.dev/cmd/go#hdr-Compile_and_install_packages_and_dependencies) on how to configure this.
 
 After that's complete, you can start the service with:
 
@@ -51,7 +49,7 @@ When you make changes to any protobuf documents, you can rebuild the go and type
 make protoc
 ```
 
-You will need to generate an SSL cert for use by the local dev server hosting the `admin` and `client` frontend apps. You can do so with the following, assuming you are on macOS and use homebrew:
+You will need to generate an SSL cert for use by the local dev servers hosting the `admin` and `client` frontend apps. You can do so with the following, assuming you are on macOS and use homebrew:
 
 ```sh
 brew install mkcert
@@ -75,12 +73,12 @@ A note about JavaScript package management: this project is using [npm workspace
 
 ### Using the JSON API
 
-The protobuf framework used by LightEvent is [twirp](https://twitchtv.github.io/twirp/). For development purposes, there's also a JSON API. This makes it easier to test, especially for newcomers to protobuf.
+The protobuf framework used by LightEvent is [twirp](https://twitchtv.github.io/twirp/). There's also a JSON API, which is used for the client app to avoid sending a protobuf library in the distributed JS. This also makes it easier to test, especially for newcomers to protobuf.
 
 Once you have the server runnning locally, you can access the API on port 8080. Here's an example using httpie to call the Ping RPC:
 
 ```
-~ http post localhost:8080/rpc/LightEvent/Ping
+~ http post :8080/rpc/LightEvent/Ping --raw='{}'
 HTTP/1.1 401 Unauthorized
 Content-Length: 58
 Content-Type: application/json
@@ -92,7 +90,7 @@ Date: Wed, 21 Jun 2023 20:24:08 GMT
 }
 ```
 
-Since we haven't provided any authentication, we received a 401 status. There are three authentication methods provided, so depending on what aspect of the server you are testing, you'll need to authenticate with a credential that is allowed for the given RPC. An API Key is a straightforward way to test most endpoints, or you can use HTTP Basic Auth to provide user credentials.
+Since we haven't provided any authentication, we received a 401 status. There are three authentication methods available, so depending on what aspect of the server you are testing, you'll need to authenticate with a credential that is allowed for the given RPC. An API Key is a straightforward way to test most endpoints, or you can use HTTP Basic Auth to provide user credentials.
 
 ## Pull Requests
 

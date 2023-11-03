@@ -1,27 +1,32 @@
 # LightEvent
 
-LightEvent is an open source & self-hosted alternative to complex/expensive class & event management software. The system is comprised of the following components:
+LightEvent is open source & self-hosted event management software.
 
-* Server application written in go
-* Admin UI served by the Server application
-* Embeddable client application for the browser (integrates into any website with a short code snippet)
+> *Beta Software Notice*: TODO
+
+## Overview
+
+The LightEvent system is comprised of two core components:
+
+* A server application executed through the `lightevent` binary. This also serves the admin UI.
+* An embedded client application executed through JS and CSS files included on your website.
 
 ## Features
 
-The features are intended to be laser-focused on offering a simple experience, both for customer interaction and administration.
+The features are focused on a simple experience, both for customer interaction and administration.
 
-* **Simple data model** - Support for 1-time events, events series, and schedules. Find out more about events and schedules in [our docs]().
-* **Authentication** - Lightweight identity management through passwordless authentication for members (OTP via email).
-* **Payments** - Accept payments after the user has registered. Currently [Square](https://squareup.com) and [Stripe](https://stripe.com/) are the supported payment providers.
-* **Notifications** - Well-tested and customizable emails are sent for registration confirmation.
-* **Reporting** - Get at-a-glance information about event registrations, or use the complete reports for more comprehensive data.
+* **Events** - An event is a container for one or many event dates - either a single date, multiple dates, or more complex schedules.
+* **Multi-location support** - Manage events for multiple physical or virtual locations, including role-based access control (RBAC) for administrator access to individual locations.
+* **Authentication** - Lightweight and secure identity management with passwordless authentication for members (OTP via email or SMS).
+* **Payments** - Payment policies allow collection of payment for event registration through the [Stripe](https://stripe.com) integration.
+* **Notifications** - User and member notifications are available through both email and SMS.
 
 ### Technical Features
 
-* **Single binary** - Download a single binary and run it however you want.
-* **Embedded storage** - Uses sqlite through for embedded storage, so there's no DBMS to manage. Backups and replication for read-replicas could be done with [Litestream](https://litestream.io/).
+* **Single binary** - Download a single binary to your desired OS or environment and run it however you want. Example setups for bare-metal/VPS, Docker, and Kubernetes are available, or use these as a starting point for your own solution.
+* **Embedded storage** - Uses sqlite for embedded storage, so there's no DBMS to manage. Backups and replication for read-replicas could be done with [Litestream](https://litestream.io/).
 * **Tidy web footprint** - LightEvent aims at keeping the client application as small as possible to ensure fast load time.
-* **RPC API with Twirp** - Augment LightEvent with your own integrations using the API. LightEvent is built using [Twirp](https://github.com/twitchtv/twirp), a fantastic RPC framework built on [protobuf](https://github.com/protocolbuffers/protobuf).
+* **RPC API with Twirp** - Augment LightEvent with your own integrations using the API. LightEvent is built using [Twirp](https://github.com/twitchtv/twirp), an awesome RPC framework built on [protobuf](https://github.com/protocolbuffers/protobuf).
 
 ### GitHub Project
 
