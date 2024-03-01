@@ -12,12 +12,13 @@ import (
 
 const createMember = `-- name: CreateMember :one
 INSERT INTO members (
-  email, verified, first_name, last_name
-) VALUES (?, ?, ?, ?)
-RETURNING id, email, verified, first_name, last_name, created_at
+  uid, email, verified, first_name, last_name
+) VALUES (?, ?, ?, ?, ?)
+RETURNING id, uid, email, verified, first_name, last_name, created_at
 `
 
 type CreateMemberParams struct {
+	Uid       string
 	Email     string
 	Verified  int64
 	FirstName sql.NullString
@@ -26,6 +27,7 @@ type CreateMemberParams struct {
 
 func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Member, error) {
 	row := q.db.QueryRowContext(ctx, createMember,
+		arg.Uid,
 		arg.Email,
 		arg.Verified,
 		arg.FirstName,
@@ -34,6 +36,7 @@ func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Mem
 	var i Member
 	err := row.Scan(
 		&i.ID,
+		&i.Uid,
 		&i.Email,
 		&i.Verified,
 		&i.FirstName,
@@ -48,7 +51,7 @@ INSERT INTO members (
   email, verified
 ) VALUES (?, 1)
 ON CONFLICT DO UPDATE SET verified = 1
-RETURNING id, email, verified, first_name, last_name, created_at
+RETURNING id, uid, email, verified, first_name, last_name, created_at
 `
 
 func (q *Queries) CreateOrVerifyMemberEmail(ctx context.Context, email string) (Member, error) {
@@ -56,6 +59,7 @@ func (q *Queries) CreateOrVerifyMemberEmail(ctx context.Context, email string) (
 	var i Member
 	err := row.Scan(
 		&i.ID,
+		&i.Uid,
 		&i.Email,
 		&i.Verified,
 		&i.FirstName,
@@ -66,7 +70,7 @@ func (q *Queries) CreateOrVerifyMemberEmail(ctx context.Context, email string) (
 }
 
 const getMember = `-- name: GetMember :one
-SELECT id, email, verified, first_name, last_name, created_at FROM members
+SELECT id, uid, email, verified, first_name, last_name, created_at FROM members
 WHERE id = ?
 `
 
@@ -75,6 +79,7 @@ func (q *Queries) GetMember(ctx context.Context, id int64) (Member, error) {
 	var i Member
 	err := row.Scan(
 		&i.ID,
+		&i.Uid,
 		&i.Email,
 		&i.Verified,
 		&i.FirstName,
@@ -85,7 +90,7 @@ func (q *Queries) GetMember(ctx context.Context, id int64) (Member, error) {
 }
 
 const getMemberByEmail = `-- name: GetMemberByEmail :one
-SELECT id, email, verified, first_name, last_name, created_at FROM members
+SELECT id, uid, email, verified, first_name, last_name, created_at FROM members
 WHERE email = ?
 `
 
@@ -94,6 +99,27 @@ func (q *Queries) GetMemberByEmail(ctx context.Context, email string) (Member, e
 	var i Member
 	err := row.Scan(
 		&i.ID,
+		&i.Uid,
+		&i.Email,
+		&i.Verified,
+		&i.FirstName,
+		&i.LastName,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getMemberByUID = `-- name: GetMemberByUID :one
+SELECT id, uid, email, verified, first_name, last_name, created_at FROM members
+WHERE uid = ?
+`
+
+func (q *Queries) GetMemberByUID(ctx context.Context, uid string) (Member, error) {
+	row := q.db.QueryRowContext(ctx, getMemberByUID, uid)
+	var i Member
+	err := row.Scan(
+		&i.ID,
+		&i.Uid,
 		&i.Email,
 		&i.Verified,
 		&i.FirstName,
@@ -104,7 +130,7 @@ func (q *Queries) GetMemberByEmail(ctx context.Context, email string) (Member, e
 }
 
 const listMembers = `-- name: ListMembers :many
-SELECT id, email, verified, first_name, last_name, created_at FROM members
+SELECT id, uid, email, verified, first_name, last_name, created_at FROM members
 `
 
 func (q *Queries) ListMembers(ctx context.Context) ([]Member, error) {
@@ -118,6 +144,7 @@ func (q *Queries) ListMembers(ctx context.Context) ([]Member, error) {
 		var i Member
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uid,
 			&i.Email,
 			&i.Verified,
 			&i.FirstName,
@@ -138,7 +165,7 @@ func (q *Queries) ListMembers(ctx context.Context) ([]Member, error) {
 }
 
 const listMembersBySearch = `-- name: ListMembersBySearch :many
-SELECT id, email, verified, first_name, last_name, created_at FROM members
+SELECT id, uid, email, verified, first_name, last_name, created_at FROM members
 WHERE email like ?1 OR first_name like ?1 OR last_name like ?1
 `
 
@@ -153,6 +180,7 @@ func (q *Queries) ListMembersBySearch(ctx context.Context, search string) ([]Mem
 		var i Member
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uid,
 			&i.Email,
 			&i.Verified,
 			&i.FirstName,
@@ -174,23 +202,31 @@ func (q *Queries) ListMembersBySearch(ctx context.Context, search string) ([]Mem
 
 const updateMember = `-- name: UpdateMember :one
 UPDATE members
-SET first_name = ?,
-    last_name = ?
-WHERE email = ?
-RETURNING id, email, verified, first_name, last_name, created_at
+SET first_name = COALESCE(?1, first_name),
+		last_name = COALESCE(?2, last_name),
+		email = COALESCE(?3, email)
+WHERE uid = ?4
+RETURNING id, uid, email, verified, first_name, last_name, created_at
 `
 
 type UpdateMemberParams struct {
 	FirstName sql.NullString
 	LastName  sql.NullString
-	Email     string
+	Email     sql.NullString
+	Uid       string
 }
 
 func (q *Queries) UpdateMember(ctx context.Context, arg UpdateMemberParams) (Member, error) {
-	row := q.db.QueryRowContext(ctx, updateMember, arg.FirstName, arg.LastName, arg.Email)
+	row := q.db.QueryRowContext(ctx, updateMember,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.Uid,
+	)
 	var i Member
 	err := row.Scan(
 		&i.ID,
+		&i.Uid,
 		&i.Email,
 		&i.Verified,
 		&i.FirstName,

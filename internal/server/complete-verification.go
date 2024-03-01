@@ -54,7 +54,7 @@ func (s *Server) CompleteVerification(ctx context.Context, message *service.Comp
 		}
 	}
 
-	cookie := access.NewCookie(access.COOKIE_MEMBER_SESSION, session.Key, int(s.rc.SessionMaxAge.Seconds()))
+	cookie := access.NewCookie(access.COOKIE_MEMBER_SESSION, session.Key, int(s.rc.SessionMaxAge.Seconds()), s.rc.CookieSecure)
 	if err := access.EncodeCookie(cookie, cookie.Value); err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}

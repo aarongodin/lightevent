@@ -12,7 +12,7 @@ export function PageTitle({ title, localActions, externalActions }: PageTitlePro
     <div className="bg-white border-b p-4">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
-          <h1 className="font-bold text-lg mr-4">{title}</h1>
+          <h1 className="font-bold text-lg mr-8">{title}</h1>
           {localActions}
         </div>
         <div className="flex gap-4 items-center min-h-[36px]">{externalActions}</div>

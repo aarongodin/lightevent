@@ -1,12 +1,12 @@
 type ConditionProps = {
   value: boolean
-  children: React.ReactNode | [React.ReactNode, React.ReactNode]
+  items: React.ReactNode | [React.ReactNode, React.ReactNode]
 }
 
-export function Condition({ value, children }: ConditionProps) {
-  if (Array.isArray(children)) {
-    return value ? children[0] : children[1]
+export function Condition({ value, items }: ConditionProps) {
+  if (Array.isArray(items)) {
+    return value ? items[0] : items[1]
   }
 
-  return value ? children : null
+  return value ? items : null
 }

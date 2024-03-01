@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/aarongodin/lightevent/internal/config"
+	"github.com/aarongodin/lightevent/internal/model"
 	"github.com/aarongodin/lightevent/internal/provider"
 	"github.com/aarongodin/lightevent/internal/storage"
-	"github.com/aarongodin/lightevent/internal/validation"
 	"github.com/mattn/go-sqlite3"
 	"github.com/twitchtv/twirp"
 )
@@ -36,7 +36,7 @@ func errorResponse(err error, entity string) error {
 		return twirp.NotFoundError(fmt.Sprintf("%s not found", entity))
 	}
 
-	if verr, ok := err.(validation.ErrValidationFailed); ok {
+	if verr, ok := err.(model.ErrValidationFailed); ok {
 		return twirp.InvalidArgumentError(verr.Argument, verr.Reason)
 	}
 

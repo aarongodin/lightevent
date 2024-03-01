@@ -12,6 +12,7 @@
 # export DATABASE_FILE=lightevent.sqlite3
 # export SESSION_MAX_AGE=168h
 # export COOKIE_HMAC_SECRET=test
+# export COOKIE_SECURE=true
 # export ALLOW_ADMIN_USER=true
 # export ADMIN_USER_PASSWORD=admin
 

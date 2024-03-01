@@ -33,6 +33,7 @@ func translateEventDate(rec storage.EventDate) *service.EventDate {
 
 func translateMember(rec storage.Member) *service.Member {
 	member := &service.Member{
+    Uid:       rec.Uid,
 		Email:     rec.Email,
 		CreatedAt: rec.CreatedAt.Format(time.RFC3339),
 		FirstName: rec.FirstName.String,

@@ -98,11 +98,18 @@ export function MemberSelect({ fieldName }: MemberSelectProps) {
         {...form.register(fieldName, { required: true })}
         required
       />
-      <Condition value={form.getFieldState(fieldName).isDirty && watchInput.trim().length > 0}>
-        <Condition value={results.length > 0}>
-          {[<MemberSelectResults results={results} selectMember={handleSelectMember} />, <EmptyResultsNotice />]}
-        </Condition>
-      </Condition>
+      <Condition
+        value={form.getFieldState(fieldName).isDirty && watchInput.trim().length > 0}
+        items={
+          <Condition
+            value={results.length > 0}
+            items={[
+              <MemberSelectResults results={results} selectMember={handleSelectMember} />,
+              <EmptyResultsNotice />,
+            ]}
+          ></Condition>
+        }
+      ></Condition>
     </div>
   )
 }

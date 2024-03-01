@@ -26,6 +26,11 @@ function LocalActions() {
             Users
           </NavLink>
         </li>
+        <li>
+          <NavLink to="/settings/api-keys" className={navLinkClassName}>
+            API Keys
+          </NavLink>
+        </li>
       </ul>
     </nav>
   )

@@ -49,6 +49,7 @@ CREATE UNIQUE INDEX registrations_member_event_date_id
 
 CREATE TABLE members (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	uid TEXT NOT NULL,
 	email TEXT NOT NULL,
 	verified INTEGER DEFAULT 0 NOT NULL,
 	first_name TEXT,
@@ -56,6 +57,7 @@ CREATE TABLE members (
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+CREATE UNIQUE INDEX members_uid ON members(uid);
 CREATE UNIQUE INDEX members_email ON members(email);
 
 CREATE TABLE users (

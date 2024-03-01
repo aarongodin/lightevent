@@ -24,29 +24,36 @@ function EventDatesSummary({ eventDates }: { eventDates: EventDate[] }) {
   const lastDateFormatted = dayjs(eventDates[0].value).format("l LT")
   return (
     <div className="inline-flex gap-2">
-      <span>{firstDateFormatted}</span>
+      <span className="after:content-['—'] after:ml-2">{firstDateFormatted}</span>
       <span>{lastDateFormatted}</span>
     </div>
   )
 }
 
 function EventsTable({ events }: EventsTableProps) {
-  const rows = events.map((evt, idx) => {
-    const className = `${idx % 2 == 1 && "bg-gray-50"} p-2`
+  if (events.length === 0) {
     return (
-      <tr key={evt.name} className={className}>
-        <td className="p-4 text-left">{evt.title}</td>
-        <td className="p-4 text-left text-sm">
+      <div className="bg-gray-50 w-full rounded-lg h-32 flex items-center justify-center text-sm text-gray-600">
+        No events found.
+      </div>
+    )
+  }
+  const rows = events.map((evt) => {
+    return (
+      <tr key={evt.name} className="border-b last:border-0 text-sm">
+        <td className="px-4 py-3">{evt.name}</td>
+        <td className="px-4 py-3">{evt.title}</td>
+        <td className="px-4 py-3">
           <EventDatesSummary eventDates={evt.dates} />
         </td>
-        <td className="p-4 text-center flex justify-center gap-2">
+        <td className="px-4 py-3 flex gap-2">
           {evt.hidden && <Badge variant="gray">Hidden</Badge>}
           {evt.closed && <Badge variant="gray">Closed</Badge>}
           {!evt.hidden && <Badge variant="gray">Visible</Badge>}
           {!evt.closed && <Badge variant="gray">Open</Badge>}
         </td>
-        <td className="p-4 text-right text-xs">
-          <LinkButton color="white" to={eventRoute(evt.name)}>
+        <td className="px-4 py-3 text-right">
+          <LinkButton color="white" size="small" to={eventRoute(evt.name)}>
             View
           </LinkButton>
         </td>
@@ -55,17 +62,20 @@ function EventsTable({ events }: EventsTableProps) {
   })
 
   return (
-    <table className="bg-white w-full rounded-lg drop-shadow">
-      <thead className="text-xs bg-gray-50 text-gray-800">
-        <tr>
-          <th className="px-4 py-2 text-left w-1/3">Event Title</th>
-          <th className="px-4 py-2 text-left w-1/3">Event Dates</th>
-          <th className="px-4 py-2 text-center">Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>{rows}</tbody>
-    </table>
+    <div className="overflow-x-auto drop-shadow">
+      <table className="bg-white w-full md:rounded-lg min-w-max">
+        <thead className="text-xs bg-gradient-to-r from-gray-50 to-slate-50 text-gray-500 border-b">
+          <tr>
+            <th className="px-4 py-2 text-left rounded-tl-lg">Name</th>
+            <th className="px-4 py-2 text-left">Title</th>
+            <th className="px-4 py-2 text-left">Dates</th>
+            <th className="px-4 py-2 text-left">Status</th>
+            <th className="rounded-tr-lg"></th>
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
   )
 }
 

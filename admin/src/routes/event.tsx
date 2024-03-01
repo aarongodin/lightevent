@@ -5,7 +5,8 @@ import dayjs from "../dayjs"
 import { usePrompt } from "../prompt"
 import { editEventRoute, newEventRegistrationRoute } from "../router"
 import { Event as Evt, EventDate, RegistrationList } from "../rpc"
-import { LinkButton } from "../units/button"
+import { Badge } from "../units/badge"
+import { Button, LinkButton } from "../units/button"
 import { Content } from "../units/content"
 import { DefinitionListItem } from "../units/list"
 import { TableLoader } from "../units/loader"
@@ -40,18 +41,18 @@ function EventView({ evt, reload }: { evt: Evt; reload: () => void }) {
     }
   }
 
-  const dates = evt.dates.map((date, idx) => {
+  const dates = evt.dates.map((date) => {
     const data = date.cancelled ? (
-      "Cancelled"
+      <Badge variant="gray">Cancelled</Badge>
     ) : (
-      <button className="text-sky-700 hover:text-sky-600" onClick={cancelEventDate(date)}>
+      <Button color="secondary" size="small" onClick={cancelEventDate(date)}>
         Cancel
-      </button>
+      </Button>
     )
     return (
       <DefinitionListItem
+        dtValue={true}
         key={date.value}
-        stripe={idx % 2 !== 0}
         title={dayjs(date.value).format("l LT")}
         data={data}
         variant="flex"
@@ -60,15 +61,21 @@ function EventView({ evt, reload }: { evt: Evt; reload: () => void }) {
   })
 
   return (
-    <div className="grid grid-cols-2 gap-6">
-      <dl className="drop-shadow">
-        <DefinitionListItem variant="grid" title="Name" data={evt.name} />
-        <DefinitionListItem variant="grid" stripe title="Title" data={evt.title} />
-        <DefinitionListItem variant="grid" title="Description" data={evt.description} />
-        <DefinitionListItem variant="grid" stripe title="Hidden" data={boolToString(evt.hidden)} />
-        <DefinitionListItem variant="grid" title="Closed" data={boolToString(evt.closed)} />
-      </dl>
-      <div className="drop-shadow">{dates}</div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h3 className="mb-4 px-4 p-0">Basic Information</h3>
+        <dl className="drop-shadow">
+          <DefinitionListItem variant="grid" title="Name" data={evt.name} />
+          <DefinitionListItem variant="grid" title="Title" data={evt.title} />
+          <DefinitionListItem variant="grid" title="Description" data={evt.description} />
+          <DefinitionListItem variant="grid" title="Hidden" data={boolToString(evt.hidden)} />
+          <DefinitionListItem variant="grid" title="Closed" data={boolToString(evt.closed)} />
+        </dl>
+      </div>
+      <div>
+        <h3 className="mb-4 px-4 md:p-0">Dates</h3>
+        <div className="drop-shadow">{dates}</div>
+      </div>
     </div>
   )
 }
@@ -78,38 +85,52 @@ type EventRegistrationsTableProps = {
 }
 
 function EventRegistrationsTable({ registrations }: EventRegistrationsTableProps) {
-  const rows = registrations.map((reg, idx) => {
-    const className = `${idx % 2 == 1 && "bg-gray-50"} p-2`
+  if (registrations.length === 0) {
     return (
-      <tr key={reg.confCode} className={className}>
-        <td className="p-4 text-left">
+      <div className="bg-gray-50 w-full md:rounded-lg h-32 flex items-center justify-center text-sm text-gray-600">
+        No registrations.
+      </div>
+    )
+  }
+
+  const rows = registrations.map((reg) => {
+    return (
+      <tr key={reg.confCode} className="border-b last:border-0">
+        <td className="p-4 py-3 text-left">
           {reg.member?.firstName} {reg.member?.lastName}
         </td>
-        <td className="p-4 text-left">{reg.member?.email}</td>
-        <td className="p-4 text-left">
+        <td className="p-4 py-3 text-left">{reg.member?.email}</td>
+        <td className="p-4 py-3 text-left">
           <RegistrationKindBadge kind={reg.kind}>{formatRegistrationKind(reg.kind)}</RegistrationKindBadge>
         </td>
-        <td className="p-4 text-left text-sm">
+        <td className="p-4 py-3 text-left text-sm">
           {reg.eventDate !== undefined ? dayjs(reg.eventDate.value).format("l LT") : "-"}
+          {reg.eventDate?.cancelled && (
+            <Badge variant="gray" className="ml-2">
+              Cancelled
+            </Badge>
+          )}
         </td>
-        <td className="p-4 text-right text-sm font-mono">{formatConfCode(reg.confCode)}</td>
+        <td className="p-4 py-3 text-right text-sm font-mono">{formatConfCode(reg.confCode)}</td>
       </tr>
     )
   })
 
   return (
-    <table className="bg-white w-full rounded-lg drop-shadow">
-      <thead className="text-xs bg-gray-50 text-gray-800">
-        <tr>
-          <th className="px-4 py-2 text-left">Member Name</th>
-          <th className="px-4 py-2 text-left">Member Email</th>
-          <th className="px-4 py-2 text-left">Registration Kind</th>
-          <th className="px-4 py-2 text-left">Event Date</th>
-          <th className="px-4 py-2 text-right">Conf Code</th>
-        </tr>
-      </thead>
-      <tbody>{rows}</tbody>
-    </table>
+    <div className="overflow-x-auto drop-shadow">
+      <table className="bg-white w-full md:rounded-lg min-w-max">
+        <thead className="text-xs bg-gradient-to-r from-gray-50 to-slate-50 text-gray-500 border-b">
+          <tr>
+            <th className="px-4 py-2 text-left md:rounded-tl-lg">Member Name</th>
+            <th className="px-4 py-2 text-left">Member Email</th>
+            <th className="px-4 py-2 text-left">Registration Kind</th>
+            <th className="px-4 py-2 text-left">Event Date</th>
+            <th className="px-4 py-2 text-right md:rounded-tr-lg">Conf Code</th>
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
   )
 }
 
@@ -132,15 +153,11 @@ export default function Event() {
     <>
       <PageTitle title="Event" externalActions={<ExternalActions eventName={eventName} />} />
       <Content>
-        <div className="grid grid-cols-2 gap-6">
-          <h3 className="mb-4">Basic Information</h3>
-          <h3 className="mb-4">Dates</h3>
-        </div>
         <WithEvent load={(client) => client.GetEvent({ name: eventName })} deps={[eventName]} loader={TableLoader}>
           {(resp, _, reload) => <EventView evt={resp} reload={reload} />}
         </WithEvent>
-        <div className="mt-4">
-          <h3 className="mb-4">Registrations</h3>
+        <div className="mt-8">
+          <h3 className="mb-4 px-4 p-0">Registrations</h3>
           <WithEventRegistrations
             load={(client) => client.ListEventRegistrations({ eventName })}
             deps={[eventName]}

@@ -23,7 +23,7 @@ import {
   RegistrationList,
   ByConfCode,
   Registration,
-  WriteableRegistration,
+  CreateRegistrationOptions,
   DeleteRegistrationOptions,
   Result,
   WriteableMember,
@@ -76,7 +76,7 @@ export interface LightEventClient {
     request: ListEventRegistrationsOptions
   ): Promise<RegistrationList>;
   GetRegistration(request: ByConfCode): Promise<Registration>;
-  CreateRegistration(request: WriteableRegistration): Promise<Registration>;
+  CreateRegistration(request: CreateRegistrationOptions): Promise<Registration>;
   DeleteRegistration(request: DeleteRegistrationOptions): Promise<Result>;
   CreateMember(request: WriteableMember): Promise<Member>;
   ListMembers(request: ListMembersOptions): Promise<MemberList>;
@@ -233,8 +233,10 @@ export class LightEventClientJSON implements LightEventClient {
     return promise.then((data) => Registration.fromJSON(data as any));
   }
 
-  CreateRegistration(request: WriteableRegistration): Promise<Registration> {
-    const data = WriteableRegistration.toJSON(request);
+  CreateRegistration(
+    request: CreateRegistrationOptions
+  ): Promise<Registration> {
+    const data = CreateRegistrationOptions.toJSON(request);
     const promise = this.rpc.request(
       "LightEvent",
       "CreateRegistration",
@@ -563,8 +565,10 @@ export class LightEventClientProtobuf implements LightEventClient {
     return promise.then((data) => Registration.decode(data as Uint8Array));
   }
 
-  CreateRegistration(request: WriteableRegistration): Promise<Registration> {
-    const data = WriteableRegistration.encode(request).finish();
+  CreateRegistration(
+    request: CreateRegistrationOptions
+  ): Promise<Registration> {
+    const data = CreateRegistrationOptions.encode(request).finish();
     const promise = this.rpc.request(
       "LightEvent",
       "CreateRegistration",
@@ -785,7 +789,7 @@ export interface LightEventTwirp<T extends TwirpContext = TwirpContext> {
   GetRegistration(ctx: T, request: ByConfCode): Promise<Registration>;
   CreateRegistration(
     ctx: T,
-    request: WriteableRegistration
+    request: CreateRegistrationOptions
   ): Promise<Registration>;
   DeleteRegistration(
     ctx: T,
@@ -1040,7 +1044,7 @@ function matchLightEventRoute<T extends TwirpContext = TwirpContext>(
         ctx: T,
         service: LightEventTwirp,
         data: Buffer,
-        interceptors?: Interceptor<T, WriteableRegistration, Registration>[]
+        interceptors?: Interceptor<T, CreateRegistrationOptions, Registration>[]
       ) => {
         ctx = { ...ctx, methodName: "CreateRegistration" };
         await events.onMatch(ctx);
@@ -1578,7 +1582,7 @@ function handleLightEventCreateRegistrationRequest<
   ctx: T,
   service: LightEventTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, WriteableRegistration, Registration>[]
+  interceptors?: Interceptor<T, CreateRegistrationOptions, Registration>[]
 ): Promise<string | Uint8Array> {
   switch (ctx.contentType) {
     case TwirpContentType.JSON:
@@ -2400,14 +2404,14 @@ async function handleLightEventCreateRegistrationJSON<
   ctx: T,
   service: LightEventTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, WriteableRegistration, Registration>[]
+  interceptors?: Interceptor<T, CreateRegistrationOptions, Registration>[]
 ) {
-  let request: WriteableRegistration;
+  let request: CreateRegistrationOptions;
   let response: Registration;
 
   try {
     const body = JSON.parse(data.toString() || "{}");
-    request = WriteableRegistration.fromJSON(body);
+    request = CreateRegistrationOptions.fromJSON(body);
   } catch (e) {
     if (e instanceof Error) {
       const msg = "the json request could not be decoded";
@@ -2418,7 +2422,7 @@ async function handleLightEventCreateRegistrationJSON<
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
       T,
-      WriteableRegistration,
+      CreateRegistrationOptions,
       Registration
     >;
     response = await interceptor(ctx, request!, (ctx, inputReq) => {
@@ -3368,13 +3372,13 @@ async function handleLightEventCreateRegistrationProtobuf<
   ctx: T,
   service: LightEventTwirp,
   data: Buffer,
-  interceptors?: Interceptor<T, WriteableRegistration, Registration>[]
+  interceptors?: Interceptor<T, CreateRegistrationOptions, Registration>[]
 ) {
-  let request: WriteableRegistration;
+  let request: CreateRegistrationOptions;
   let response: Registration;
 
   try {
-    request = WriteableRegistration.decode(data);
+    request = CreateRegistrationOptions.decode(data);
   } catch (e) {
     if (e instanceof Error) {
       const msg = "the protobuf request could not be decoded";
@@ -3385,7 +3389,7 @@ async function handleLightEventCreateRegistrationProtobuf<
   if (interceptors && interceptors.length > 0) {
     const interceptor = chainInterceptors(...interceptors) as Interceptor<
       T,
-      WriteableRegistration,
+      CreateRegistrationOptions,
       Registration
     >;
     response = await interceptor(ctx, request!, (ctx, inputReq) => {

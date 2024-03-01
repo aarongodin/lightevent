@@ -1,4 +1,8 @@
-server:
+start:
+	@echo Starting server... tip: check the contributing guide for using air
+	@go run ./cmd/server/main.go
+
+build-server:
 	@go build -o bin/lightevent cmd/server/main.go
 
 download:
@@ -27,7 +31,6 @@ protoc:
     --twirp_ts_out=./.protoc-tmp \
 		rpc/lightevent/service.proto
 	@cp ./.protoc-tmp/rpc/lightevent/* admin/src/rpc/
-	@cp ./.protoc-tmp/rpc/lightevent/* client/src/rpc/
 	@cp ./.protoc-tmp/rpc/lightevent/* e2e/src/rpc/
 	@rm -rf ./.protoc-tmp
 

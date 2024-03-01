@@ -11,13 +11,17 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
-func (s *Server) CreateRegistration(ctx context.Context, message *service.WriteableRegistration) (*service.Registration, error) {
-	event, err := s.queries.GetEventByName(ctx, message.EventName)
+func (s *Server) CreateRegistration(ctx context.Context, message *service.CreateRegistrationOptions) (*service.Registration, error) {
+  if (message.Registration == nil) {
+    return nil, twirp.InvalidArgumentError("registration", "must be present")
+  }
+
+	event, err := s.queries.GetEventByName(ctx, message.Registration.EventName)
 	if err != nil {
 		return nil, errorResponse(err, "event")
 	}
 
-	member, err := s.queries.GetMemberByEmail(ctx, message.MemberEmail)
+	member, err := s.queries.GetMemberByUID(ctx, message.MemberUid)
 	if err != nil {
 		return nil, errorResponse(err, "member")
 	}
@@ -29,18 +33,18 @@ func (s *Server) CreateRegistration(ctx context.Context, message *service.Writea
 
 	params := storage.CreateRegistrationParams{
 		ConfCode: confCode,
-		Kind:     stringFromRegistrationKind(message.Kind),
+		Kind:     stringFromRegistrationKind(message.Registration.Kind),
 		EventID:  event.ID,
 		MemberID: member.ID,
 	}
 
-	if message.Kind == service.RegistrationKind_REG_ONCE {
-		if message.EventDateUid == nil {
-			return nil, twirp.InvalidArgumentError("event_date", "must be present when kind is once")
+	if message.Registration.Kind == service.RegistrationKind_REG_ONCE {
+		if message.Registration.EventDateUid == nil {
+			return nil, twirp.InvalidArgumentError("registration.event_date", "must be present when kind is once")
 		}
-		eventDate, err := s.queries.GetEventDateByUid(ctx, *message.EventDateUid)
+		eventDate, err := s.queries.GetEventDateByUid(ctx, *message.Registration.EventDateUid)
 		if err != nil {
-			return nil, errorResponse(err, "event_date")
+			return nil, errorResponse(err, "registration.event_date")
 		}
 		params.EventDateID = sql.NullInt64{Int64: eventDate.ID, Valid: true}
 	}

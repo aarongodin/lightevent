@@ -17,7 +17,7 @@ service LightEvent {
 	// Registrations
 	rpc ListEventRegistrations(ListEventRegistrationsOptions) returns (RegistrationList);
 	rpc GetRegistration(ByConfCode) returns (Registration);
-	rpc CreateRegistration(WriteableRegistration) returns (Registration);
+	rpc CreateRegistration(CreateRegistrationOptions) returns (Registration);
 	rpc DeleteRegistration(DeleteRegistrationOptions) returns (Result);
 
 	// Members
@@ -144,11 +144,15 @@ message MemberRegistration {
 	string created_at = 5;
 }
 
+message CreateRegistrationOptions {
+	WriteableRegistration registration = 1;
+	string member_uid = 2;
+}
+
 message WriteableRegistration {
 	RegistrationKind kind = 1;
 	string event_name = 2;
 	optional string event_date_uid = 3;
-	string member_email = 4;
 }
 
 message DeleteRegistrationOptions {
@@ -156,11 +160,8 @@ message DeleteRegistrationOptions {
 }
 
 message RegisterOptions {
-	RegistrationKind kind = 1;
-	string event_name = 2;
-	optional string event_date_uid = 3;
-	string member_first_name = 4;
-	string member_last_name = 5;
+	WriteableRegistration registration = 1;
+	WriteableMember member = 2;
 }
 
 message ListSettingsOptions {}
@@ -244,17 +245,19 @@ message MemberList {
 }
 
 message Member {
-	string email = 1;
-	string first_name = 2;
-	string last_name = 3;
-	bool verified = 4;
-	string created_at = 5;
+  string uid = 1;
+	string email = 2;
+	string first_name = 3;
+	string last_name = 4;
+	bool verified = 5;
+	string created_at = 6;
 }
 
 message WriteableMember {
-	string email = 1;
-	string first_name = 2;
-	string last_name = 3;
+  string uid = 1;
+	optional string email = 2;
+	optional string first_name = 3;
+	optional string last_name = 4;
 }
 
 message GetMemberOptions {

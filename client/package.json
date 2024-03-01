@@ -20,18 +20,12 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "clsx": "^2.0.0",
-    "dayjs": "^1.11.10",
-    "preact": "^10.18.1",
-    "twirp-ts": "^2.5.0"
-  },
   "devDependencies": {
-    "@preact/preset-vite": "^2.6.0",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "@preact/preset-vite": "^2.8.1",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
   }
 }

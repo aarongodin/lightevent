@@ -42,9 +42,9 @@ const (
 	accessAny = byte(0b111)
 	// maskMember is the bitmask for checking whether the member authz scheme is enabled
 	maskMember = 0b001
-	// maskMember is the bitmask for checking whether the user authz scheme is enabled
+	// maskUser is the bitmask for checking whether the user authz scheme is enabled
 	maskUser = 0b010
-	// maskMember is the bitmask for checking whether the API key authz scheme is enabled
+	// maskAPIKey is the bitmask for checking whether the API key authz scheme is enabled
 	maskAPIKey = 0b100
 )
 

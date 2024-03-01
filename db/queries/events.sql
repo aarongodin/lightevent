@@ -61,16 +61,17 @@ SELECT * FROM event_dates
 WHERE uid = ?;
 
 -- name: CreateEventDate :one
-INSERT INTO event_dates (
-  event_id, uid, value, cancelled
-) VALUES (?, ?, ?, ?)
+INSERT INTO event_dates (event_id, uid, value, cancelled)
+SELECT events.id AS event_id, ?, ?, ?
+FROM events
+WHERE events.name = @event_name
 RETURNING *;
 
 -- name: UpdateEventDate :one
 UPDATE event_dates
 SET value = ?,
     cancelled = ?
-WHERE id = ?
+WHERE uid = ?
 RETURNING *;
 
 -- name: DeleteEventDate :exec

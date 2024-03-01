@@ -37,7 +37,7 @@ function EventSummary({ summary }: { summary: EventDateSummary }) {
           <RegistrationKindBadge kind={RegistrationKind.REG_SERIES} count={seriesCount} />
         </span>
         <LinkButton color="white" to={eventRoute(summary.event.name)}>
-          View Details
+          View Event
         </LinkButton>
       </div>
     </div>
@@ -49,7 +49,7 @@ export default function Dashboard() {
     <>
       <PageTitle title="Overview" />
       <Content>
-        <h3 className="mb-4">Upcoming Events</h3>
+        <h3 className="mb-4 px-4 md:p-0">Upcoming Events</h3>
         <WithEventDates load={(client) => client.ListEventDates({ count: 4 })} deps={[]} loader={TableLoader}>
           {(resp) => (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">

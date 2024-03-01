@@ -59,16 +59,16 @@ func GetCookie(r *http.Request, name string) (*http.Cookie, error) {
 	return cookie, nil
 }
 
-// New is a helper for keeping cookie settings consistent across any usage of http.Cookie.
+// NewCookie is a helper for keeping cookie settings consistent across any usage of http.Cookie.
 // Do not create your own instance of http.Cookie and use this instead, to avoid failing
 // to set important security values.
-func NewCookie(name string, value string, maxAge int) *http.Cookie {
+func NewCookie(name string, value string, maxAge int, secure bool) *http.Cookie {
 	return &http.Cookie{
 		Name:     name,
 		Value:    value,
 		HttpOnly: true,
 		MaxAge:   maxAge,
-		Secure:   true,
+		Secure:   secure,
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 	}

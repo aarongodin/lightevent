@@ -17,6 +17,7 @@ import (
 	"github.com/aarongodin/lightevent/internal/provider"
 	"github.com/aarongodin/lightevent/internal/server"
 	"github.com/aarongodin/lightevent/internal/server/access"
+	"github.com/aarongodin/lightevent/internal/server/client"
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
 	"github.com/julienschmidt/httprouter"
@@ -66,19 +67,23 @@ func main() {
 	s := server.NewServer(store.DB, queries, runtimeConfig, providers)
 	twirpHandler := service.NewLightEventServer(s, twirp.WithServerPathPrefix("/rpc"), twirp.WithServerHooks(server.NewLoggingHooks()))
 
-	authHandler := httprouter.New()
-	if err := access.Register(authHandler, queries, runtimeConfig); err != nil {
+	router := httprouter.New()
+	if err := access.Register(router, queries, runtimeConfig); err != nil {
 		log.Err(err).Msg("failed to register access routes")
 		return
 	}
 	access.InitCookies(runtimeConfig)
+
+	if err := client.Register(router, queries, runtimeConfig); err != nil {
+		log.Err(err).Msg("failed to register client routes")
+	}
 
 	mux := http.NewServeMux()
 	mux.Handle(
 		twirpHandler.PathPrefix(),
 		access.WithAuthorization(twirpHandler, queries, runtimeConfig, access.GetAllowedSchemes()),
 	)
-	mux.Handle("/", authHandler)
+	mux.Handle("/", router)
 
 	mw := negroni.New()
 	mw.Use(middleware.NewLoggingMiddleware())

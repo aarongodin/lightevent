@@ -13,7 +13,7 @@ func (s *Server) CancelEventDate(ctx context.Context, message *service.CancelEve
 		return nil, errorResponse(err, "event date")
 	}
 	eventDate, err := s.queries.UpdateEventDate(ctx, storage.UpdateEventDateParams{
-		ID:        rec.ID,
+		Uid:       rec.Uid,
 		Value:     rec.Value,
 		Cancelled: 1,
 	})

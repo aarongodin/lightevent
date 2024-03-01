@@ -5,23 +5,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type SendRequest interface {
-	Render() (string, error)
-}
-
-type SendResult struct{}
-
-type EmailBody interface {
-	Render() (string, error)
-}
-
 type EmailProvider interface {
-	Send(recipient string, subject string, body EmailBody) error
+	Send(recipient string, subject string, body string) error
 }
 
 type nilEmailProvider struct{}
 
-func (p nilEmailProvider) Send(_ string, _ string, _ EmailBody) error {
+func (p nilEmailProvider) Send(_ string, _ string, _ string) error {
 	log.Warn().Msg("send email: email provider not set")
 	return nil
 }

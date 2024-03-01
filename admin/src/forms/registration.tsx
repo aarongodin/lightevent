@@ -60,7 +60,7 @@ export function RegistrationForm({ event }: EventFormProps) {
     <form onSubmit={handleSubmit(onSubmit)}>
       <FormProvider {...methods}>
         <div className="max-w-2xl mx-auto">
-          <div className="grid grid-cols-3 gap-4 max-w-xl bg-white p-4 rounded-lg drop-shadow">
+          <div className="grid grid-cols-3 gap-4 max-w-xl bg-white p-4 md:rounded-lg drop-shadow">
             <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
               Member
             </label>
@@ -105,7 +105,7 @@ export function RegistrationForm({ event }: EventFormProps) {
             render={({ message }) => <Alert variant="error" title="Error" content={message} />}
           />
 
-          <div className="mt-4">
+          <div className="mt-4 px-4 md:p-0">
             <Button color="primary" disabled={formState.isSubmitting}>
               Save Registration
             </Button>

@@ -2,7 +2,6 @@ package access
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/aarongodin/lightevent/internal/repository"
@@ -38,24 +37,13 @@ func (ar accessRoutes) authenticateUser(ctx context.Context, username string, pa
 		return nil, err
 	}
 
-	session, err := ar.queries.GetSessionByIdentity(ctx, storage.GetSessionByIdentityParams{
+	session, err := ar.queries.CreateSession(ctx, storage.CreateSessionParams{
 		Subject: username,
 		Kind:    repository.SESSION_KIND_USER,
+		Key:     uuid.New().String(),
 	})
-
 	if err != nil {
-		if errors.Is(sql.ErrNoRows, err) {
-			session, err = ar.queries.CreateSession(ctx, storage.CreateSessionParams{
-				Subject: username,
-				Kind:    repository.SESSION_KIND_USER,
-				Key:     uuid.New().String(),
-			})
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return &session, nil

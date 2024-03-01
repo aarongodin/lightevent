@@ -37,6 +37,7 @@ type EventDate struct {
 
 type Member struct {
 	ID        int64
+	Uid       string
 	Email     string
 	Verified  int64
 	FirstName sql.NullString

@@ -23,5 +23,5 @@ SET username = COALESCE(sqlc.narg('username'), username),
     last_name = COALESCE(sqlc.narg('last_name'), last_name),
     email = COALESCE(sqlc.narg('email'), email),
     updated_at = CURRENT_TIMESTAMP
-WHERE id = ?
+WHERE id = sqlc.arg('id')
 RETURNING *;

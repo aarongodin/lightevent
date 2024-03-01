@@ -2,18 +2,20 @@ package server
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/aarongodin/lightevent/internal/service"
 	"github.com/aarongodin/lightevent/internal/storage"
 )
 
 func (s *Server) UpdateMember(ctx context.Context, message *service.WriteableMember) (*service.Member, error) {
-	rec, err := s.queries.UpdateMember(ctx, storage.UpdateMemberParams{
-		Email:     message.Email,
-		FirstName: sql.NullString{String: message.FirstName, Valid: true},
-		LastName:  sql.NullString{String: message.LastName, Valid: true},
-	})
+  params := storage.UpdateMemberParams{
+    Uid: message.Uid,
+  }
+  storage.SetOptionalString(&params.Email, message.Email)
+  storage.SetOptionalString(&params.FirstName, message.FirstName)
+  storage.SetOptionalString(&params.LastName, message.LastName)
+
+	rec, err := s.queries.UpdateMember(ctx, params)
 	if err != nil {
 		return nil, errorResponse(err, "member")
 	}

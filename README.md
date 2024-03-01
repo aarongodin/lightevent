@@ -1,8 +1,8 @@
 # LightEvent
 
-LightEvent is open source & self-hosted event management software.
+LightEvent is open source, self-hosted and free event management software.
 
-> *Beta Software Notice*: TODO
+> *Beta Software Notice*: LightEvent is currently in beta. You can read more about this on the notes for the [v0.1.0]() release.
 
 ## Overview
 

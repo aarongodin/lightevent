@@ -17,10 +17,7 @@ export default defineConfig({
     },
     port: 6500,
     proxy: {
-      "/login": serverURL,
-      "/auth/login": serverURL,
-      "/auth/logout": serverURL,
-      "/rpc": serverURL,
+      "/client": serverURL,
     },
   },
   build: {

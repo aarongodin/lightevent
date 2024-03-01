@@ -1,7 +1,7 @@
 -- name: CreateMember :one
 INSERT INTO members (
-  email, verified, first_name, last_name
-) VALUES (?, ?, ?, ?)
+  uid, email, verified, first_name, last_name
+) VALUES (?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: CreateOrVerifyMemberEmail :one
@@ -19,6 +19,10 @@ WHERE id = ?;
 SELECT * FROM members
 WHERE email = ?;
 
+-- name: GetMemberByUID :one
+SELECT * FROM members
+WHERE uid = ?;
+
 -- name: ListMembers :many
 SELECT * FROM members;
 
@@ -28,7 +32,8 @@ WHERE email like @search OR first_name like @search OR last_name like @search;
 
 -- name: UpdateMember :one
 UPDATE members
-SET first_name = ?,
-    last_name = ?
-WHERE email = ?
+SET first_name = COALESCE(sqlc.narg('first_name'), first_name),
+		last_name = COALESCE(sqlc.narg('last_name'), last_name),
+		email = COALESCE(sqlc.narg('email'), email)
+WHERE uid = sqlc.arg('uid')
 RETURNING *;

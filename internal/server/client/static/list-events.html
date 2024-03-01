@@ -1,0 +1,8 @@
+{{ range .Events }}
+  <div className="grid grid-cols-3 gap-x-4 border-b border-gray-200 pb-6 mb-6 last:border-0 last:mb-0 last:pb-0">
+    <div className="col-span-2 flex flex-col justify-between">
+      <h2 className="text-lg font-light">{{ .Name }}</h2>
+      <p className="text-gray-600 text-sm leading-5 mt-4">{{ .Description }}</p>
+    </div>
+  </div>
+{{ end }}

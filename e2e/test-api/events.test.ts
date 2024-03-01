@@ -7,26 +7,28 @@ describe("events", () => {
         adminUserClient.CreateEvent({
           name: "test-event",
           title: "Test Event",
+          description: "Test event",
           closed: false,
           hidden: false,
           dates: [
             {
               value: "2023-10-16T19:43:49Z",
               cancelled: false,
-              id: "",
+              uid: "",
             },
           ],
         }),
       ).resolves.toEqual({
         name: "test-event",
         title: "Test Event",
+        description: "Test event",
         closed: false,
         hidden: false,
         dates: [
           {
             value: "2023-10-16T19:43:49Z",
             cancelled: false,
-            id: expect.any(String),
+            uid: expect.any(String),
           },
         ],
       })

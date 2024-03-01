@@ -7,6 +7,7 @@ import { ErrorMessage } from "@hookform/error-message"
 import { useClient } from "../client"
 import { memberRoute } from "../router"
 import { Member } from "../rpc"
+import { Alert } from "../units/alert"
 import { Button } from "../units/button"
 
 type MemberFormProps = {
@@ -23,8 +24,12 @@ export function MemberForm({ member }: MemberFormProps) {
   const navigate = useNavigate()
 
   async function onSubmit(data: any) {
+    const payload = {
+      uid: member !== undefined ? member.uid : "",
+      ...data,
+    }
     try {
-      const resp = member === undefined ? await client.CreateMember(data) : await client.UpdateMember(data)
+      const resp = member === undefined ? await client.CreateMember(payload) : await client.UpdateMember(payload)
       navigate(memberRoute(resp.email))
     } catch (err) {
       const message = err instanceof TwirpError ? err.message : (err as Error).message
@@ -35,21 +40,16 @@ export function MemberForm({ member }: MemberFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="max-w-2xl mx-auto">
-        <ErrorMessage name="root.submit" errors={formState.errors} />
         <div className="grid grid-cols-3 gap-4 max-w-xl bg-white p-4 rounded-lg drop-shadow">
-          {member === undefined && (
-            <>
-              <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
-                Email Address
-              </label>
-              <input
-                type="email"
-                className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
-                {...register("email", { required: true })}
-                required
-              />
-            </>
-          )}
+          <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
+            Email Address
+          </label>
+          <input
+            type="email"
+            className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
+            {...register("email", { required: true })}
+            required
+          />
           <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
             First Name
           </label>
@@ -65,6 +65,11 @@ export function MemberForm({ member }: MemberFormProps) {
             {...register("lastName")}
           />
         </div>
+        <ErrorMessage
+          name="root.submit"
+          errors={formState.errors}
+          render={({ message }) => <Alert variant="error" title="Error" content={message} />}
+        />
         <div className="mt-4">
           <Button color="primary" disabled={formState.isSubmitting}>
             Save Member

@@ -14,6 +14,7 @@ type RuntimeConfig struct {
 	DatabaseFile         string        `env:"DATABASE_FILE" envDefault:"lightevent.sqlite3"`
 	SessionMaxAge        time.Duration `env:"SESSION_MAX_AGE" envDefault:"168h"`
 	CookieHMACSecret     string        `env:"COOKIE_HMAC_SECRET"`
+	CookieSecure         bool          `env:"COOKIE_SECURE"`
 	AllowAdminUser       bool          `env:"ALLOW_ADMIN_USER" envDefault:"false"`
 	AdminUserPassword    string        `env:"ADMIN_USER_PASSWORD" envDefault:"admin"`
 	EmailProvider        string        `env:"EMAIL_PROVIDER"`

@@ -13,26 +13,18 @@ type EmailProviderSMTP struct {
 }
 
 func NewEmailProviderSMTP(rc *config.RuntimeConfig) EmailProviderSMTP {
-	p := EmailProviderSMTP{
+	return EmailProviderSMTP{
 		dialer: gomail.NewDialer(rc.EmailSMTPHost, rc.EmailSMTPPort, rc.EmailSMTPUsername, rc.EmailSMTPPassword),
-		sender: rc.EmailSMTPSender,
+		sender: rc.EmailSMTPUsername,
 	}
-	if p.sender == "" {
-		p.sender = rc.EmailSMTPUsername
-	}
-	return p
 }
 
-func (p EmailProviderSMTP) Send(recipient string, subject string, body EmailBody) error {
+func (p EmailProviderSMTP) Send(recipient string, subject string, body string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", p.sender)
 	m.SetHeader("To", recipient)
 	m.SetHeader("Subject", subject)
-	content, err := body.Render()
-	if err != nil {
-		return fmt.Errorf("error rendering email send request: %w", err)
-	}
-	m.SetBody("text/html", content)
+	m.SetBody("text/html", body)
 	if err := p.dialer.DialAndSend(m); err != nil {
 		return fmt.Errorf("error sending smtp email: %w", err)
 	}
