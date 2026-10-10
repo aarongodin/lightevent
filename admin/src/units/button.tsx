@@ -1,40 +1,41 @@
 import clsx from "clsx"
-import { ButtonHTMLAttributes, createElement, FunctionComponent } from "react"
-import { Link, LinkProps } from "react-router-dom"
+import type { ButtonHTMLAttributes } from "react"
+import { Link, type LinkProps } from "react-router"
 
-type ButtonPropsColor = "primary" | "secondary" | "neutral" | "white" | undefined
-type ButtonPropsSize = "normal" | "small"
+export type ButtonColor = "primary" | "secondary" | "white" | "danger"
+export type ButtonSize = "normal" | "small"
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  color?: ButtonPropsColor
-  using?: string | FunctionComponent
+type StyleProps = {
+  color?: ButtonColor
+  size?: ButtonSize
   className?: string
-  size?: ButtonPropsSize
 }
 
-export function Button({ using = "button", className, color = "primary", size = "normal", ...p }: ButtonProps) {
-  const props = {
-    ...p,
-    className: clsx(
-      "transition-colors drop-shadow rounded-full",
-      {
-        "px-4 py-2 text-sm": size === "normal",
-        "px-3 py-1.5 text-xs": size === "small",
-
-        // Select a background color set based on desired color string
-        "bg-blue-600 hover:bg-blue-500 text-white": color === "primary",
-        "bg-sky-700 hover:bg-sky-600 text-white": color === "secondary",
-        "bg-neutral-700 hover:bg-neutral-600 text-white": color === "neutral",
-        "bg-white hover:bg-gray-50 text-gray-900": color === "white",
-      },
-      className,
-    ),
-  }
-  return createElement(using, props)
+export function buttonClassName({ color = "primary", size = "normal", className }: StyleProps): string {
+  return clsx(
+    "inline-flex items-center justify-center gap-2 rounded-full font-medium shadow-sm transition-colors",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    {
+      "px-4 py-2 text-sm": size === "normal",
+      "px-3 py-1 text-xs": size === "small",
+      "bg-blue-600 text-white hover:bg-blue-500": color === "primary",
+      "bg-sky-700 text-white hover:bg-sky-600": color === "secondary",
+      "bg-white text-gray-900 ring-1 ring-gray-300 ring-inset hover:bg-gray-50": color === "white",
+      "bg-red-600 text-white hover:bg-red-500": color === "danger",
+    },
+    className,
+  )
 }
 
-interface LinkButtonProps extends LinkProps, ButtonProps {}
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & StyleProps
 
-export function LinkButton(props: LinkButtonProps) {
-  return <Button using={Link} {...props} />
+export function Button({ color, size, className, type = "button", ...props }: ButtonProps) {
+  return <button type={type} className={buttonClassName({ color, size, className })} {...props} />
+}
+
+type LinkButtonProps = LinkProps & StyleProps
+
+export function LinkButton({ color, size, className, ...props }: LinkButtonProps) {
+  return <Link className={buttonClassName({ color, size, className })} {...props} />
 }

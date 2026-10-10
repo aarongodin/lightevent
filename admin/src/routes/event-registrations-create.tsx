@@ -1,47 +1,29 @@
-import { useNavigate, useParams } from "react-router-dom"
+import { useQuery } from "@connectrpc/connect-query"
+import { useParams } from "react-router"
 
-import { WithRequest } from "../client"
 import { RegistrationForm } from "../forms/registration"
-import { usePrompt } from "../prompt"
-import { eventRoute } from "../router"
-import { Event as Evt } from "../rpc"
-import { Button } from "../units/button"
-import { Content } from "../units/content"
-import { TableLoader } from "../units/loader"
+import { LightEventService } from "../lib/rpc"
+import { eventRoute, eventsRoute } from "../router"
+import { Content } from "../units/layout"
 import { PageTitle } from "../units/page-title"
-
-const WithEvent = WithRequest<Evt>
-
-function ExternalActions() {
-  const navigate = useNavigate()
-  const prompt = usePrompt()
-  const params = useParams()
-
-  function onCancel() {
-    prompt.confirm("This will discard any unsaved changes. Are you sure?").then(({ ok }) => {
-      if (ok) {
-        navigate(eventRoute(String(params.eventName)))
-      }
-    })
-  }
-  return (
-    <Button color="white" onClick={onCancel}>
-      Discard
-    </Button>
-  )
-}
+import { Query } from "../units/query"
+import NotFound from "./not-found"
 
 export default function EventRegistrationsCreate() {
-  const params = useParams()
-  const eventName = params.eventName as string
+  const { eventName = "" } = useParams()
+  const query = useQuery(LightEventService.method.getEvent, { name: eventName })
   return (
-    <>
-      <PageTitle title="New Registration" externalActions={<ExternalActions />} />
-      <Content>
-        <WithEvent load={(client) => client.GetEvent({ name: eventName })} deps={[eventName]} loader={TableLoader}>
-          {(resp) => <RegistrationForm event={resp} />}
-        </WithEvent>
-      </Content>
-    </>
+    <Query query={query} notFound={<NotFound what="event" back={{ to: eventsRoute, label: "Back to events" }} />}>
+      {(resp) =>
+        resp.event && (
+          <>
+            <PageTitle title="Add registration" back={{ to: eventRoute(eventName), label: resp.event.title }} />
+            <Content>
+              <RegistrationForm event={resp.event} />
+            </Content>
+          </>
+        )
+      }
+    </Query>
   )
 }

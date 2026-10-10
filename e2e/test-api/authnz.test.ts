@@ -1,57 +1,32 @@
-import { APIKeyWithSecret } from "../src/rpc"
-import { adminUserClient, buildClient } from "./client"
+import { adminClient, buildClient } from "./client"
 
 describe("authnz", () => {
   describe("no credentials", () => {
-    const client = buildClient()
     it("should be unauthenticated", async () => {
-      await expect(client.Ping({})).rejects.toMatchInlineSnapshot(`[Error: authentication required]`)
-    })
-  })
-
-  describe("user basic auth", () => {
-    it("should be authenticated", async () => {
-      await expect(adminUserClient.Ping({})).resolves.toEqual({
-        sub: "admin",
-      })
+      await expect(buildClient().ping({})).rejects.toThrow("authentication required")
     })
   })
 
   describe("API key credentials", () => {
     it("should error when the Authorization header is not correct", async () => {
-      const client = buildClient({
-        headers: {
-          Authorization: "invalid",
-        },
-      })
-      await expect(client.Ping({})).rejects.toMatchInlineSnapshot(`[Error: invalid authorization format]`)
+      await expect(buildClient({ Authorization: "invalid" }).ping({})).rejects.toThrow("authorization header must be")
     })
 
-    it("should error when the API Key does not exist", async () => {
-      const client = buildClient({
-        headers: {
-          Authorization: "Bearer asdf",
-        },
-      })
-      await expect(client.Ping({})).rejects.toMatchInlineSnapshot(`[Error: authentication required]`)
+    it("should error when the API key does not exist", async () => {
+      await expect(buildClient({ Authorization: "Bearer asdf" }).ping({})).rejects.toThrow("invalid API key")
     })
 
-    describe("given the API key exists", () => {
-      let apiKey: APIKeyWithSecret
+    describe("given a new API key", () => {
+      let secret: string
+      const name = `test-${Date.now()}`
       beforeAll(async () => {
-        apiKey = await adminUserClient.CreateAPIKey({ name: "test" })
+        secret = (await adminClient.createAPIKey({ name })).secret
       })
 
       it("should return the subject", async () => {
-        const client = buildClient({
-          headers: {
-            Authorization: `Bearer ${apiKey.secret}`,
-          },
-        })
-
-        await expect(client.Ping({})).resolves.toEqual({
-          sub: "test",
-        })
+        const resp = await buildClient({ Authorization: `Bearer ${secret}` }).ping({})
+        expect(resp.scheme).toEqual("api-key")
+        expect(resp.displayName).toEqual(name)
       })
     })
   })

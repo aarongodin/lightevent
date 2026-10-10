@@ -1,46 +1,29 @@
-import base64 from "base-64"
-import { useNavigate, useParams } from "react-router-dom"
+import { useQuery } from "@connectrpc/connect-query"
+import { useParams } from "react-router"
 
-import { WithRequest } from "../client"
 import { MemberForm } from "../forms/member"
-import { usePrompt } from "../prompt"
-import { memberRoute } from "../router"
-import { Member } from "../rpc"
-import { Button } from "../units/button"
-import { Content } from "../units/content"
-import { TableLoader } from "../units/loader"
+import { LightEventService } from "../lib/rpc"
+import { memberRoute, membersRoute } from "../router"
+import { Content } from "../units/layout"
 import { PageTitle } from "../units/page-title"
+import { Query } from "../units/query"
+import NotFound from "./not-found"
 
-const WithMember = WithRequest<Member>
-
-function ExternalActions({ memberEmail }: { memberEmail: string }) {
-  const navigate = useNavigate()
-  const prompt = usePrompt()
-  function onCancel() {
-    prompt.confirm("This will discard any unsaved changes. Are you sure?").then(({ ok }) => {
-      if (ok) {
-        navigate(memberRoute(memberEmail))
+export default function MemberEdit() {
+  const { memberUid = "" } = useParams()
+  const query = useQuery(LightEventService.method.getMember, { uid: memberUid }, { staleTime: 0 })
+  return (
+    <Query query={query} notFound={<NotFound what="member" back={{ to: membersRoute, label: "Back to members" }} />}>
+      {(resp) =>
+        resp.member && (
+          <>
+            <PageTitle title="Edit member" back={{ to: memberRoute(memberUid), label: resp.member.email }} />
+            <Content>
+              <MemberForm member={resp.member} />
+            </Content>
+          </>
+        )
       }
-    })
-  }
-  return (
-    <Button color="white" onClick={onCancel}>
-      Discard
-    </Button>
-  )
-}
-
-export default function EventEdit() {
-  const { emailEncoded } = useParams()
-  const email = base64.decode(emailEncoded as string)
-  return (
-    <>
-      <PageTitle title="Edit Member" externalActions={<ExternalActions memberEmail={email} />} />
-      <Content>
-        <WithMember load={(client) => client.GetMember({ email })} deps={[]} loader={TableLoader}>
-          {(resp) => <MemberForm member={resp} />}
-        </WithMember>
-      </Content>
-    </>
+    </Query>
   )
 }

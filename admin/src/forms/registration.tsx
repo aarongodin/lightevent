@@ -1,117 +1,131 @@
-import { useEffect } from "react"
-import { FormProvider, useForm } from "react-hook-form"
-import { useNavigate } from "react-router-dom"
-import { TwirpError } from "twirp-ts"
+import { useMutation } from "@connectrpc/connect-query"
+import { useState } from "react"
+import { useNavigate } from "react-router"
 
-import { ErrorMessage } from "@hookform/error-message"
-
-import { useClient } from "../client"
-import dayjs from "../dayjs"
+import { type Event as Evt, type Member, RegistrationKind } from "../gen/lightevent/v1/service_pb"
+import { formatCapacity, formatDateTime, isPast } from "../lib/format"
+import { errorMessage, invalidateAll, LightEventService } from "../lib/rpc"
 import { eventRoute } from "../router"
-import { Event as Evt, RegistrationKind, registrationKindFromJSON, WriteableRegistration } from "../rpc"
 import { Alert } from "../units/alert"
 import { Button } from "../units/button"
-import { MemberSelect } from "./components/member-select"
+import { Checkbox, Field, inputClassName } from "../units/field"
+import { Box } from "../units/layout"
+import { useToast } from "../units/toast"
+import { DiscardButton } from "./discard"
+import { MemberSelect } from "./member-select"
 
-type EventFormProps = {
-  event: Evt
-}
-
-export function RegistrationForm({ event }: EventFormProps) {
-  const methods = useForm()
-  const { handleSubmit, register, unregister, watch, formState, setError } = methods
-  const kind = watch("kind")
-  const client = useClient()
+export function RegistrationForm({ event }: { event: Evt }) {
   const navigate = useNavigate()
+  const toast = useToast()
+  const create = useMutation(LightEventService.method.createRegistration)
+  const [member, setMember] = useState<Member | null>(null)
+  const [kind, setKind] = useState<RegistrationKind>(RegistrationKind.ONCE)
+  const [dateUid, setDateUid] = useState("")
+  const [notify, setNotify] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [submitted, setSubmitted] = useState(false)
 
-  useEffect(() => {
-    if (parseInt(kind, 10) === RegistrationKind.REG_ONCE) {
-      register("eventDateUid")
-    } else {
-      unregister("eventDateUid")
-    }
-  }, [register, unregister, kind])
+  const dates = event.dates.filter((d) => !d.cancelled)
+  const upcoming = dates.filter((d) => !isPast(d.value))
+  const past = dates.filter((d) => isPast(d.value))
 
-  async function onSubmit(data: any) {
-    const payload: WriteableRegistration = {
-      memberEmail: data.memberEmail,
-      kind: registrationKindFromJSON(parseInt(data.kind, 10)),
-      eventName: event.name,
-    }
-    if (data.eventDateUid && data.eventDateUid.length > 0) {
-      payload.eventDateUid = data.eventDateUid
-    }
-    try {
-      await client.CreateRegistration(payload)
-    } catch (err) {
-      let message = ""
-      if (err instanceof TwirpError) {
-        message = err.message
-      } else {
-        message = (err as Error).message
-      }
-      setError("root.submit", { type: "custom", message })
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitted(true)
+    setError(null)
+    if (!member || (kind === RegistrationKind.ONCE && !dateUid)) {
       return
     }
-    navigate(eventRoute(event.name))
+    try {
+      await create.mutateAsync({
+        memberUid: member.uid,
+        notifyMember: notify,
+        registration: {
+          kind,
+          eventName: event.name,
+          eventDateUid: kind === RegistrationKind.ONCE ? dateUid : undefined,
+        },
+      })
+      await invalidateAll()
+      toast.success("Registration added")
+      navigate(eventRoute(event.name))
+    } catch (err) {
+      setError(errorMessage(err))
+    }
+  }
+
+  const dateOption = (d: Evt["dates"][number]) => {
+    const full = event.capacity > 0 && d.registrationCount >= event.capacity
+    return (
+      <option key={d.uid} value={d.uid} disabled={full}>
+        {formatDateTime(d.value)} — {formatCapacity(d.registrationCount, event.capacity)} registered
+        {full ? " (full)" : ""}
+      </option>
+    )
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <FormProvider {...methods}>
-        <div className="max-w-2xl mx-auto">
-          <div className="grid grid-cols-3 gap-4 max-w-xl bg-white p-4 md:rounded-lg drop-shadow">
-            <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
-              Member
-            </label>
-            <MemberSelect fieldName="memberEmail" />
-            <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="kind">
-              Kind
-            </label>
-            <select
-              {...register("kind", { required: true })}
-              className="col-span-2 rounded-md border-2 border-slate-200 px-1 py-1 focus:drop-shadow"
-              required
-            >
-              <option value="" />
-              <option value={RegistrationKind.REG_ONCE}>Once</option>
-              <option value={RegistrationKind.REG_SERIES}>Series</option>
-            </select>
-            {parseInt(kind, 10) === RegistrationKind.REG_ONCE && (
-              <>
-                <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="eventDateUid">
-                  Event Date
-                </label>
-                <select
-                  {...register("eventDateUid")}
-                  required
-                  className="col-span-2 rounded-md border-2 border-slate-200 px-1 py-1 focus:drop-shadow"
-                >
-                  <option value="" />
-                  {event.dates.map((eventDate) => {
-                    return (
-                      <option key={eventDate.uid} value={eventDate.uid}>
-                        {dayjs(eventDate.value).format("LLLL")}
-                      </option>
-                    )
-                  })}
-                </select>
-              </>
-            )}
-          </div>
-          <ErrorMessage
-            name="root.submit"
-            errors={formState.errors}
-            render={({ message }) => <Alert variant="error" title="Error" content={message} />}
-          />
+    <form onSubmit={onSubmit} noValidate className="mx-auto max-w-xl">
+      <Box className="grid gap-5">
+        <Field id="member" label="Member" required error={submitted && !member ? "Choose a member" : undefined}>
+          <MemberSelect id="member" value={member} onChange={setMember} invalid={submitted && !member} />
+        </Field>
 
-          <div className="mt-4 px-4 md:p-0">
-            <Button color="primary" disabled={formState.isSubmitting}>
-              Save Registration
-            </Button>
-          </div>
-        </div>
-      </FormProvider>
+        <fieldset className="grid gap-2">
+          <legend className="text-sm font-medium text-gray-800">Register for</legend>
+          {[
+            { value: RegistrationKind.ONCE, label: "A single date" },
+            { value: RegistrationKind.SERIES, label: "All dates of this event" },
+          ].map((option) => (
+            <label key={option.value} className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="kind"
+                className="size-4"
+                checked={kind === option.value}
+                onChange={() => setKind(option.value)}
+              />
+              {option.label}
+            </label>
+          ))}
+        </fieldset>
+
+        {kind === RegistrationKind.ONCE && (
+          <Field id="eventDate" label="Date" required error={submitted && !dateUid ? "Choose a date" : undefined}>
+            <select
+              id="eventDate"
+              className={inputClassName}
+              value={dateUid}
+              onChange={(e) => setDateUid(e.target.value)}
+              aria-invalid={submitted && !dateUid}
+            >
+              <option value="">Choose a date…</option>
+              {upcoming.length > 0 && <optgroup label="Upcoming">{upcoming.map(dateOption)}</optgroup>}
+              {past.length > 0 && <optgroup label="Past">{past.map(dateOption)}</optgroup>}
+            </select>
+          </Field>
+        )}
+
+        <Checkbox
+          id="notify"
+          label="Email a confirmation to the member"
+          checked={notify}
+          onChange={(e) => setNotify(e.target.checked)}
+        />
+      </Box>
+
+      {error && (
+        <Alert variant="error" title="Could not add the registration" className="mt-4">
+          {error}
+        </Alert>
+      )}
+
+      <div className="mt-6 flex gap-2">
+        <Button type="submit" disabled={create.isPending}>
+          {create.isPending ? "Saving…" : "Add registration"}
+        </Button>
+        <DiscardButton to={eventRoute(event.name)} dirty={member !== null || dateUid !== ""} />
+      </div>
     </form>
   )
 }

@@ -1,80 +1,86 @@
+import { useMutation } from "@connectrpc/connect-query"
 import { useForm } from "react-hook-form"
-import { useNavigate } from "react-router-dom"
-import { TwirpError } from "twirp-ts"
+import { useNavigate } from "react-router"
 
-import { ErrorMessage } from "@hookform/error-message"
-
-import { useClient } from "../client"
-import { memberRoute } from "../router"
-import { Member } from "../rpc"
+import type { Member } from "../gen/lightevent/v1/service_pb"
+import { errorMessage, invalidateAll, LightEventService } from "../lib/rpc"
+import { memberRoute, membersRoute } from "../router"
 import { Alert } from "../units/alert"
 import { Button } from "../units/button"
+import { describedBy, Field, inputClassName } from "../units/field"
+import { Box } from "../units/layout"
+import { useToast } from "../units/toast"
+import { DiscardButton } from "./discard"
 
-type MemberFormProps = {
-  member?: Member
-}
+type FormValues = { email: string; firstName: string; lastName: string }
 
-export function MemberForm({ member }: MemberFormProps) {
-  const { handleSubmit, register, formState, setError } = useForm({
-    defaultValues: {
-      ...member,
-    },
-  })
-  const client = useClient()
+export function MemberForm({ member }: { member?: Member }) {
   const navigate = useNavigate()
+  const toast = useToast()
+  const create = useMutation(LightEventService.method.createMember)
+  const update = useMutation(LightEventService.method.updateMember)
+  const { register, handleSubmit, formState, setError } = useForm<FormValues>({
+    defaultValues: { email: member?.email ?? "", firstName: member?.firstName ?? "", lastName: member?.lastName ?? "" },
+  })
+  const errors = formState.errors
 
-  async function onSubmit(data: any) {
-    const payload = {
-      uid: member !== undefined ? member.uid : "",
-      ...data,
-    }
+  async function onSubmit(values: FormValues) {
     try {
-      const resp = member === undefined ? await client.CreateMember(payload) : await client.UpdateMember(payload)
-      navigate(memberRoute(resp.email))
+      const resp = member ? await update.mutateAsync({ uid: member.uid, ...values }) : await create.mutateAsync(values)
+      await invalidateAll()
+      toast.success(member ? "Member saved" : "Member created")
+      navigate(memberRoute(resp.member?.uid ?? member?.uid ?? ""))
     } catch (err) {
-      const message = err instanceof TwirpError ? err.message : (err as Error).message
-      setError("root.submit", { type: "custom", message })
+      setError("root", { message: errorMessage(err) })
     }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="max-w-2xl mx-auto">
-        <div className="grid grid-cols-3 gap-4 max-w-xl bg-white p-4 rounded-lg drop-shadow">
-          <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
-            Email Address
-          </label>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="mx-auto max-w-xl">
+      <Box className="grid gap-4">
+        <Field id="email" label="Email address" required error={errors.email?.message}>
           <input
+            id="email"
             type="email"
-            className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
-            {...register("email", { required: true })}
-            required
+            autoComplete="off"
+            className={inputClassName}
+            aria-invalid={!!errors.email}
+            aria-describedby={describedBy("email")}
+            {...register("email", {
+              required: "Email is required",
+              pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Enter a valid email address" },
+            })}
           />
-          <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
-            First Name
-          </label>
-          <input
-            className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
-            {...register("firstName")}
-          />
-          <label className="flex items-center justify-end text-sm text-gray-800" htmlFor="memberEmail">
-            Last Name
-          </label>
-          <input
-            className="col-span-2 rounded-md border-2 border-slate-200 px-2 py-1 focus:drop-shadow"
-            {...register("lastName")}
-          />
+        </Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field id="firstName" label="First name" error={errors.firstName?.message}>
+            <input
+              id="firstName"
+              autoComplete="off"
+              className={inputClassName}
+              {...register("firstName", { maxLength: 100 })}
+            />
+          </Field>
+          <Field id="lastName" label="Last name" error={errors.lastName?.message}>
+            <input
+              id="lastName"
+              autoComplete="off"
+              className={inputClassName}
+              {...register("lastName", { maxLength: 100 })}
+            />
+          </Field>
         </div>
-        <ErrorMessage
-          name="root.submit"
-          errors={formState.errors}
-          render={({ message }) => <Alert variant="error" title="Error" content={message} />}
-        />
-        <div className="mt-4">
-          <Button color="primary" disabled={formState.isSubmitting}>
-            Save Member
-          </Button>
-        </div>
+      </Box>
+      {errors.root?.message && (
+        <Alert variant="error" title="Could not save the member" className="mt-4">
+          {errors.root.message}
+        </Alert>
+      )}
+      <div className="mt-6 flex gap-2">
+        <Button type="submit" disabled={formState.isSubmitting}>
+          {formState.isSubmitting ? "Saving…" : member ? "Save changes" : "Create member"}
+        </Button>
+        <DiscardButton to={member ? memberRoute(member.uid) : membersRoute} dirty={formState.isDirty} />
       </div>
     </form>
   )

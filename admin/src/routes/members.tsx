@@ -1,72 +1,97 @@
-import { WithRequest } from "../client"
-import dayjs from "../dayjs"
+import { useQuery } from "@connectrpc/connect-query"
+import { useEffect, useState } from "react"
+import { Link } from "react-router"
+
+import type { Member } from "../gen/lightevent/v1/service_pb"
+import { formatDate, formatName } from "../lib/format"
+import { useDebouncedValue, usePageParams } from "../lib/hooks"
+import { LightEventService } from "../lib/rpc"
 import { memberRoute, newMemberRoute } from "../router"
-import { MemberList } from "../rpc"
+import { Badge } from "../units/badge"
 import { LinkButton } from "../units/button"
-import { Content } from "../units/content"
-import { TableLoader } from "../units/loader"
+import { inputClassName } from "../units/field"
+import { Content } from "../units/layout"
 import { PageTitle } from "../units/page-title"
+import { Pagination } from "../units/pagination"
+import { Query } from "../units/query"
+import { EmptyState, Table, Td } from "../units/table"
 
-const WithMemberList = WithRequest<MemberList>
+const PAGE_SIZE = 50
 
-type MembersTableProps = {
-  members: MemberList["members"]
-}
-
-function MembersTable({ members }: MembersTableProps) {
-  if (members.length === 0) {
-    return (
-      <div className="bg-gray-50 w-full rounded-lg h-32 flex items-center justify-center text-sm text-gray-600">
-        No members found.
-      </div>
-    )
-  }
-  const rows = members.map((member) => {
-    return (
-      <tr key={member.email} className="border-b last:border-0">
-        <td className="px-4 py-3 text-left">{member.email}</td>
-        <td className="px-4 py-3 text-left">{member.firstName}</td>
-        <td className="px-4 py-3 text-left">{member.lastName}</td>
-        <td className="px-4 py-3 text-left text-sm">{dayjs(member.createdAt).format("l LTS")}</td>
-        <td className="px-4 py-3 text-right text-xs">
-          <LinkButton size="small" color="white" to={memberRoute(member.email)}>
-            View
-          </LinkButton>
-        </td>
-      </tr>
-    )
-  })
-
+function MembersTable({ members }: { members: Member[] }) {
   return (
-    <div className="overflow-x-auto drop-shadow">
-      <table className="bg-white w-full md:rounded-lg min-w-max">
-        <thead className="text-xs bg-gradient-to-r from-gray-50 to-slate-50 text-gray-500 border-b">
-          <tr>
-            <th className="px-4 py-2 text-left rounded-tl-lg">Email</th>
-            <th className="px-4 py-2 text-left">First Name</th>
-            <th className="px-4 py-2 text-left">Last Name</th>
-            <th className="px-4 py-2 text-left">Created At</th>
-            <th className="rounded-tr-lg">View</th>
-          </tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </table>
-    </div>
+    <Table headers={[{ label: "Email" }, { label: "Name" }, { label: "Verified" }, { label: "Joined" }]}>
+      {members.map((member) => (
+        <tr key={member.uid} className="hover:bg-gray-50">
+          <Td>
+            <Link to={memberRoute(member.uid)} className="font-medium text-blue-700 hover:underline">
+              {member.email}
+            </Link>
+          </Td>
+          <Td>{formatName(member.firstName, member.lastName) || <span className="text-gray-400">—</span>}</Td>
+          <Td>
+            {member.verified ? <Badge variant="green">Verified</Badge> : <Badge variant="gray">Unverified</Badge>}
+          </Td>
+          <Td className="text-gray-600">{formatDate(member.createdAt)}</Td>
+        </tr>
+      ))}
+    </Table>
   )
 }
 
-function ExternalActions() {
-  return <LinkButton to={newMemberRoute}>New Member</LinkButton>
-}
-
 export default function Members() {
+  const { offset, search, update } = usePageParams()
+  const [searchInput, setSearchInput] = useState(search)
+  const debouncedSearch = useDebouncedValue(searchInput)
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only sync when the debounced input changes
+  useEffect(() => {
+    if (debouncedSearch !== search) {
+      update({ q: debouncedSearch, offset: null })
+    }
+  }, [debouncedSearch])
+
+  const query = useQuery(
+    LightEventService.method.listMembers,
+    { search, limit: PAGE_SIZE, offset },
+    { placeholderData: (prev) => prev },
+  )
+
   return (
     <>
-      <PageTitle title="Members" externalActions={<ExternalActions />} />
+      <PageTitle title="Members" actions={<LinkButton to={newMemberRoute}>New member</LinkButton>} />
       <Content>
-        <WithMemberList load={(client) => client.ListMembers({})} deps={[]} loader={TableLoader}>
-          {(resp) => <MembersTable members={resp.members} />}
-        </WithMemberList>
+        <div className="mb-4 flex justify-end">
+          <label className="w-full sm:w-72">
+            <span className="sr-only">Search members</span>
+            <input
+              type="search"
+              placeholder="Search by name or email"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className={inputClassName}
+            />
+          </label>
+        </div>
+        <Query query={query}>
+          {(resp) =>
+            resp.members.length === 0 ? (
+              <EmptyState action={!search ? <LinkButton to={newMemberRoute}>Add a member</LinkButton> : undefined}>
+                {search ? `No members match “${search}”.` : "No members yet."}
+              </EmptyState>
+            ) : (
+              <>
+                <MembersTable members={resp.members} />
+                <Pagination
+                  offset={offset}
+                  limit={PAGE_SIZE}
+                  total={resp.total}
+                  onChange={(o) => update({ offset: o })}
+                />
+              </>
+            )
+          }
+        </Query>
       </Content>
     </>
   )

@@ -1,7 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Styles for the server-rendered login page (internal/access/static/login.html.tmpl). */
+@import "tailwindcss" source(none);
+@source "../../internal/access/static/login.html.tmpl";
 
 body {
-  background-color: rgb(243, 244, 246);
+  background-color: var(--color-gray-100);
 }

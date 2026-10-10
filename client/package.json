@@ -14,7 +14,6 @@
       "require": "./dist/lightevent-client.umd.cjs"
     }
   },
-  "prettier": "@aarongodin/eslint-config/prettier.json",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
