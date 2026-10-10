@@ -10,6 +10,3 @@ plugins:
   - local: node_modules/.bin/protoc-gen-es
     out: admin/src/gen
     opt: target=ts
-  - local: node_modules/.bin/protoc-gen-es
-    out: e2e/src/gen
-    opt: target=ts

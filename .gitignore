@@ -28,3 +28,5 @@ admin/dist/*
 .cert
 *.pem
 *.key
+# Playwright browser test output
+e2e/.tmp/

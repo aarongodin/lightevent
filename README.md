@@ -64,7 +64,7 @@ All configuration options are documented in [`internal/config/runtime.go`](./int
 
 ## Testing Process
 
-The server has unit tests for every package (`make test`). API tests live in `e2e/`, and browser tests with [Playwright](https://playwright.dev/) are planned.
+The server has unit tests for every package (`make test`), and the admin UI is covered by browser tests with [Playwright](https://playwright.dev/) in `e2e/` (`make test-e2e`).
 
 ## Contributing
 

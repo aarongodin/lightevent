@@ -47,6 +47,7 @@ lint: ## Run Go vet, buf lint, Biome and the TypeScript checker
 	@$(TOOL) buf lint
 	@npx biome check .
 	@npm -w admin run typecheck
+	@npm -w e2e run typecheck
 
 .PHONY: format
 format: ## Format Go and TypeScript code
@@ -57,6 +58,6 @@ format: ## Format Go and TypeScript code
 mkcert: ## Generate local TLS certificates (used only by the client app dev server)
 	@mkdir -p .cert && mkcert -key-file ./.cert/key.pem -cert-file ./.cert/cert.pem 'localhost'
 
-.PHONY: test-api
-test-api: ## Run the API tests in e2e/ against a running server (needs LIGHTEVENT_API_KEY)
-	@npm -w e2e run test:api
+.PHONY: test-e2e
+test-e2e: ## Run the Playwright browser tests (builds the app and starts a test server)
+	@npm -w e2e test
