@@ -8,5 +8,12 @@
     "admin",
     "client",
     "e2e"
-  ]
+  ],
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --write ."
+  }
 }

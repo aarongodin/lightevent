@@ -1,0 +1,477 @@
+syntax = "proto3";
+
+package lightevent.v1;
+
+option go_package = "github.com/aarongodin/lightevent/internal/gen/lightevent/v1;lighteventv1";
+
+// LightEventService is the full API for LightEvent. Access to each RPC is
+// controlled per identity type (anonymous, member, user, API key); see
+// internal/server/access/policy.go for the authoritative mapping.
+service LightEventService {
+  // Ping returns the identity that is authenticated on the request.
+  rpc Ping(PingRequest) returns (PingResponse);
+
+  // Events
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse);
+  rpc GetEvent(GetEventRequest) returns (GetEventResponse);
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse);
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventResponse);
+  rpc SetEventArchived(SetEventArchivedRequest) returns (SetEventArchivedResponse);
+  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventResponse);
+  rpc CancelEventDate(CancelEventDateRequest) returns (CancelEventDateResponse);
+  rpc ListUpcomingEventDates(ListUpcomingEventDatesRequest) returns (ListUpcomingEventDatesResponse);
+
+  // Registrations (admin)
+  rpc ListEventRegistrations(ListEventRegistrationsRequest) returns (ListEventRegistrationsResponse);
+  rpc GetRegistration(GetRegistrationRequest) returns (GetRegistrationResponse);
+  rpc CreateRegistration(CreateRegistrationRequest) returns (CreateRegistrationResponse);
+  rpc DeleteRegistration(DeleteRegistrationRequest) returns (DeleteRegistrationResponse);
+
+  // Members (admin)
+  rpc CreateMember(CreateMemberRequest) returns (CreateMemberResponse);
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse);
+  rpc GetMember(GetMemberRequest) returns (GetMemberResponse);
+  rpc UpdateMember(UpdateMemberRequest) returns (UpdateMemberResponse);
+  rpc DeleteMember(DeleteMemberRequest) returns (DeleteMemberResponse);
+  rpc ListMemberRegistrations(ListMemberRegistrationsRequest) returns (ListMemberRegistrationsResponse);
+
+  // Users (admin)
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc SetUserPassword(SetUserPasswordRequest) returns (SetUserPasswordResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+
+  // Sessions (admin)
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+
+  // API Keys (admin)
+  rpc CreateAPIKey(CreateAPIKeyRequest) returns (CreateAPIKeyResponse);
+  rpc ListAPIKeys(ListAPIKeysRequest) returns (ListAPIKeysResponse);
+  rpc DeleteAPIKey(DeleteAPIKeyRequest) returns (DeleteAPIKeyResponse);
+
+  // Settings (admin)
+  rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse);
+  rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse);
+
+  // Member self-service (used by the client app)
+  rpc BeginVerification(BeginVerificationRequest) returns (BeginVerificationResponse);
+  rpc CompleteVerification(CompleteVerificationRequest) returns (CompleteVerificationResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc ListMyRegistrations(ListMyRegistrationsRequest) returns (ListMyRegistrationsResponse);
+  rpc CancelMyRegistration(CancelMyRegistrationRequest) returns (CancelMyRegistrationResponse);
+  rpc EndMemberSession(EndMemberSessionRequest) returns (EndMemberSessionResponse);
+}
+
+// ---------------------------------------------------------------------------
+// Shared types
+// ---------------------------------------------------------------------------
+
+enum RegistrationKind {
+  REGISTRATION_KIND_UNSPECIFIED = 0;
+  // ONCE registers for a single event date.
+  REGISTRATION_KIND_ONCE = 1;
+  // SERIES registers for every date of an event.
+  REGISTRATION_KIND_SERIES = 2;
+}
+
+enum EventFilter {
+  // UNSPECIFIED behaves like UPCOMING.
+  EVENT_FILTER_UNSPECIFIED = 0;
+  // UPCOMING events are not archived and have at least one date in the future.
+  EVENT_FILTER_UPCOMING = 1;
+  // PAST events are not archived and have no dates in the future.
+  EVENT_FILTER_PAST = 2;
+  EVENT_FILTER_ARCHIVED = 3;
+  // ALL events that are not archived.
+  EVENT_FILTER_ALL = 4;
+}
+
+message Event {
+  // name is the unique, URL-safe identifier of the event. It cannot be changed after creation.
+  string name = 1;
+  string title = 2;
+  string description = 3;
+  // hidden events are not shown to members or anonymous visitors.
+  bool hidden = 4;
+  // closed events do not accept new registrations from members.
+  bool closed = 5;
+  // capacity is the maximum number of registrations per date. 0 means unlimited.
+  // Series registrations count against every date of the event.
+  int32 capacity = 6;
+  // archived is read-only here; use SetEventArchived to change it.
+  bool archived = 7;
+  repeated EventDate dates = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message EventDate {
+  // uid is empty when creating a new date.
+  string uid = 1;
+  // value is an RFC 3339 timestamp.
+  string value = 2;
+  // cancelled is read-only here; use CancelEventDate to cancel a date.
+  bool cancelled = 3;
+  // registration_count is the number of active registrations (once + series) for this date. Read-only.
+  int32 registration_count = 4;
+}
+
+message Registration {
+  string conf_code = 1;
+  RegistrationKind kind = 2;
+  string event_name = 3;
+  string event_title = 4;
+  optional EventDate event_date = 5;
+  Member member = 6;
+  string created_at = 7;
+}
+
+message RegistrationInput {
+  RegistrationKind kind = 1;
+  string event_name = 2;
+  // event_date_uid is required when kind is ONCE.
+  optional string event_date_uid = 3;
+}
+
+message Member {
+  string uid = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  bool verified = 5;
+  string created_at = 6;
+}
+
+message User {
+  string uid = 1;
+  string username = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string email = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message Session {
+  string uid = 1;
+  // kind is "user" or "member".
+  string kind = 2;
+  string subject_uid = 3;
+  // subject_name is the username or member email.
+  string subject_name = 4;
+  string created_at = 5;
+  string expires_at = 6;
+  // current is true for the session used to make this request.
+  bool current = 7;
+}
+
+message APIKey {
+  string uid = 1;
+  string name = 2;
+  // prefix is the first characters of the secret, for identification.
+  string prefix = 3;
+  string created_at = 4;
+  string last_used_at = 5;
+}
+
+message AppSettings {
+  // organization_name is used in emails sent to members.
+  string organization_name = 1;
+  // support_email is shown to members in emails as a contact address.
+  string support_email = 2;
+  // timezone is an IANA timezone name (e.g. "America/Chicago") used when formatting dates in emails.
+  string timezone = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Requests & responses
+// ---------------------------------------------------------------------------
+
+message PingRequest {}
+message PingResponse {
+  string subject_uid = 1;
+  // scheme is one of "anonymous", "member", "user" or "api-key".
+  string scheme = 2;
+  string display_name = 3;
+}
+
+message ListEventsRequest {
+  // filter applies to users and API keys only. Members and anonymous callers always see upcoming, visible events.
+  EventFilter filter = 1;
+  string search = 2;
+  // limit defaults to 50 and is capped at 200.
+  int32 limit = 3;
+  int32 offset = 4;
+}
+message ListEventsResponse {
+  repeated Event events = 1;
+  int32 total = 2;
+}
+
+message GetEventRequest {
+  string name = 1;
+}
+message GetEventResponse {
+  Event event = 1;
+}
+
+message CreateEventRequest {
+  Event event = 1;
+}
+message CreateEventResponse {
+  Event event = 1;
+}
+
+message UpdateEventRequest {
+  // event.dates is the complete list of dates. Existing dates (with uid) that are omitted are removed,
+  // which is only allowed when no active single-date registrations exist for them.
+  Event event = 1;
+}
+message UpdateEventResponse {
+  Event event = 1;
+}
+
+message SetEventArchivedRequest {
+  string name = 1;
+  bool archived = 2;
+}
+message SetEventArchivedResponse {
+  Event event = 1;
+}
+
+message DeleteEventRequest {
+  // name of an event without any registrations. Events with registrations must be archived instead.
+  string name = 1;
+}
+message DeleteEventResponse {}
+
+message CancelEventDateRequest {
+  string event_date_uid = 1;
+}
+message CancelEventDateResponse {
+  EventDate event_date = 1;
+}
+
+message ListUpcomingEventDatesRequest {
+  // limit defaults to 8 and is capped at 50.
+  int32 limit = 1;
+}
+message EventDateSummary {
+  EventDate event_date = 1;
+  // event does not include dates.
+  Event event = 2;
+  int32 once_count = 3;
+  int32 series_count = 4;
+}
+message ListUpcomingEventDatesResponse {
+  repeated EventDateSummary event_dates = 1;
+}
+
+message ListEventRegistrationsRequest {
+  string event_name = 1;
+}
+message ListEventRegistrationsResponse {
+  repeated Registration registrations = 1;
+}
+
+message GetRegistrationRequest {
+  string conf_code = 1;
+}
+message GetRegistrationResponse {
+  Registration registration = 1;
+}
+
+message CreateRegistrationRequest {
+  string member_uid = 1;
+  RegistrationInput registration = 2;
+  // notify_member sends a confirmation email to the member.
+  bool notify_member = 3;
+}
+message CreateRegistrationResponse {
+  Registration registration = 1;
+}
+
+message DeleteRegistrationRequest {
+  string conf_code = 1;
+  // notify_member sends a cancellation email to the member.
+  bool notify_member = 2;
+}
+message DeleteRegistrationResponse {}
+
+message CreateMemberRequest {
+  string email = 1;
+  string first_name = 2;
+  string last_name = 3;
+}
+message CreateMemberResponse {
+  Member member = 1;
+}
+
+message ListMembersRequest {
+  // search matches a prefix of email, first name or last name.
+  string search = 1;
+  // limit defaults to 50 and is capped at 200.
+  int32 limit = 2;
+  int32 offset = 3;
+}
+message ListMembersResponse {
+  repeated Member members = 1;
+  int32 total = 2;
+}
+
+message GetMemberRequest {
+  string uid = 1;
+}
+message GetMemberResponse {
+  Member member = 1;
+}
+
+message UpdateMemberRequest {
+  string uid = 1;
+  optional string email = 2;
+  optional string first_name = 3;
+  optional string last_name = 4;
+}
+message UpdateMemberResponse {
+  Member member = 1;
+}
+
+message DeleteMemberRequest {
+  // uid of the member to delete. All of the member's registrations and sessions are deleted as well.
+  string uid = 1;
+}
+message DeleteMemberResponse {}
+
+message ListMemberRegistrationsRequest {
+  string member_uid = 1;
+}
+message ListMemberRegistrationsResponse {
+  repeated Registration registrations = 1;
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string password = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string email = 5;
+}
+message CreateUserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  string uid = 1;
+  optional string username = 2;
+  optional string first_name = 3;
+  optional string last_name = 4;
+  optional string email = 5;
+}
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message SetUserPasswordRequest {
+  string uid = 1;
+  string password = 2;
+  // current_password is required when a user changes their own password.
+  string current_password = 3;
+}
+message SetUserPasswordResponse {}
+
+message ListUsersRequest {}
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+message DeleteUserRequest {
+  string uid = 1;
+}
+message DeleteUserResponse {}
+
+message ListSessionsRequest {
+  // kind optionally filters by "user" or "member".
+  string kind = 1;
+  // subject_uid optionally filters by user or member uid.
+  string subject_uid = 2;
+}
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message RevokeSessionRequest {
+  string uid = 1;
+}
+message RevokeSessionResponse {}
+
+message CreateAPIKeyRequest {
+  string name = 1;
+}
+message CreateAPIKeyResponse {
+  APIKey api_key = 1;
+  // secret is only returned once, on creation.
+  string secret = 2;
+}
+
+message ListAPIKeysRequest {}
+message ListAPIKeysResponse {
+  repeated APIKey api_keys = 1;
+}
+
+message DeleteAPIKeyRequest {
+  string uid = 1;
+}
+message DeleteAPIKeyResponse {}
+
+message GetSettingsRequest {}
+message GetSettingsResponse {
+  AppSettings settings = 1;
+}
+
+message UpdateSettingsRequest {
+  AppSettings settings = 1;
+}
+message UpdateSettingsResponse {
+  AppSettings settings = 1;
+}
+
+message BeginVerificationRequest {
+  string email = 1;
+}
+message BeginVerificationResponse {
+  // key identifies this verification attempt and must be sent with the emailed code to CompleteVerification.
+  string key = 1;
+}
+
+message CompleteVerificationRequest {
+  string key = 1;
+  string code = 2;
+}
+message CompleteVerificationResponse {
+  Member member = 1;
+}
+
+message RegisterRequest {
+  RegistrationInput registration = 1;
+  // first_name and last_name optionally update the member's profile.
+  optional string first_name = 2;
+  optional string last_name = 3;
+}
+message RegisterResponse {
+  Registration registration = 1;
+}
+
+message ListMyRegistrationsRequest {}
+message ListMyRegistrationsResponse {
+  repeated Registration registrations = 1;
+}
+
+message CancelMyRegistrationRequest {
+  string conf_code = 1;
+}
+message CancelMyRegistrationResponse {}
+
+message EndMemberSessionRequest {}
+message EndMemberSessionResponse {}

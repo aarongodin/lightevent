@@ -1,0 +1,3 @@
+{{define "content"}}<p>{{if .Name}}Hi {{.Name}},{{else}}Hello,{{end}}</p>
+<p>Your registration for <strong>{{.EventTitle}}</strong> ({{.When}}) has been cancelled.</p>
+<p>Confirmation code: <strong style="font-family: monospace;">{{.ConfCode}}</strong></p>{{end}}

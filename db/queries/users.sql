@@ -1,27 +1,28 @@
+-- name: CreateUser :one
+INSERT INTO users (uid, username, password_hash, first_name, last_name, email, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+RETURNING *;
+
+-- name: CountUsers :one
+SELECT COUNT(*) FROM users;
+
 -- name: ListUsers :many
-SELECT * FROM users;
+SELECT * FROM users ORDER BY username ASC;
 
 -- name: GetUserByUsername :one
-SELECT * FROM users
-WHERE username = ?;
+SELECT * FROM users WHERE username = ?;
 
 -- name: GetUserByUID :one
-SELECT * FROM users
-WHERE uid = ?;
-
--- name: CreateUser :one
-INSERT INTO users (
-  uid, username, password_hash, first_name, last_name, email
-) VALUES (?, ?, ?, ?, ?, ?)
-RETURNING *;
+SELECT * FROM users WHERE uid = ?;
 
 -- name: UpdateUser :one
 UPDATE users
-SET username = COALESCE(sqlc.narg('username'), username),
-    password_hash = COALESCE(sqlc.narg('password_hash'), password_hash),
-    first_name = COALESCE(sqlc.narg('first_name'), first_name),
-    last_name = COALESCE(sqlc.narg('last_name'), last_name),
-    email = COALESCE(sqlc.narg('email'), email),
-    updated_at = CURRENT_TIMESTAMP
-WHERE id = sqlc.arg('id')
+SET username = ?, first_name = ?, last_name = ?, email = ?, updated_at = ?
+WHERE id = ?
 RETURNING *;
+
+-- name: SetUserPasswordHash :exec
+UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?;
+
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = ?;

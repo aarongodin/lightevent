@@ -1,0 +1,10 @@
+{{.Org}}
+
+{{if .Name}}Hi {{.Name}},{{else}}Hello,{{end}}
+
+You are registered for {{.EventTitle}}.
+{{.When}}
+
+Confirmation code: {{.ConfCode}}
+{{if .SupportEmail}}
+Questions? Contact {{.SupportEmail}}.{{end}}

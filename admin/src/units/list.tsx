@@ -1,26 +1,24 @@
-import clsx from "clsx"
+import type { ReactNode } from "react"
 
-type DefinitionListItemProps = {
-  variant: "grid" | "flex"
-  title: React.ReactNode
-  data: React.ReactNode
-  className?: string
-  dtValue?: boolean
+type DefinitionListProps = {
+  items: { title: string; value: ReactNode }[]
 }
 
-export function DefinitionListItem({ title, data, variant, className, dtValue }: DefinitionListItemProps) {
-  const dtClass = clsx("text-sm", { "text-gray-800": dtValue }, { "text-gray-500": !dtValue })
-  const dlClass = clsx(
-    "px-4 py-3 border-b bg-white md:first:rounded-t-lg md:last:rounded-b-lg",
-    { "sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6": variant === "grid" },
-    { "flex justify-between items-center": variant === "flex" },
-    className,
-  )
-
+export function DefinitionList({ items }: DefinitionListProps) {
   return (
-    <div className={dlClass}>
-      <dt className={dtClass}>{title}</dt>
-      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 text-sm flex items-center">{data}</dd>
-    </div>
+    <dl className="divide-y divide-gray-100 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200">
+      {items.map((item) => (
+        <div key={item.title} className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4">
+          <dt className="text-sm text-gray-500">{item.title}</dt>
+          <dd className="mt-1 text-sm break-words whitespace-pre-line text-gray-900 sm:col-span-2 sm:mt-0">
+            {item.value === "" || item.value === undefined || item.value === null ? (
+              <span className="text-gray-400">—</span>
+            ) : (
+              item.value
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
   )
 }

@@ -1,100 +1,149 @@
-import { WithRequest } from "../client"
-import dayjs from "../dayjs"
+import { useQuery } from "@connectrpc/connect-query"
+import clsx from "clsx"
+import { useEffect, useState } from "react"
+import { Link } from "react-router"
+
+import { type Event, EventFilter } from "../gen/lightevent/v1/service_pb"
+import { formatDateTime, isPast } from "../lib/format"
+import { useDebouncedValue, usePageParams } from "../lib/hooks"
+import { LightEventService } from "../lib/rpc"
 import { eventRoute, newEventRoute } from "../router"
-import { EventDate, EventList } from "../rpc"
-import { Badge } from "../units/badge"
 import { LinkButton } from "../units/button"
-import { Content } from "../units/content"
-import { TableLoader } from "../units/loader"
+import { inputClassName } from "../units/field"
+import { Content } from "../units/layout"
 import { PageTitle } from "../units/page-title"
+import { Pagination } from "../units/pagination"
+import { Query } from "../units/query"
+import { EmptyState, Table, Td } from "../units/table"
+import { EventStatusBadges } from "./event-status"
 
-const WithEventList = WithRequest<EventList>
+const PAGE_SIZE = 25
 
-type EventsTableProps = {
-  events: EventList["events"]
-}
+const filters = [
+  { key: "upcoming", label: "Upcoming", value: EventFilter.UPCOMING },
+  { key: "past", label: "Past", value: EventFilter.PAST },
+  { key: "archived", label: "Archived", value: EventFilter.ARCHIVED },
+  { key: "all", label: "All", value: EventFilter.ALL },
+]
 
-function EventDatesSummary({ eventDates }: { eventDates: EventDate[] }) {
-  const firstDateFormatted = dayjs(eventDates[0].value).format("l LT")
-
-  if (eventDates.length === 1) {
-    return <span>{firstDateFormatted}</span>
+function DatesSummary({ event }: { event: Event }) {
+  const dates = event.dates
+  if (dates.length === 0) {
+    return <span className="text-gray-400">No dates</span>
   }
-
-  const lastDateFormatted = dayjs(eventDates[0].value).format("l LT")
+  const next = dates.find((d) => !isPast(d.value) && !d.cancelled)
   return (
-    <div className="inline-flex gap-2">
-      <span className="after:content-['—'] after:ml-2">{firstDateFormatted}</span>
-      <span>{lastDateFormatted}</span>
-    </div>
-  )
-}
-
-function EventsTable({ events }: EventsTableProps) {
-  if (events.length === 0) {
-    return (
-      <div className="bg-gray-50 w-full rounded-lg h-32 flex items-center justify-center text-sm text-gray-600">
-        No events found.
+    <div>
+      <div>{next ? formatDateTime(next.value) : formatDateTime(dates[dates.length - 1].value)}</div>
+      <div className="text-xs text-gray-500">
+        {dates.length === 1 ? "1 date" : `${dates.length} dates`}
+        {dates.length > 1 && <> · ends {formatDateTime(dates[dates.length - 1].value)}</>}
       </div>
-    )
-  }
-  const rows = events.map((evt) => {
-    return (
-      <tr key={evt.name} className="border-b last:border-0 text-sm">
-        <td className="px-4 py-3">{evt.name}</td>
-        <td className="px-4 py-3">{evt.title}</td>
-        <td className="px-4 py-3">
-          <EventDatesSummary eventDates={evt.dates} />
-        </td>
-        <td className="px-4 py-3 flex gap-2">
-          {evt.hidden && <Badge variant="gray">Hidden</Badge>}
-          {evt.closed && <Badge variant="gray">Closed</Badge>}
-          {!evt.hidden && <Badge variant="gray">Visible</Badge>}
-          {!evt.closed && <Badge variant="gray">Open</Badge>}
-        </td>
-        <td className="px-4 py-3 text-right">
-          <LinkButton color="white" size="small" to={eventRoute(evt.name)}>
-            View
-          </LinkButton>
-        </td>
-      </tr>
-    )
-  })
-
-  return (
-    <div className="overflow-x-auto drop-shadow">
-      <table className="bg-white w-full md:rounded-lg min-w-max">
-        <thead className="text-xs bg-gradient-to-r from-gray-50 to-slate-50 text-gray-500 border-b">
-          <tr>
-            <th className="px-4 py-2 text-left rounded-tl-lg">Name</th>
-            <th className="px-4 py-2 text-left">Title</th>
-            <th className="px-4 py-2 text-left">Dates</th>
-            <th className="px-4 py-2 text-left">Status</th>
-            <th className="rounded-tr-lg"></th>
-          </tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </table>
     </div>
   )
 }
 
-function ExternalActions() {
-  return <LinkButton to={newEventRoute}>New Event</LinkButton>
+function EventsTable({ events }: { events: Event[] }) {
+  return (
+    <Table headers={[{ label: "Event" }, { label: "Next date" }, { label: "Capacity" }, { label: "Status" }]}>
+      {events.map((event) => (
+        <tr key={event.name} className="hover:bg-gray-50">
+          <Td>
+            <Link to={eventRoute(event.name)} className="font-medium text-blue-700 hover:underline">
+              {event.title}
+            </Link>
+            <div className="font-mono text-xs text-gray-500">{event.name}</div>
+          </Td>
+          <Td>
+            <DatesSummary event={event} />
+          </Td>
+          <Td>{event.capacity > 0 ? `${event.capacity} per date` : "Unlimited"}</Td>
+          <Td>
+            <EventStatusBadges event={event} />
+          </Td>
+        </tr>
+      ))}
+    </Table>
+  )
 }
 
 export default function Events() {
+  const { params, offset, search, update } = usePageParams()
+  const filterKey = params.get("filter") ?? "upcoming"
+  const filter = filters.find((f) => f.key === filterKey) ?? filters[0]
+  const [searchInput, setSearchInput] = useState(search)
+  const debouncedSearch = useDebouncedValue(searchInput)
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only sync when the debounced input changes
+  useEffect(() => {
+    if (debouncedSearch !== search) {
+      update({ q: debouncedSearch, offset: null })
+    }
+  }, [debouncedSearch])
+
+  const query = useQuery(
+    LightEventService.method.listEvents,
+    { filter: filter.value, search, limit: PAGE_SIZE, offset },
+    { placeholderData: (prev) => prev },
+  )
+
   return (
     <>
-      <PageTitle title="Events" externalActions={<ExternalActions />} />
+      <PageTitle title="Events" actions={<LinkButton to={newEventRoute}>New event</LinkButton>} />
       <Content>
-        <WithEventList
-          load={(client) => client.ListEvents({ hidden: false, closed: false })}
-          deps={[]}
-          loader={TableLoader}
-        >
-          {(resp) => <EventsTable events={resp.events} />}
-        </WithEventList>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <nav aria-label="Event filter" className="flex gap-1 rounded-lg bg-gray-200/70 p-1 text-sm">
+            {filters.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                aria-pressed={f.key === filter.key}
+                onClick={() => update({ filter: f.key === "upcoming" ? null : f.key, offset: null })}
+                className={clsx("rounded-md px-3 py-1", {
+                  "bg-white font-medium shadow-sm": f.key === filter.key,
+                  "text-gray-600 hover:text-gray-900": f.key !== filter.key,
+                })}
+              >
+                {f.label}
+              </button>
+            ))}
+          </nav>
+          <label className="w-full sm:w-64">
+            <span className="sr-only">Search events</span>
+            <input
+              type="search"
+              placeholder="Search events"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className={inputClassName}
+            />
+          </label>
+        </div>
+        <Query query={query}>
+          {(resp) =>
+            resp.events.length === 0 ? (
+              <EmptyState
+                action={
+                  !search && filter.value === EventFilter.UPCOMING ? (
+                    <LinkButton to={newEventRoute}>Create an event</LinkButton>
+                  ) : undefined
+                }
+              >
+                {search ? `No events match “${search}”.` : `No ${filter.label.toLowerCase()} events.`}
+              </EmptyState>
+            ) : (
+              <>
+                <EventsTable events={resp.events} />
+                <Pagination
+                  offset={offset}
+                  limit={PAGE_SIZE}
+                  total={resp.total}
+                  onChange={(o) => update({ offset: o })}
+                />
+              </>
+            )
+          }
+        </Query>
       </Content>
     </>
   )

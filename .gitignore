@@ -14,10 +14,16 @@ node_modules
 .DS_Store
 tmp
 bin
+# Session-local scratch
+.claude/
 ./generated
 .protoc-tmp
 .bundle-analysis.html
 dist
+# The admin UI is embedded into the server binary from admin/dist; keep the directory so go:embed works
+!admin/dist/
+admin/dist/*
+!admin/dist/.gitkeep
 .rollup.cache
 .cert
 *.pem

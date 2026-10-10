@@ -1,31 +1,74 @@
 package email
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/aarongodin/lightevent/internal/config"
-	"gopkg.in/gomail.v2"
+	"github.com/wneessen/go-mail"
 )
 
-type EmailProviderSMTP struct {
-	dialer *gomail.Dialer
-	sender string
+// SMTP sends email through an SMTP server.
+type SMTP struct {
+	host    string
+	sender  string
+	options []mail.Option
 }
 
-func NewEmailProviderSMTP(rc *config.RuntimeConfig) EmailProviderSMTP {
-	return EmailProviderSMTP{
-		dialer: gomail.NewDialer(rc.EmailSMTPHost, rc.EmailSMTPPort, rc.EmailSMTPUsername, rc.EmailSMTPPassword),
-		sender: rc.EmailSMTPUsername,
+// NewSMTP builds an SMTP sender from the runtime config.
+func NewSMTP(rc *config.RuntimeConfig) *SMTP {
+	opts := []mail.Option{
+		mail.WithPort(rc.EmailSMTPPort),
+		mail.WithTimeout(15 * time.Second),
 	}
+	switch rc.EmailSMTPTLS {
+	case "tls":
+		opts = append(opts, mail.WithSSL())
+	case "none":
+		opts = append(opts, mail.WithTLSPolicy(mail.NoTLS))
+	default:
+		opts = append(opts, mail.WithTLSPolicy(mail.TLSMandatory))
+	}
+	if rc.EmailSMTPUsername != "" {
+		opts = append(opts,
+			mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
+			mail.WithUsername(rc.EmailSMTPUsername),
+			mail.WithPassword(rc.EmailSMTPPassword),
+		)
+	}
+	return &SMTP{host: rc.EmailSMTPHost, sender: rc.EmailSMTPSender, options: opts}
 }
 
-func (p EmailProviderSMTP) Send(recipient string, subject string, body string) error {
-	m := gomail.NewMessage()
-	m.SetHeader("From", p.sender)
-	m.SetHeader("To", recipient)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/html", body)
-	if err := p.dialer.DialAndSend(m); err != nil {
+// buildMessage converts a Message into a MIME message with text and optional HTML parts.
+func buildMessage(sender string, msg Message) (*mail.Msg, error) {
+	m := mail.NewMsg()
+	if err := m.From(sender); err != nil {
+		return nil, fmt.Errorf("invalid sender: %w", err)
+	}
+	if err := m.To(msg.To); err != nil {
+		return nil, fmt.Errorf("invalid recipient: %w", err)
+	}
+	m.Subject(msg.Subject)
+	m.SetDate()
+	m.SetMessageID()
+	m.SetBodyString(mail.TypeTextPlain, msg.Text)
+	if msg.HTML != "" {
+		m.AddAlternativeString(mail.TypeTextHTML, msg.HTML)
+	}
+	return m, nil
+}
+
+func (s *SMTP) Send(ctx context.Context, msg Message) error {
+	m, err := buildMessage(s.sender, msg)
+	if err != nil {
+		return err
+	}
+	client, err := mail.NewClient(s.host, s.options...)
+	if err != nil {
+		return fmt.Errorf("error creating smtp client: %w", err)
+	}
+	if err := client.DialAndSendWithContext(ctx, m); err != nil {
 		return fmt.Errorf("error sending smtp email: %w", err)
 	}
 	return nil

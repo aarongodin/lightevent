@@ -1,66 +1,76 @@
-import { WithRequest } from "../client"
-import dayjs from "../dayjs"
-import { eventRoute } from "../router"
-import { EventDateList, EventDateSummary, RegistrationKind } from "../rpc"
-import { Box } from "../units/box"
+import { useQuery } from "@connectrpc/connect-query"
+import { Link } from "react-router"
+
+import type { EventDateSummary } from "../gen/lightevent/v1/service_pb"
+import { RegistrationKind } from "../gen/lightevent/v1/service_pb"
+import { formatCapacity, formatDateTime } from "../lib/format"
+import { LightEventService } from "../lib/rpc"
+import { eventRoute, newEventRoute } from "../router"
+import { Badge } from "../units/badge"
 import { LinkButton } from "../units/button"
-import { Content } from "../units/content"
-import { TableLoader } from "../units/loader"
+import { Box, Content, Section } from "../units/layout"
 import { PageTitle } from "../units/page-title"
-import { RegistrationKindBadge } from "../units/value"
+import { Query } from "../units/query"
+import { EmptyState } from "../units/table"
+import { RegistrationKindBadge } from "../units/values"
 
-const WithEventDates = WithRequest<EventDateList>
-
-function EventSummary({ summary }: { summary: EventDateSummary }) {
-  if (summary.event === undefined || summary.eventDate === undefined) {
-    return null // TODO(aarongodin): consider improving this, it's the fact that using a message as a value in protobuf means it is optional
+function DateCard({ summary }: { summary: EventDateSummary }) {
+  const { event, eventDate } = summary
+  if (!event || !eventDate) {
+    return null
   }
-
-  let onceCount = 0
-  let seriesCount = 0
-
-  summary.registrations.forEach((reg) => {
-    if (reg.kind === RegistrationKind.REG_ONCE) {
-      onceCount++
-    } else {
-      seriesCount++
-    }
-  })
-
+  const total = summary.onceCount + summary.seriesCount
+  const full = event.capacity > 0 && total >= event.capacity
   return (
-    <div>
-      <p className="font-lg font-bold block">{summary.event.title}</p>
-      <p className="mt-2">{dayjs(summary.eventDate.value).format("l LT")}</p>
-      <div className="mt-4 flex items-center justify-between gap-2">
-        <span className="inline-flex gap-2">
-          <RegistrationKindBadge kind={RegistrationKind.REG_ONCE} count={onceCount} />
-          <RegistrationKindBadge kind={RegistrationKind.REG_SERIES} count={seriesCount} />
-        </span>
-        <LinkButton color="white" to={eventRoute(summary.event.name)}>
-          View Event
-        </LinkButton>
+    <Box className="flex flex-col gap-3">
+      <div>
+        <Link to={eventRoute(event.name)} className="font-semibold hover:underline">
+          {event.title}
+        </Link>
+        <p className="mt-1 text-sm text-gray-600">{formatDateTime(eventDate.value)}</p>
       </div>
-    </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {eventDate.cancelled && <Badge variant="red">Cancelled</Badge>}
+        {full && !eventDate.cancelled && <Badge variant="amber">Full</Badge>}
+        {event.hidden && <Badge variant="gray">Hidden</Badge>}
+        {event.closed && <Badge variant="gray">Closed</Badge>}
+      </div>
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span className="text-gray-700">
+          <span className="font-semibold">{formatCapacity(total, event.capacity)}</span> registered
+        </span>
+        <span className="inline-flex gap-1">
+          <RegistrationKindBadge kind={RegistrationKind.ONCE} count={summary.onceCount} />
+          <RegistrationKindBadge kind={RegistrationKind.SERIES} count={summary.seriesCount} />
+        </span>
+      </div>
+    </Box>
   )
 }
 
 export default function Dashboard() {
+  const query = useQuery(LightEventService.method.listUpcomingEventDates, { limit: 8 })
   return (
     <>
-      <PageTitle title="Overview" />
+      <PageTitle title="Dashboard" actions={<LinkButton to={newEventRoute}>New event</LinkButton>} />
       <Content>
-        <h3 className="mb-4 px-4 md:p-0">Upcoming Events</h3>
-        <WithEventDates load={(client) => client.ListEventDates({ count: 4 })} deps={[]} loader={TableLoader}>
-          {(resp) => (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              {resp.eventDates.map((summary) => (
-                <Box key={summary.eventDate?.uid}>
-                  <EventSummary summary={summary} />
-                </Box>
-              ))}
-            </div>
-          )}
-        </WithEventDates>
+        <Section title="Upcoming dates">
+          <Query query={query}>
+            {(resp) =>
+              resp.eventDates.length === 0 ? (
+                <EmptyState action={<LinkButton to={newEventRoute}>Create an event</LinkButton>}>
+                  There are no upcoming event dates.
+                </EmptyState>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {resp.eventDates.map((summary) => (
+                    <DateCard key={summary.eventDate?.uid} summary={summary} />
+                  ))}
+                </div>
+              )
+            }
+          </Query>
+        </Section>
       </Content>
     </>
   )

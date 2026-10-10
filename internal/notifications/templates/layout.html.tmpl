@@ -1,0 +1,10 @@
+{{define "layout"}}<!DOCTYPE html>
+<html lang="en">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111827; background: #f3f4f6; padding: 24px;">
+  <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 8px; padding: 24px;">
+    <p style="font-weight: bold; margin-top: 0;">{{.Org}}</p>
+    {{template "content" .}}
+    {{if .SupportEmail}}<p style="color: #6b7280; font-size: 12px; margin-top: 24px;">Questions? Contact <a href="mailto:{{.SupportEmail}}">{{.SupportEmail}}</a>.</p>{{end}}
+  </div>
+</body>
+</html>{{end}}

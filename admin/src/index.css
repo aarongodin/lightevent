@@ -1,7 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-body {
-  background-color: rgb(243, 244, 246);
+@layer base {
+  body {
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-900);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }

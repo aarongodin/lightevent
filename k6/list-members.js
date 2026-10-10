@@ -1,25 +1,17 @@
-import http from 'k6/http';
-import encoding from 'k6/encoding'
-import { check } from 'k6'
+import { check } from "k6"
+import http from "k6/http"
 
-const BASE_URL = 'http://localhost:8080';
-const ENDPOINT = '/rpc/LightEvent/ListMembers';
-const url = BASE_URL + ENDPOINT;
-const USERNAME = 'admin';
-const PASSWORD = 'admin';
-const credentials = `${USERNAME}:${PASSWORD}`
-const authString = `Basic ${encoding.b64encode(credentials)}`
+const BASE_URL = __ENV.LIGHTEVENT_URL || "http://localhost:8080"
+const API_KEY = __ENV.LIGHTEVENT_API_KEY
 
 export default function () {
-  const response = http.post(url, '{}', {
+  const response = http.post(`${BASE_URL}/rpc/lightevent.v1.LightEventService/ListMembers`, "{}", {
     headers: {
-      'Content-Type': "application/json",
-      Authorization: authString,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${API_KEY}`,
     },
   })
   check(response, {
-    'status is 200': (r) => r.status === 200,
+    "status is 200": (r) => r.status === 200,
   })
 }
-  
-

@@ -1,25 +1,35 @@
 # .envrc-example
-# see internal/server/config/runtime.go for usage
+# See internal/config/runtime.go for every option and its default.
 #
-# This file is meant for local development only.
-# Recommended workflow is to use a tool like direnv to add
-# the variables to your shell.
+# This file is meant for local development only. One way to load it is direnv:
+#   cp .envrc-example .envrc && direnv allow
 
-# export HOST=127.0.0.1
-# export PORT=8080
-# export DEBUG=true
-# export LOG_FORMAT=console
-# export DATABASE_FILE=lightevent.sqlite3
+export HOST=127.0.0.1
+export PORT=8080
+export DEBUG=true
+export LOG_FORMAT=console
+export DATABASE_FILE=lightevent.sqlite3
 # export SESSION_MAX_AGE=168h
-# export COOKIE_HMAC_SECRET=test
-# export COOKIE_SECURE=true
-# export ALLOW_ADMIN_USER=true
-# export ADMIN_USER_PASSWORD=admin
 
-### Email Providers
+# Local development serves the API over plain http, so secure cookies must be disabled.
+# Never disable this in production.
+export COOKIE_SECURE=false
+
+# Set behind a reverse proxy that sets X-Forwarded-For, so rate limits apply per client.
+# export TRUST_PROXY_HEADERS=true
+
+# Creates the first user when the database has no users. Remove the password once the user exists.
+export BOOTSTRAP_USERNAME=admin
+export BOOTSTRAP_PASSWORD=change-me-please
+
+### Email
+# "log" writes emails (including member verification codes) to the server log. Development only.
+export EMAIL_PROVIDER=log
 # export EMAIL_PROVIDER=smtp
+# export EMAIL_SMTP_HOST=smtp.example.com
+# export EMAIL_SMTP_PORT=587
+# export EMAIL_SMTP_TLS=starttls   # starttls | tls | none
 # export EMAIL_SMTP_USERNAME=
 # export EMAIL_SMTP_PASSWORD=
-# export EMAIL_SMTP_SENDER=
-# export EMAIL_SMTP_HOST=
-# export EMAIL_SMTP_PORT=
+# export EMAIL_SMTP_SENDER="LightEvent <noreply@example.com>"
+# export VERIFICATION_TTL=15m
