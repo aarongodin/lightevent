@@ -1,44 +1,195 @@
+// Package model validates and normalizes input received through the API.
 package model
 
 import (
+	"fmt"
+	"net/mail"
 	"regexp"
 	"strings"
+	"time"
+	"unicode"
+	"unicode/utf8"
+
+	"github.com/aarongodin/lightevent/internal/config"
 )
 
-var Validate = &Validator{}
-var identRegex = regexp.MustCompile("^[a-zA-Z0-9-_]+$")
-
-type Validator struct{}
-
+// ErrValidationFailed describes an invalid field in a request.
 type ErrValidationFailed struct {
-	Argument string
-	Reason   string
+	Field  string
+	Reason string
 }
 
 func (e ErrValidationFailed) Error() string {
-	return e.Reason
+	return fmt.Sprintf("%s: %s", e.Field, e.Reason)
 }
 
-// Identifier cleans and validates a string, returning an error if it is not a valid string identifier.
-func (v Validator) Identifier(arg string, value string) (string, error) {
-	trimmed := strings.TrimSpace(value)
-	if len(trimmed) == 0 {
-		return "", ErrValidationFailed{arg, "must not be blank"}
-	}
-	if !identRegex.MatchString(trimmed) {
-		return "", ErrValidationFailed{arg, "must be a valid identifier"}
-	}
-	return trimmed, nil
+func invalid(field, reason string) error {
+	return ErrValidationFailed{Field: field, Reason: reason}
 }
 
-// Title cleans and validates a string, returning an error if it is not a valid title.
-func (v Validator) Title(arg string, value string) (string, error) {
-	trimmed := strings.TrimSpace(value)
-	if len(trimmed) == 0 {
-		return "", ErrValidationFailed{arg, "must not be blank"}
+const (
+	MaxEventNameLength   = 64
+	MaxTitleLength       = 100
+	MaxDescriptionLength = 5000
+	MaxPersonNameLength  = 100
+	MaxEmailLength       = 254
+	MaxCapacity          = 100000
+	MaxEventDates        = 500
+	// MaxPasswordBytes is bcrypt's input limit.
+	MaxPasswordBytes = 72
+)
+
+var (
+	eventNameRegex = regexp.MustCompile(`^[a-z0-9]+(?:[-_][a-z0-9]+)*$`)
+	usernameRegex  = regexp.MustCompile(`^[a-zA-Z0-9._-]{3,64}$`)
+)
+
+// EventName validates the URL-safe identifier of an event. It is trimmed and lower-cased.
+func EventName(field, value string) (string, error) {
+	v := strings.ToLower(strings.TrimSpace(value))
+	if v == "" {
+		return "", invalid(field, "must not be blank")
 	}
-	if len(trimmed) > 100 {
-		return "", ErrValidationFailed{arg, "must be at most 100 characters"}
+	if len(v) > MaxEventNameLength {
+		return "", invalid(field, fmt.Sprintf("must be at most %d characters", MaxEventNameLength))
 	}
-	return trimmed, nil
+	if !eventNameRegex.MatchString(v) {
+		return "", invalid(field, "may only contain letters, numbers, and single dashes or underscores between them")
+	}
+	return v, nil
+}
+
+// Title validates a required single-line title.
+func Title(field, value string) (string, error) {
+	v := strings.TrimSpace(value)
+	if v == "" {
+		return "", invalid(field, "must not be blank")
+	}
+	if utf8.RuneCountInString(v) > MaxTitleLength {
+		return "", invalid(field, fmt.Sprintf("must be at most %d characters", MaxTitleLength))
+	}
+	if strings.ContainsAny(v, "\r\n") {
+		return "", invalid(field, "must be a single line")
+	}
+	return v, nil
+}
+
+// Description validates an optional multi-line description.
+func Description(field, value string) (string, error) {
+	v := strings.TrimSpace(value)
+	if utf8.RuneCountInString(v) > MaxDescriptionLength {
+		return "", invalid(field, fmt.Sprintf("must be at most %d characters", MaxDescriptionLength))
+	}
+	return v, nil
+}
+
+// Capacity validates an event capacity, where 0 means unlimited.
+func Capacity(field string, value int32) (int64, error) {
+	if value < 0 || value > MaxCapacity {
+		return 0, invalid(field, fmt.Sprintf("must be between 0 (unlimited) and %d", MaxCapacity))
+	}
+	return int64(value), nil
+}
+
+// Email validates and normalizes (trim, lower case) an email address.
+func Email(field, value string) (string, error) {
+	v := strings.ToLower(strings.TrimSpace(value))
+	if v == "" {
+		return "", invalid(field, "must not be blank")
+	}
+	if len(v) > MaxEmailLength {
+		return "", invalid(field, "is too long")
+	}
+	addr, err := mail.ParseAddress(v)
+	if err != nil || addr.Address != v || addr.Name != "" {
+		return "", invalid(field, "must be a valid email address")
+	}
+	if _, domain, _ := strings.Cut(v, "@"); !strings.Contains(domain, ".") {
+		return "", invalid(field, "must be a valid email address")
+	}
+	return v, nil
+}
+
+// OptionalEmail validates an email address that may be blank.
+func OptionalEmail(field, value string) (string, error) {
+	if strings.TrimSpace(value) == "" {
+		return "", nil
+	}
+	return Email(field, value)
+}
+
+// PersonName validates an optional first or last name.
+func PersonName(field, value string) (string, error) {
+	v := strings.TrimSpace(value)
+	if utf8.RuneCountInString(v) > MaxPersonNameLength {
+		return "", invalid(field, fmt.Sprintf("must be at most %d characters", MaxPersonNameLength))
+	}
+	for _, r := range v {
+		if unicode.IsControl(r) {
+			return "", invalid(field, "must not contain control characters")
+		}
+	}
+	return v, nil
+}
+
+// Username validates a user's login name.
+func Username(field, value string) (string, error) {
+	v := strings.TrimSpace(value)
+	if !usernameRegex.MatchString(v) {
+		return "", invalid(field, "must be 3-64 characters of letters, numbers, '.', '_' or '-'")
+	}
+	return v, nil
+}
+
+// Password validates a new password. It is not trimmed.
+func Password(field, value string) (string, error) {
+	if utf8.RuneCountInString(value) < config.MinPasswordLength {
+		return "", invalid(field, fmt.Sprintf("must be at least %d characters", config.MinPasswordLength))
+	}
+	if len(value) > MaxPasswordBytes {
+		return "", invalid(field, fmt.Sprintf("must be at most %d bytes", MaxPasswordBytes))
+	}
+	return value, nil
+}
+
+// APIKeyName validates the display name of an API key.
+func APIKeyName(field, value string) (string, error) {
+	v := strings.TrimSpace(value)
+	if v == "" {
+		return "", invalid(field, "must not be blank")
+	}
+	if utf8.RuneCountInString(v) > 64 {
+		return "", invalid(field, "must be at most 64 characters")
+	}
+	return v, nil
+}
+
+// Timezone validates an IANA timezone name. Blank means UTC.
+func Timezone(field, value string) (string, error) {
+	v := strings.TrimSpace(value)
+	if v == "" {
+		return "", nil
+	}
+	if _, err := time.LoadLocation(v); err != nil {
+		return "", invalid(field, "must be a valid IANA timezone, e.g. America/New_York")
+	}
+	return v, nil
+}
+
+// Timestamp parses an RFC 3339 timestamp and returns it in UTC, truncated to the second.
+func Timestamp(field, value string) (time.Time, error) {
+	t, err := time.Parse(time.RFC3339, strings.TrimSpace(value))
+	if err != nil {
+		return time.Time{}, invalid(field, "must be an RFC 3339 timestamp")
+	}
+	return t.UTC().Truncate(time.Second), nil
+}
+
+// Required ensures a string identifier is present.
+func Required(field, value string) (string, error) {
+	v := strings.TrimSpace(value)
+	if v == "" {
+		return "", invalid(field, "is required")
+	}
+	return v, nil
 }

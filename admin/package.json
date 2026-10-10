@@ -25,6 +25,7 @@
 	},
 	"devDependencies": {
 		"@aarongodin/eslint-config": "github:aarongodin/eslint-config#main",
+		"@bufbuild/protoc-gen-es": "^2.16.0",
 		"@types/base-64": "^1.0.2",
 		"@types/lodash-es": "^4.17.12",
 		"@types/react": "^18.2.60",

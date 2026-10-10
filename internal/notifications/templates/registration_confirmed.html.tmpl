@@ -1,0 +1,4 @@
+{{define "content"}}<p>{{if .Name}}Hi {{.Name}},{{else}}Hello,{{end}}</p>
+<p>You are registered for <strong>{{.EventTitle}}</strong>.</p>
+<p>{{.When}}</p>
+<p>Confirmation code: <strong style="font-family: monospace;">{{.ConfCode}}</strong></p>{{end}}

@@ -1,0 +1,9 @@
+{{.Org}}
+
+{{if .Name}}Hi {{.Name}},{{else}}Hello,{{end}}
+
+Your registration for {{.EventTitle}} ({{.When}}) has been cancelled.
+
+Confirmation code: {{.ConfCode}}
+{{if .SupportEmail}}
+Questions? Contact {{.SupportEmail}}.{{end}}
