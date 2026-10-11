@@ -13,6 +13,7 @@ import (
 
 	"github.com/aarongodin/lightevent"
 	"github.com/aarongodin/lightevent/admin"
+	"github.com/aarongodin/lightevent/client"
 	"github.com/aarongodin/lightevent/internal/app"
 	"github.com/aarongodin/lightevent/internal/config"
 	"github.com/rs/zerolog"
@@ -47,7 +48,7 @@ func run() int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	a, err := app.New(ctx, rc, app.Options{AdminUI: admin.Dist()})
+	a, err := app.New(ctx, rc, app.Options{AdminUI: admin.Dist(), ClientApp: client.Dist()})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to start")
 		return 1

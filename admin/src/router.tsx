@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router"
 import Account from "./routes/account"
 import APIKeys from "./routes/api-keys"
 import ApplicationSettings from "./routes/application-settings"
+import ClientSettings from "./routes/client-settings"
 import Dashboard from "./routes/dashboard"
 import Event from "./routes/event"
 import EventEdit from "./routes/event-edit"
@@ -17,6 +18,7 @@ import NotFound from "./routes/not-found"
 import Root from "./routes/root"
 import RouteError from "./routes/route-error"
 import Settings from "./routes/settings"
+import Tags from "./routes/tags"
 import Users from "./routes/users"
 
 // Event routes
@@ -57,6 +59,8 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <Navigate to="application" replace /> },
               { path: "application", element: <ApplicationSettings /> },
+              { path: "tags", element: <Tags /> },
+              { path: "client", element: <ClientSettings /> },
               { path: "account", element: <Account /> },
               { path: "users", element: <Users /> },
               { path: "api-keys", element: <APIKeys /> },

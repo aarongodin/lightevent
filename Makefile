@@ -1,4 +1,4 @@
-GO_PACKAGES := ./cmd/... ./internal/... ./admin
+GO_PACKAGES := ./cmd/... ./internal/... ./admin ./client
 TOOL := go tool -modfile=tools/go.mod
 
 .PHONY: help
@@ -19,6 +19,10 @@ start: ## Run the server from source (uses the admin UI last built into admin/di
 dev-admin: ## Run the admin UI dev server on http://localhost:5500 (proxies to the Go server)
 	@npm -w admin run dev
 
+.PHONY: dev-client
+dev-client: ## Run the client app playground on http://localhost:5600 (calls the Go server)
+	@npm -w client run dev
+
 .PHONY: generate
 generate: ## Regenerate protobuf/Connect code (Go + TypeScript) and sqlc storage code
 	@$(TOOL) buf lint
@@ -29,12 +33,16 @@ generate: ## Regenerate protobuf/Connect code (Go + TypeScript) and sqlc storage
 build-admin: ## Build the admin UI and login page CSS into admin/dist
 	@npm -w admin run build
 
+.PHONY: build-client
+build-client: ## Build the client app into client/dist and check its size budget
+	@npm -w client run build
+
 .PHONY: build-server
-build-server: ## Build the server binary (embeds admin/dist) into bin/lightevent
+build-server: ## Build the server binary (embeds admin/dist and client/dist) into bin/lightevent
 	@CGO_ENABLED=0 go build -trimpath -o bin/lightevent ./cmd/server
 
 .PHONY: build
-build: build-admin build-server ## Build the admin UI and the server binary
+build: build-admin build-client build-server ## Build the admin UI, the client app and the server binary
 
 .PHONY: test
 test: ## Run Go unit tests
@@ -43,20 +51,17 @@ test: ## Run Go unit tests
 .PHONY: lint
 lint: ## Run Go vet, buf lint, Biome and the TypeScript checker
 	@go vet $(GO_PACKAGES)
-	@test -z "$$(gofmt -l cmd internal admin/embed.go)" || (gofmt -l cmd internal admin/embed.go; exit 1)
+	@test -z "$$(gofmt -l cmd internal admin/embed.go client/embed.go)" || (gofmt -l cmd internal admin/embed.go client/embed.go; exit 1)
 	@$(TOOL) buf lint
 	@npx biome check .
 	@npm -w admin run typecheck
+	@npm -w client run typecheck
 	@npm -w e2e run typecheck
 
 .PHONY: format
 format: ## Format Go and TypeScript code
-	@gofmt -w cmd internal admin/embed.go
+	@gofmt -w cmd internal admin/embed.go client/embed.go
 	@npx biome check --write .
-
-.PHONY: mkcert
-mkcert: ## Generate local TLS certificates (used only by the client app dev server)
-	@mkdir -p .cert && mkcert -key-file ./.cert/key.pem -cert-file ./.cert/cert.pem 'localhost'
 
 .PHONY: test-e2e
 test-e2e: ## Run the Playwright browser tests (builds the app and starts a test server)

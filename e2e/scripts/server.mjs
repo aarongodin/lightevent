@@ -1,5 +1,5 @@
-// Starts a LightEvent server for the browser tests: builds the admin UI and server binary, then runs it against
-// a fresh database. Server output is also written to e2e/.tmp/server.log so tests can read emails sent through
+// Starts a LightEvent server for the browser tests: builds the admin UI, client app and server binary, then runs it
+// against a fresh database. Server output is also written to e2e/.tmp/server.log so tests can read emails sent through
 // the "log" email provider.
 import { spawn, spawnSync } from "node:child_process"
 import { createWriteStream, mkdirSync, readFileSync, rmSync } from "node:fs"
@@ -24,6 +24,9 @@ function run(cmd, args) {
 if (process.env.E2E_SKIP_ADMIN_BUILD !== "1") {
   run("npm", ["-w", "admin", "run", "build"])
 }
+if (process.env.E2E_SKIP_CLIENT_BUILD !== "1") {
+  run("npm", ["-w", "client", "run", "build"])
+}
 run("go", ["build", "-o", binary, "./cmd/server"])
 
 const log = createWriteStream(join(tmpDir, "server.log"))
@@ -39,6 +42,8 @@ const server = spawn(binary, [], {
     // Tests send X-Forwarded-For so each test gets its own client IP for rate limiting.
     TRUST_PROXY_HEADERS: "true",
     EMAIL_PROVIDER: "log",
+    // The client app tests embed the app on a page served from this origin (see e2e/scripts/host.mjs).
+    CLIENT_ALLOWED_ORIGINS: `http://localhost:${process.env.E2E_HOST_PORT ?? "18081"}`,
     BOOTSTRAP_USERNAME: process.env.E2E_ADMIN_USERNAME ?? "admin",
     BOOTSTRAP_PASSWORD: process.env.E2E_ADMIN_PASSWORD ?? "e2e-admin-password",
   },

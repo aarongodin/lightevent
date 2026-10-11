@@ -28,6 +28,8 @@ type Server struct {
 
 	// verifyIPLimit limits verification requests per client IP.
 	verifyIPLimit *ratelimit.Limiter
+
+	clientSettings clientSettingsCache
 }
 
 var _ lighteventv1connect.LightEventServiceHandler = (*Server)(nil)

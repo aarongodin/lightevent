@@ -83,7 +83,7 @@ func TestPolicyExpectations(t *testing.T) {
 	assert.False(t, Policy["CreateEvent"].Has(SchemeAnonymous))
 	assert.True(t, Policy["CreateEvent"].Has(SchemeAPIKey))
 	// Regression: member-only RPCs must not be callable with user or API key credentials.
-	for _, m := range []string{"Register", "ListMyRegistrations", "CancelMyRegistration", "EndMemberSession"} {
+	for _, m := range []string{"GetMyProfile", "Register", "ListMyRegistrations", "CancelMyRegistration", "EndMemberSession"} {
 		assert.True(t, Policy[m].Has(SchemeMember), m)
 		assert.False(t, Policy[m].Has(SchemeUser), m)
 		assert.False(t, Policy[m].Has(SchemeAPIKey), m)
@@ -123,6 +123,14 @@ func TestAuthenticate(t *testing.T) {
 		{"member rpc chooses member cookie when both present",
 			header("Cookie", CookieUserSession+"="+f.userToken+"; "+CookieMemberSession+"="+f.memberTok), AllowMember, SchemeMember, 0},
 		{"user cookie for member rpc", header("Cookie", CookieUserSession+"="+f.userToken), AllowMember, "", connect.CodeUnauthenticated},
+		{"member bearer token", header("Authorization", "Bearer "+MemberBearerToken(f.memberTok)), AllowMember, SchemeMember, 0},
+		{"member bearer token for public rpc", header("Authorization", "Bearer "+MemberBearerToken(f.memberTok)), allowEveryone, SchemeMember, 0},
+		{"unknown member bearer token", header("Authorization", "Bearer "+MemberBearerToken("bogus")), allowEveryone, "", connect.CodeUnauthenticated},
+		{"user token as member bearer token", header("Authorization", "Bearer "+MemberBearerToken(f.userToken)), AllowMember, "", connect.CodeUnauthenticated},
+		{"member bearer token without prefix is an api key", header("Authorization", "Bearer "+f.memberTok), allowEveryone, "", connect.CodeUnauthenticated},
+		{"member bearer token ignored for admin rpc", header("Authorization", "Bearer "+MemberBearerToken(f.memberTok)), allowAdmin, "", connect.CodeUnauthenticated},
+		{"member bearer token ignored for admin rpc with user cookie",
+			header("Authorization", "Bearer "+MemberBearerToken(f.memberTok), "Cookie", CookieUserSession+"="+f.userToken), allowAdmin, SchemeUser, 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

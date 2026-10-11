@@ -3,28 +3,17 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/lightevent-client.umd.cjs",
-  "module": "./dist/lightevent-client.js",
-  "exports": {
-    ".": {
-      "import": "./dist/lightevent-client.js",
-      "require": "./dist/lightevent-client.umd.cjs"
-    }
-  },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "tsc -p . && vite build && node scripts/check-size.mjs",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "preact": "^11.0.1"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.8.1",
-    "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3",
-    "vite": "^5.1.4"
+    "@bufbuild/protobuf": "^2.16.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
   }
 }

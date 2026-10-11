@@ -32,7 +32,7 @@ func init() {
 
 const password = "correct horse battery"
 
-func newApp(t *testing.T) (*App, *httptest.Server) {
+func newApp(t *testing.T, configure ...func(*config.RuntimeConfig)) (*App, *httptest.Server) {
 	t.Helper()
 	rc := &config.RuntimeConfig{
 		DatabaseFile:      filepath.Join(t.TempDir(), "test.sqlite3"),
@@ -41,9 +41,13 @@ func newApp(t *testing.T) (*App, *httptest.Server) {
 		BootstrapUsername: "admin-user",
 		BootstrapPassword: password,
 	}
+	for _, fn := range configure {
+		fn(rc)
+	}
 	a, err := New(context.Background(), rc, Options{
-		Sender:  &email.LogSender{},
-		AdminUI: fstest.MapFS{"index.html": {Data: []byte("<html>admin</html>")}},
+		Sender:    &email.LogSender{},
+		AdminUI:   fstest.MapFS{"index.html": {Data: []byte("<html>admin</html>")}},
+		ClientApp: fstest.MapFS{"lightevent-client.js": {Data: []byte("var LightEventClient={}")}},
 	})
 	require.NoError(t, err)
 	srv := httptest.NewServer(a.Handler())
@@ -123,6 +127,91 @@ func TestStaticRoutesAndHeaders(t *testing.T) {
 		assert.Equal(t, want, resp.StatusCode, path)
 		assert.NotEmpty(t, resp.Header.Get("Content-Security-Policy"), path)
 	}
+}
+
+func rpcRequest(t *testing.T, method, url, origin string) *http.Response {
+	t.Helper()
+	req, err := http.NewRequest(method, url, strings.NewReader("{}"))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	if origin != "" {
+		req.Header.Set("Origin", origin)
+		req.Header.Set("Sec-Fetch-Site", "cross-site")
+	}
+	if method == http.MethodOptions {
+		req.Header.Set("Access-Control-Request-Method", "POST")
+		req.Header.Set("Access-Control-Request-Headers", "authorization, connect-protocol-version, content-type")
+	}
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	resp.Body.Close()
+	return resp
+}
+
+func TestCORSForClientApp(t *testing.T) {
+	a, srv := newApp(t, func(rc *config.RuntimeConfig) {
+		rc.ClientAllowedOrigins = []string{"https://ENV.example.com:443"}
+	})
+	listEvents := srv.URL + "/rpc/lightevent.v1.LightEventService/ListEvents"
+
+	// Origins from CLIENT_ALLOWED_ORIGINS are normalized and allowed.
+	resp := rpcRequest(t, http.MethodOptions, listEvents, "https://env.example.com")
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+	assert.Equal(t, "https://env.example.com", resp.Header.Get("Access-Control-Allow-Origin"))
+	assert.Contains(t, resp.Header.Get("Access-Control-Allow-Headers"), "Authorization")
+	assert.Empty(t, resp.Header.Get("Access-Control-Allow-Credentials"))
+
+	resp = rpcRequest(t, http.MethodPost, listEvents, "https://env.example.com")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "https://env.example.com", resp.Header.Get("Access-Control-Allow-Origin"))
+	assert.Contains(t, resp.Header.Values("Vary"), "Origin")
+
+	// Other origins get no CORS headers and are rejected by the cross-origin protection.
+	resp = rpcRequest(t, http.MethodPost, listEvents, "https://www.example.com")
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	assert.Empty(t, resp.Header.Get("Access-Control-Allow-Origin"))
+	resp = rpcRequest(t, http.MethodOptions, listEvents, "https://www.example.com")
+	assert.Empty(t, resp.Header.Get("Access-Control-Allow-Origin"))
+
+	// Origins added in the client settings are allowed immediately.
+	ctx := access.WithIdentity(context.Background(), access.Identity{Scheme: access.SchemeAPIKey})
+	_, err := a.Server.UpdateClientSettings(ctx, connect.NewRequest(&lighteventv1.UpdateClientSettingsRequest{
+		Settings: &lighteventv1.ClientSettings{AllowedOrigins: []string{"https://www.example.com"}},
+	}))
+	require.NoError(t, err)
+	resp = rpcRequest(t, http.MethodPost, listEvents, "https://www.example.com")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "https://www.example.com", resp.Header.Get("Access-Control-Allow-Origin"))
+
+	// Allowed origins only apply to the API, not to the login form.
+	req, err := http.NewRequest(http.MethodPost, srv.URL+"/auth/login", strings.NewReader("username=admin-user&password=x"))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Origin", "https://www.example.com")
+	req.Header.Set("Sec-Fetch-Site", "cross-site")
+	resp, err = http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	resp.Body.Close()
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+}
+
+func TestInvalidClientAllowedOrigin(t *testing.T) {
+	rc := &config.RuntimeConfig{
+		DatabaseFile:         filepath.Join(t.TempDir(), "test.sqlite3"),
+		ClientAllowedOrigins: []string{"www.example.com"},
+	}
+	_, err := New(context.Background(), rc, Options{Sender: &email.LogSender{}})
+	assert.ErrorContains(t, err, "CLIENT_ALLOWED_ORIGINS")
+}
+
+func TestClientBundle(t *testing.T) {
+	_, srv := newApp(t)
+	resp, err := http.Get(srv.URL + "/client/lightevent-client.js")
+	require.NoError(t, err)
+	resp.Body.Close()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "text/javascript; charset=utf-8", resp.Header.Get("Content-Type"))
+	assert.Equal(t, "cross-origin", resp.Header.Get("Cross-Origin-Resource-Policy"))
 }
 
 func TestRequestBodyLimit(t *testing.T) {

@@ -49,6 +49,12 @@ var Policy = map[string]Allow{
 	"CancelEventDate":        allowAdmin,
 	"ListUpcomingEventDates": allowAdmin,
 
+	// Tags are public; the handler only counts events for administrators.
+	"ListTags":  allowEveryone,
+	"CreateTag": allowAdmin,
+	"UpdateTag": allowAdmin,
+	"DeleteTag": allowAdmin,
+
 	"ListEventRegistrations": allowAdmin,
 	// Members may only read their own registrations; enforced in the handler.
 	"GetRegistration":    allowAuthenticated,
@@ -78,9 +84,14 @@ var Policy = map[string]Allow{
 	"GetSettings":    allowAdmin,
 	"UpdateSettings": allowAdmin,
 
+	"GetClientSettings":    allowAdmin,
+	"UpdateClientSettings": allowAdmin,
+	"GetClientConfig":      allowEveryone,
+
 	"BeginVerification":    allowEveryone,
 	"CompleteVerification": allowEveryone,
 
+	"GetMyProfile":         AllowMember,
 	"Register":             AllowMember,
 	"ListMyRegistrations":  AllowMember,
 	"CancelMyRegistration": AllowMember,

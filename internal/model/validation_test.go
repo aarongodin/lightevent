@@ -183,3 +183,35 @@ func TestEvent(t *testing.T) {
 	_, err = Event(nil)
 	assert.Error(t, err)
 }
+
+func TestOrigin(t *testing.T) {
+	for in, want := range map[string]string{
+		"https://www.example.com":       "https://www.example.com",
+		" https://WWW.Example.com/ ":    "https://www.example.com",
+		"https://example.com:443":       "https://example.com",
+		"http://example.com:80":         "http://example.com",
+		"http://localhost:5600":         "http://localhost:5600",
+		"http://[::1]:8080":             "http://[::1]:8080",
+		"https://example.com:8443/":     "https://example.com:8443",
+		"https://xn--bcher-kva.example": "https://xn--bcher-kva.example",
+	} {
+		got, err := Origin("origin", in)
+		require.NoError(t, err, in)
+		assert.Equal(t, want, got, in)
+	}
+	for _, in := range []string{"", "example.com", "ftp://example.com", "https://example.com/path", "https://example.com?q=1",
+		"https://user@example.com", "https://", "javascript:alert(1)", "https://example.com#x"} {
+		_, err := Origin("origin", in)
+		assert.Error(t, err, in)
+	}
+}
+
+func TestTagLabel(t *testing.T) {
+	v, err := TagLabel("label", "  Vinyasa Yoga ")
+	require.NoError(t, err)
+	assert.Equal(t, "Vinyasa Yoga", v)
+	_, err = TagLabel("label", "")
+	assert.Error(t, err)
+	_, err = TagLabel("label", strings.Repeat("a", MaxTagLabelLength+1))
+	assert.Error(t, err)
+}

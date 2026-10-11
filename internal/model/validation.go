@@ -3,7 +3,9 @@ package model
 
 import (
 	"fmt"
+	"net"
 	"net/mail"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -35,6 +37,9 @@ const (
 	MaxEmailLength       = 254
 	MaxCapacity          = 100000
 	MaxEventDates        = 500
+	MaxEventTags         = 50
+	MaxTagLabelLength    = 50
+	MaxAllowedOrigins    = 20
 	// MaxPasswordBytes is bcrypt's input limit.
 	MaxPasswordBytes = 72
 )
@@ -57,6 +62,45 @@ func EventName(field, value string) (string, error) {
 		return "", invalid(field, "may only contain letters, numbers, and single dashes or underscores between them")
 	}
 	return v, nil
+}
+
+// TagName validates the URL-safe identifier of a tag. It follows the same rules as event names.
+func TagName(field, value string) (string, error) {
+	return EventName(field, value)
+}
+
+// TagLabel validates the display label of a tag.
+func TagLabel(field, value string) (string, error) {
+	v, err := Title(field, value)
+	if err != nil {
+		return "", err
+	}
+	if utf8.RuneCountInString(v) > MaxTagLabelLength {
+		return "", invalid(field, fmt.Sprintf("must be at most %d characters", MaxTagLabelLength))
+	}
+	return v, nil
+}
+
+// Origin validates and normalizes a web origin such as "https://www.example.com". Paths, queries and
+// credentials are rejected, and default ports are removed.
+func Origin(field, value string) (string, error) {
+	v := strings.TrimSuffix(strings.TrimSpace(value), "/")
+	u, err := url.Parse(v)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.Path != "" ||
+		u.RawQuery != "" || u.Fragment != "" || u.User != nil || u.Opaque != "" {
+		return "", invalid(field, "must be an origin such as https://www.example.com")
+	}
+	host := strings.ToLower(u.Hostname())
+	port := u.Port()
+	if (u.Scheme == "http" && port == "80") || (u.Scheme == "https" && port == "443") {
+		port = ""
+	}
+	if port != "" {
+		host = net.JoinHostPort(host, port)
+	} else if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	return u.Scheme + "://" + host, nil
 }
 
 // Title validates a required single-line title.

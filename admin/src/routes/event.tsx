@@ -18,6 +18,20 @@ import { RegistrationKindBadge } from "../units/values"
 import { EventStatusBadges } from "./event-status"
 import NotFound from "./not-found"
 
+function EventTags({ names }: { names: string[] }) {
+  const tags = useQuery(LightEventService.method.listTags, {})
+  const labels = new Map(tags.data?.tags.map((t) => [t.name, t.label]))
+  return (
+    <span className="flex flex-wrap gap-1">
+      {names.map((name) => (
+        <Badge key={name} variant="gray">
+          {labels.get(name) ?? name}
+        </Badge>
+      ))}
+    </span>
+  )
+}
+
 function DateRow({ event, date }: { event: Evt; date: EventDate }) {
   const confirm = useConfirm()
   const toast = useToast()
@@ -248,6 +262,7 @@ function EventView({ event }: { event: Evt }) {
               items={[
                 { title: "Status", value: <EventStatusBadges event={event} /> },
                 { title: "Description", value: event.description },
+                { title: "Tags", value: event.tags.length ? <EventTags names={event.tags} /> : "" },
                 { title: "Capacity", value: event.capacity > 0 ? `${event.capacity} per date` : "Unlimited" },
                 { title: "Created", value: formatDateTime(event.createdAt) },
                 { title: "Last updated", value: formatDateTime(event.updatedAt) },

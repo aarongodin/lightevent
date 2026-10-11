@@ -18,6 +18,10 @@ export COOKIE_SECURE=false
 # Set behind a reverse proxy that sets X-Forwarded-For, so rate limits apply per client.
 # export TRUST_PROXY_HEADERS=true
 
+# Websites that embed the client app, in addition to the origins configured in the admin UI
+# (Settings → Client app). The client app playground (make dev-client) runs on port 5600.
+export CLIENT_ALLOWED_ORIGINS=http://localhost:5600
+
 # Creates the first user when the database has no users. Remove the password once the user exists.
 export BOOTSTRAP_USERNAME=admin
 export BOOTSTRAP_PASSWORD=change-me-please

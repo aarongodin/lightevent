@@ -1,32 +1,37 @@
-import fs from "fs"
-import path from "path"
-import { defineConfig } from "vite"
+import { writeFileSync } from "node:fs"
+import { resolve } from "node:path"
+import { defineConfig, type Plugin } from "vite"
 
-import preact from "@preact/preset-vite"
+// The server embeds client/dist with go:embed, which requires the directory to exist in a fresh checkout.
+// Vite empties dist on every build, so restore the tracked placeholder afterwards.
+function keepDistPlaceholder(): Plugin {
+  return {
+    name: "keep-dist-placeholder",
+    apply: "build",
+    closeBundle() {
+      writeFileSync(resolve(import.meta.dirname, "dist/.gitkeep"), "")
+    },
+  }
+}
 
-const { HOST: host, PORT: port } = process.env
-const serverURL = `http://${host}:${port}`
-
+// The client app is built as a single script (an IIFE that defines the LightEventClient global) with its CSS
+// inlined, so websites embed it with one <script> tag. The dev server serves index.html, a playground page.
 export default defineConfig({
-  plugins: [preact()],
+  plugins: [keepDistPlaceholder()],
+  oxc: {
+    jsx: { runtime: "automatic", importSource: "preact" },
+  },
   server: {
-    hmr: false,
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, "../.cert/key.pem")),
-      cert: fs.readFileSync(path.resolve(__dirname, "../.cert/cert.pem")),
-    },
-    port: 6500,
-    proxy: {
-      "/client": serverURL,
-    },
+    port: 5600,
+    strictPort: true,
   },
   build: {
+    target: "es2020",
     lib: {
-      // Could also be a dictionary or array of multiple entry points
-      entry: path.resolve(__dirname, "src/index.ts"),
+      entry: "src/index.ts",
       name: "LightEventClient",
-      // the proper extensions will be added
-      fileName: "lightevent-client",
+      formats: ["iife"],
+      fileName: () => "lightevent-client.js",
     },
   },
 })

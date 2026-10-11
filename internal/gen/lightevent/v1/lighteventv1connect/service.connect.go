@@ -59,6 +59,18 @@ const (
 	// LightEventServiceListUpcomingEventDatesProcedure is the fully-qualified name of the
 	// LightEventService's ListUpcomingEventDates RPC.
 	LightEventServiceListUpcomingEventDatesProcedure = "/lightevent.v1.LightEventService/ListUpcomingEventDates"
+	// LightEventServiceListTagsProcedure is the fully-qualified name of the LightEventService's
+	// ListTags RPC.
+	LightEventServiceListTagsProcedure = "/lightevent.v1.LightEventService/ListTags"
+	// LightEventServiceCreateTagProcedure is the fully-qualified name of the LightEventService's
+	// CreateTag RPC.
+	LightEventServiceCreateTagProcedure = "/lightevent.v1.LightEventService/CreateTag"
+	// LightEventServiceUpdateTagProcedure is the fully-qualified name of the LightEventService's
+	// UpdateTag RPC.
+	LightEventServiceUpdateTagProcedure = "/lightevent.v1.LightEventService/UpdateTag"
+	// LightEventServiceDeleteTagProcedure is the fully-qualified name of the LightEventService's
+	// DeleteTag RPC.
+	LightEventServiceDeleteTagProcedure = "/lightevent.v1.LightEventService/DeleteTag"
 	// LightEventServiceListEventRegistrationsProcedure is the fully-qualified name of the
 	// LightEventService's ListEventRegistrations RPC.
 	LightEventServiceListEventRegistrationsProcedure = "/lightevent.v1.LightEventService/ListEventRegistrations"
@@ -125,12 +137,24 @@ const (
 	// LightEventServiceUpdateSettingsProcedure is the fully-qualified name of the LightEventService's
 	// UpdateSettings RPC.
 	LightEventServiceUpdateSettingsProcedure = "/lightevent.v1.LightEventService/UpdateSettings"
+	// LightEventServiceGetClientSettingsProcedure is the fully-qualified name of the
+	// LightEventService's GetClientSettings RPC.
+	LightEventServiceGetClientSettingsProcedure = "/lightevent.v1.LightEventService/GetClientSettings"
+	// LightEventServiceUpdateClientSettingsProcedure is the fully-qualified name of the
+	// LightEventService's UpdateClientSettings RPC.
+	LightEventServiceUpdateClientSettingsProcedure = "/lightevent.v1.LightEventService/UpdateClientSettings"
+	// LightEventServiceGetClientConfigProcedure is the fully-qualified name of the LightEventService's
+	// GetClientConfig RPC.
+	LightEventServiceGetClientConfigProcedure = "/lightevent.v1.LightEventService/GetClientConfig"
 	// LightEventServiceBeginVerificationProcedure is the fully-qualified name of the
 	// LightEventService's BeginVerification RPC.
 	LightEventServiceBeginVerificationProcedure = "/lightevent.v1.LightEventService/BeginVerification"
 	// LightEventServiceCompleteVerificationProcedure is the fully-qualified name of the
 	// LightEventService's CompleteVerification RPC.
 	LightEventServiceCompleteVerificationProcedure = "/lightevent.v1.LightEventService/CompleteVerification"
+	// LightEventServiceGetMyProfileProcedure is the fully-qualified name of the LightEventService's
+	// GetMyProfile RPC.
+	LightEventServiceGetMyProfileProcedure = "/lightevent.v1.LightEventService/GetMyProfile"
 	// LightEventServiceRegisterProcedure is the fully-qualified name of the LightEventService's
 	// Register RPC.
 	LightEventServiceRegisterProcedure = "/lightevent.v1.LightEventService/Register"
@@ -158,6 +182,11 @@ type LightEventServiceClient interface {
 	DeleteEvent(context.Context, *connect.Request[v1.DeleteEventRequest]) (*connect.Response[v1.DeleteEventResponse], error)
 	CancelEventDate(context.Context, *connect.Request[v1.CancelEventDateRequest]) (*connect.Response[v1.CancelEventDateResponse], error)
 	ListUpcomingEventDates(context.Context, *connect.Request[v1.ListUpcomingEventDatesRequest]) (*connect.Response[v1.ListUpcomingEventDatesResponse], error)
+	// Tags are admin-defined labels assigned to events, which members use to filter events in the client app.
+	ListTags(context.Context, *connect.Request[v1.ListTagsRequest]) (*connect.Response[v1.ListTagsResponse], error)
+	CreateTag(context.Context, *connect.Request[v1.CreateTagRequest]) (*connect.Response[v1.CreateTagResponse], error)
+	UpdateTag(context.Context, *connect.Request[v1.UpdateTagRequest]) (*connect.Response[v1.UpdateTagResponse], error)
+	DeleteTag(context.Context, *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error)
 	// Registrations (admin)
 	ListEventRegistrations(context.Context, *connect.Request[v1.ListEventRegistrationsRequest]) (*connect.Response[v1.ListEventRegistrationsResponse], error)
 	GetRegistration(context.Context, *connect.Request[v1.GetRegistrationRequest]) (*connect.Response[v1.GetRegistrationResponse], error)
@@ -186,9 +215,14 @@ type LightEventServiceClient interface {
 	// Settings (admin)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
 	UpdateSettings(context.Context, *connect.Request[v1.UpdateSettingsRequest]) (*connect.Response[v1.UpdateSettingsResponse], error)
+	GetClientSettings(context.Context, *connect.Request[v1.GetClientSettingsRequest]) (*connect.Response[v1.GetClientSettingsResponse], error)
+	UpdateClientSettings(context.Context, *connect.Request[v1.UpdateClientSettingsRequest]) (*connect.Response[v1.UpdateClientSettingsResponse], error)
+	// GetClientConfig returns the public configuration of the client app.
+	GetClientConfig(context.Context, *connect.Request[v1.GetClientConfigRequest]) (*connect.Response[v1.GetClientConfigResponse], error)
 	// Member self-service (used by the client app)
 	BeginVerification(context.Context, *connect.Request[v1.BeginVerificationRequest]) (*connect.Response[v1.BeginVerificationResponse], error)
 	CompleteVerification(context.Context, *connect.Request[v1.CompleteVerificationRequest]) (*connect.Response[v1.CompleteVerificationResponse], error)
+	GetMyProfile(context.Context, *connect.Request[v1.GetMyProfileRequest]) (*connect.Response[v1.GetMyProfileResponse], error)
 	Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error)
 	ListMyRegistrations(context.Context, *connect.Request[v1.ListMyRegistrationsRequest]) (*connect.Response[v1.ListMyRegistrationsResponse], error)
 	CancelMyRegistration(context.Context, *connect.Request[v1.CancelMyRegistrationRequest]) (*connect.Response[v1.CancelMyRegistrationResponse], error)
@@ -258,6 +292,30 @@ func NewLightEventServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			httpClient,
 			baseURL+LightEventServiceListUpcomingEventDatesProcedure,
 			connect.WithSchema(lightEventServiceMethods.ByName("ListUpcomingEventDates")),
+			connect.WithClientOptions(opts...),
+		),
+		listTags: connect.NewClient[v1.ListTagsRequest, v1.ListTagsResponse](
+			httpClient,
+			baseURL+LightEventServiceListTagsProcedure,
+			connect.WithSchema(lightEventServiceMethods.ByName("ListTags")),
+			connect.WithClientOptions(opts...),
+		),
+		createTag: connect.NewClient[v1.CreateTagRequest, v1.CreateTagResponse](
+			httpClient,
+			baseURL+LightEventServiceCreateTagProcedure,
+			connect.WithSchema(lightEventServiceMethods.ByName("CreateTag")),
+			connect.WithClientOptions(opts...),
+		),
+		updateTag: connect.NewClient[v1.UpdateTagRequest, v1.UpdateTagResponse](
+			httpClient,
+			baseURL+LightEventServiceUpdateTagProcedure,
+			connect.WithSchema(lightEventServiceMethods.ByName("UpdateTag")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteTag: connect.NewClient[v1.DeleteTagRequest, v1.DeleteTagResponse](
+			httpClient,
+			baseURL+LightEventServiceDeleteTagProcedure,
+			connect.WithSchema(lightEventServiceMethods.ByName("DeleteTag")),
 			connect.WithClientOptions(opts...),
 		),
 		listEventRegistrations: connect.NewClient[v1.ListEventRegistrationsRequest, v1.ListEventRegistrationsResponse](
@@ -392,6 +450,24 @@ func NewLightEventServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(lightEventServiceMethods.ByName("UpdateSettings")),
 			connect.WithClientOptions(opts...),
 		),
+		getClientSettings: connect.NewClient[v1.GetClientSettingsRequest, v1.GetClientSettingsResponse](
+			httpClient,
+			baseURL+LightEventServiceGetClientSettingsProcedure,
+			connect.WithSchema(lightEventServiceMethods.ByName("GetClientSettings")),
+			connect.WithClientOptions(opts...),
+		),
+		updateClientSettings: connect.NewClient[v1.UpdateClientSettingsRequest, v1.UpdateClientSettingsResponse](
+			httpClient,
+			baseURL+LightEventServiceUpdateClientSettingsProcedure,
+			connect.WithSchema(lightEventServiceMethods.ByName("UpdateClientSettings")),
+			connect.WithClientOptions(opts...),
+		),
+		getClientConfig: connect.NewClient[v1.GetClientConfigRequest, v1.GetClientConfigResponse](
+			httpClient,
+			baseURL+LightEventServiceGetClientConfigProcedure,
+			connect.WithSchema(lightEventServiceMethods.ByName("GetClientConfig")),
+			connect.WithClientOptions(opts...),
+		),
 		beginVerification: connect.NewClient[v1.BeginVerificationRequest, v1.BeginVerificationResponse](
 			httpClient,
 			baseURL+LightEventServiceBeginVerificationProcedure,
@@ -402,6 +478,12 @@ func NewLightEventServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			httpClient,
 			baseURL+LightEventServiceCompleteVerificationProcedure,
 			connect.WithSchema(lightEventServiceMethods.ByName("CompleteVerification")),
+			connect.WithClientOptions(opts...),
+		),
+		getMyProfile: connect.NewClient[v1.GetMyProfileRequest, v1.GetMyProfileResponse](
+			httpClient,
+			baseURL+LightEventServiceGetMyProfileProcedure,
+			connect.WithSchema(lightEventServiceMethods.ByName("GetMyProfile")),
 			connect.WithClientOptions(opts...),
 		),
 		register: connect.NewClient[v1.RegisterRequest, v1.RegisterResponse](
@@ -442,6 +524,10 @@ type lightEventServiceClient struct {
 	deleteEvent             *connect.Client[v1.DeleteEventRequest, v1.DeleteEventResponse]
 	cancelEventDate         *connect.Client[v1.CancelEventDateRequest, v1.CancelEventDateResponse]
 	listUpcomingEventDates  *connect.Client[v1.ListUpcomingEventDatesRequest, v1.ListUpcomingEventDatesResponse]
+	listTags                *connect.Client[v1.ListTagsRequest, v1.ListTagsResponse]
+	createTag               *connect.Client[v1.CreateTagRequest, v1.CreateTagResponse]
+	updateTag               *connect.Client[v1.UpdateTagRequest, v1.UpdateTagResponse]
+	deleteTag               *connect.Client[v1.DeleteTagRequest, v1.DeleteTagResponse]
 	listEventRegistrations  *connect.Client[v1.ListEventRegistrationsRequest, v1.ListEventRegistrationsResponse]
 	getRegistration         *connect.Client[v1.GetRegistrationRequest, v1.GetRegistrationResponse]
 	createRegistration      *connect.Client[v1.CreateRegistrationRequest, v1.CreateRegistrationResponse]
@@ -464,8 +550,12 @@ type lightEventServiceClient struct {
 	deleteAPIKey            *connect.Client[v1.DeleteAPIKeyRequest, v1.DeleteAPIKeyResponse]
 	getSettings             *connect.Client[v1.GetSettingsRequest, v1.GetSettingsResponse]
 	updateSettings          *connect.Client[v1.UpdateSettingsRequest, v1.UpdateSettingsResponse]
+	getClientSettings       *connect.Client[v1.GetClientSettingsRequest, v1.GetClientSettingsResponse]
+	updateClientSettings    *connect.Client[v1.UpdateClientSettingsRequest, v1.UpdateClientSettingsResponse]
+	getClientConfig         *connect.Client[v1.GetClientConfigRequest, v1.GetClientConfigResponse]
 	beginVerification       *connect.Client[v1.BeginVerificationRequest, v1.BeginVerificationResponse]
 	completeVerification    *connect.Client[v1.CompleteVerificationRequest, v1.CompleteVerificationResponse]
+	getMyProfile            *connect.Client[v1.GetMyProfileRequest, v1.GetMyProfileResponse]
 	register                *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
 	listMyRegistrations     *connect.Client[v1.ListMyRegistrationsRequest, v1.ListMyRegistrationsResponse]
 	cancelMyRegistration    *connect.Client[v1.CancelMyRegistrationRequest, v1.CancelMyRegistrationResponse]
@@ -515,6 +605,26 @@ func (c *lightEventServiceClient) CancelEventDate(ctx context.Context, req *conn
 // ListUpcomingEventDates calls lightevent.v1.LightEventService.ListUpcomingEventDates.
 func (c *lightEventServiceClient) ListUpcomingEventDates(ctx context.Context, req *connect.Request[v1.ListUpcomingEventDatesRequest]) (*connect.Response[v1.ListUpcomingEventDatesResponse], error) {
 	return c.listUpcomingEventDates.CallUnary(ctx, req)
+}
+
+// ListTags calls lightevent.v1.LightEventService.ListTags.
+func (c *lightEventServiceClient) ListTags(ctx context.Context, req *connect.Request[v1.ListTagsRequest]) (*connect.Response[v1.ListTagsResponse], error) {
+	return c.listTags.CallUnary(ctx, req)
+}
+
+// CreateTag calls lightevent.v1.LightEventService.CreateTag.
+func (c *lightEventServiceClient) CreateTag(ctx context.Context, req *connect.Request[v1.CreateTagRequest]) (*connect.Response[v1.CreateTagResponse], error) {
+	return c.createTag.CallUnary(ctx, req)
+}
+
+// UpdateTag calls lightevent.v1.LightEventService.UpdateTag.
+func (c *lightEventServiceClient) UpdateTag(ctx context.Context, req *connect.Request[v1.UpdateTagRequest]) (*connect.Response[v1.UpdateTagResponse], error) {
+	return c.updateTag.CallUnary(ctx, req)
+}
+
+// DeleteTag calls lightevent.v1.LightEventService.DeleteTag.
+func (c *lightEventServiceClient) DeleteTag(ctx context.Context, req *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error) {
+	return c.deleteTag.CallUnary(ctx, req)
 }
 
 // ListEventRegistrations calls lightevent.v1.LightEventService.ListEventRegistrations.
@@ -627,6 +737,21 @@ func (c *lightEventServiceClient) UpdateSettings(ctx context.Context, req *conne
 	return c.updateSettings.CallUnary(ctx, req)
 }
 
+// GetClientSettings calls lightevent.v1.LightEventService.GetClientSettings.
+func (c *lightEventServiceClient) GetClientSettings(ctx context.Context, req *connect.Request[v1.GetClientSettingsRequest]) (*connect.Response[v1.GetClientSettingsResponse], error) {
+	return c.getClientSettings.CallUnary(ctx, req)
+}
+
+// UpdateClientSettings calls lightevent.v1.LightEventService.UpdateClientSettings.
+func (c *lightEventServiceClient) UpdateClientSettings(ctx context.Context, req *connect.Request[v1.UpdateClientSettingsRequest]) (*connect.Response[v1.UpdateClientSettingsResponse], error) {
+	return c.updateClientSettings.CallUnary(ctx, req)
+}
+
+// GetClientConfig calls lightevent.v1.LightEventService.GetClientConfig.
+func (c *lightEventServiceClient) GetClientConfig(ctx context.Context, req *connect.Request[v1.GetClientConfigRequest]) (*connect.Response[v1.GetClientConfigResponse], error) {
+	return c.getClientConfig.CallUnary(ctx, req)
+}
+
 // BeginVerification calls lightevent.v1.LightEventService.BeginVerification.
 func (c *lightEventServiceClient) BeginVerification(ctx context.Context, req *connect.Request[v1.BeginVerificationRequest]) (*connect.Response[v1.BeginVerificationResponse], error) {
 	return c.beginVerification.CallUnary(ctx, req)
@@ -635,6 +760,11 @@ func (c *lightEventServiceClient) BeginVerification(ctx context.Context, req *co
 // CompleteVerification calls lightevent.v1.LightEventService.CompleteVerification.
 func (c *lightEventServiceClient) CompleteVerification(ctx context.Context, req *connect.Request[v1.CompleteVerificationRequest]) (*connect.Response[v1.CompleteVerificationResponse], error) {
 	return c.completeVerification.CallUnary(ctx, req)
+}
+
+// GetMyProfile calls lightevent.v1.LightEventService.GetMyProfile.
+func (c *lightEventServiceClient) GetMyProfile(ctx context.Context, req *connect.Request[v1.GetMyProfileRequest]) (*connect.Response[v1.GetMyProfileResponse], error) {
+	return c.getMyProfile.CallUnary(ctx, req)
 }
 
 // Register calls lightevent.v1.LightEventService.Register.
@@ -670,6 +800,11 @@ type LightEventServiceHandler interface {
 	DeleteEvent(context.Context, *connect.Request[v1.DeleteEventRequest]) (*connect.Response[v1.DeleteEventResponse], error)
 	CancelEventDate(context.Context, *connect.Request[v1.CancelEventDateRequest]) (*connect.Response[v1.CancelEventDateResponse], error)
 	ListUpcomingEventDates(context.Context, *connect.Request[v1.ListUpcomingEventDatesRequest]) (*connect.Response[v1.ListUpcomingEventDatesResponse], error)
+	// Tags are admin-defined labels assigned to events, which members use to filter events in the client app.
+	ListTags(context.Context, *connect.Request[v1.ListTagsRequest]) (*connect.Response[v1.ListTagsResponse], error)
+	CreateTag(context.Context, *connect.Request[v1.CreateTagRequest]) (*connect.Response[v1.CreateTagResponse], error)
+	UpdateTag(context.Context, *connect.Request[v1.UpdateTagRequest]) (*connect.Response[v1.UpdateTagResponse], error)
+	DeleteTag(context.Context, *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error)
 	// Registrations (admin)
 	ListEventRegistrations(context.Context, *connect.Request[v1.ListEventRegistrationsRequest]) (*connect.Response[v1.ListEventRegistrationsResponse], error)
 	GetRegistration(context.Context, *connect.Request[v1.GetRegistrationRequest]) (*connect.Response[v1.GetRegistrationResponse], error)
@@ -698,9 +833,14 @@ type LightEventServiceHandler interface {
 	// Settings (admin)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
 	UpdateSettings(context.Context, *connect.Request[v1.UpdateSettingsRequest]) (*connect.Response[v1.UpdateSettingsResponse], error)
+	GetClientSettings(context.Context, *connect.Request[v1.GetClientSettingsRequest]) (*connect.Response[v1.GetClientSettingsResponse], error)
+	UpdateClientSettings(context.Context, *connect.Request[v1.UpdateClientSettingsRequest]) (*connect.Response[v1.UpdateClientSettingsResponse], error)
+	// GetClientConfig returns the public configuration of the client app.
+	GetClientConfig(context.Context, *connect.Request[v1.GetClientConfigRequest]) (*connect.Response[v1.GetClientConfigResponse], error)
 	// Member self-service (used by the client app)
 	BeginVerification(context.Context, *connect.Request[v1.BeginVerificationRequest]) (*connect.Response[v1.BeginVerificationResponse], error)
 	CompleteVerification(context.Context, *connect.Request[v1.CompleteVerificationRequest]) (*connect.Response[v1.CompleteVerificationResponse], error)
+	GetMyProfile(context.Context, *connect.Request[v1.GetMyProfileRequest]) (*connect.Response[v1.GetMyProfileResponse], error)
 	Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error)
 	ListMyRegistrations(context.Context, *connect.Request[v1.ListMyRegistrationsRequest]) (*connect.Response[v1.ListMyRegistrationsResponse], error)
 	CancelMyRegistration(context.Context, *connect.Request[v1.CancelMyRegistrationRequest]) (*connect.Response[v1.CancelMyRegistrationResponse], error)
@@ -766,6 +906,30 @@ func NewLightEventServiceHandler(svc LightEventServiceHandler, opts ...connect.H
 		LightEventServiceListUpcomingEventDatesProcedure,
 		svc.ListUpcomingEventDates,
 		connect.WithSchema(lightEventServiceMethods.ByName("ListUpcomingEventDates")),
+		connect.WithHandlerOptions(opts...),
+	)
+	lightEventServiceListTagsHandler := connect.NewUnaryHandler(
+		LightEventServiceListTagsProcedure,
+		svc.ListTags,
+		connect.WithSchema(lightEventServiceMethods.ByName("ListTags")),
+		connect.WithHandlerOptions(opts...),
+	)
+	lightEventServiceCreateTagHandler := connect.NewUnaryHandler(
+		LightEventServiceCreateTagProcedure,
+		svc.CreateTag,
+		connect.WithSchema(lightEventServiceMethods.ByName("CreateTag")),
+		connect.WithHandlerOptions(opts...),
+	)
+	lightEventServiceUpdateTagHandler := connect.NewUnaryHandler(
+		LightEventServiceUpdateTagProcedure,
+		svc.UpdateTag,
+		connect.WithSchema(lightEventServiceMethods.ByName("UpdateTag")),
+		connect.WithHandlerOptions(opts...),
+	)
+	lightEventServiceDeleteTagHandler := connect.NewUnaryHandler(
+		LightEventServiceDeleteTagProcedure,
+		svc.DeleteTag,
+		connect.WithSchema(lightEventServiceMethods.ByName("DeleteTag")),
 		connect.WithHandlerOptions(opts...),
 	)
 	lightEventServiceListEventRegistrationsHandler := connect.NewUnaryHandler(
@@ -900,6 +1064,24 @@ func NewLightEventServiceHandler(svc LightEventServiceHandler, opts ...connect.H
 		connect.WithSchema(lightEventServiceMethods.ByName("UpdateSettings")),
 		connect.WithHandlerOptions(opts...),
 	)
+	lightEventServiceGetClientSettingsHandler := connect.NewUnaryHandler(
+		LightEventServiceGetClientSettingsProcedure,
+		svc.GetClientSettings,
+		connect.WithSchema(lightEventServiceMethods.ByName("GetClientSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
+	lightEventServiceUpdateClientSettingsHandler := connect.NewUnaryHandler(
+		LightEventServiceUpdateClientSettingsProcedure,
+		svc.UpdateClientSettings,
+		connect.WithSchema(lightEventServiceMethods.ByName("UpdateClientSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
+	lightEventServiceGetClientConfigHandler := connect.NewUnaryHandler(
+		LightEventServiceGetClientConfigProcedure,
+		svc.GetClientConfig,
+		connect.WithSchema(lightEventServiceMethods.ByName("GetClientConfig")),
+		connect.WithHandlerOptions(opts...),
+	)
 	lightEventServiceBeginVerificationHandler := connect.NewUnaryHandler(
 		LightEventServiceBeginVerificationProcedure,
 		svc.BeginVerification,
@@ -910,6 +1092,12 @@ func NewLightEventServiceHandler(svc LightEventServiceHandler, opts ...connect.H
 		LightEventServiceCompleteVerificationProcedure,
 		svc.CompleteVerification,
 		connect.WithSchema(lightEventServiceMethods.ByName("CompleteVerification")),
+		connect.WithHandlerOptions(opts...),
+	)
+	lightEventServiceGetMyProfileHandler := connect.NewUnaryHandler(
+		LightEventServiceGetMyProfileProcedure,
+		svc.GetMyProfile,
+		connect.WithSchema(lightEventServiceMethods.ByName("GetMyProfile")),
 		connect.WithHandlerOptions(opts...),
 	)
 	lightEventServiceRegisterHandler := connect.NewUnaryHandler(
@@ -956,6 +1144,14 @@ func NewLightEventServiceHandler(svc LightEventServiceHandler, opts ...connect.H
 			lightEventServiceCancelEventDateHandler.ServeHTTP(w, r)
 		case LightEventServiceListUpcomingEventDatesProcedure:
 			lightEventServiceListUpcomingEventDatesHandler.ServeHTTP(w, r)
+		case LightEventServiceListTagsProcedure:
+			lightEventServiceListTagsHandler.ServeHTTP(w, r)
+		case LightEventServiceCreateTagProcedure:
+			lightEventServiceCreateTagHandler.ServeHTTP(w, r)
+		case LightEventServiceUpdateTagProcedure:
+			lightEventServiceUpdateTagHandler.ServeHTTP(w, r)
+		case LightEventServiceDeleteTagProcedure:
+			lightEventServiceDeleteTagHandler.ServeHTTP(w, r)
 		case LightEventServiceListEventRegistrationsProcedure:
 			lightEventServiceListEventRegistrationsHandler.ServeHTTP(w, r)
 		case LightEventServiceGetRegistrationProcedure:
@@ -1000,10 +1196,18 @@ func NewLightEventServiceHandler(svc LightEventServiceHandler, opts ...connect.H
 			lightEventServiceGetSettingsHandler.ServeHTTP(w, r)
 		case LightEventServiceUpdateSettingsProcedure:
 			lightEventServiceUpdateSettingsHandler.ServeHTTP(w, r)
+		case LightEventServiceGetClientSettingsProcedure:
+			lightEventServiceGetClientSettingsHandler.ServeHTTP(w, r)
+		case LightEventServiceUpdateClientSettingsProcedure:
+			lightEventServiceUpdateClientSettingsHandler.ServeHTTP(w, r)
+		case LightEventServiceGetClientConfigProcedure:
+			lightEventServiceGetClientConfigHandler.ServeHTTP(w, r)
 		case LightEventServiceBeginVerificationProcedure:
 			lightEventServiceBeginVerificationHandler.ServeHTTP(w, r)
 		case LightEventServiceCompleteVerificationProcedure:
 			lightEventServiceCompleteVerificationHandler.ServeHTTP(w, r)
+		case LightEventServiceGetMyProfileProcedure:
+			lightEventServiceGetMyProfileHandler.ServeHTTP(w, r)
 		case LightEventServiceRegisterProcedure:
 			lightEventServiceRegisterHandler.ServeHTTP(w, r)
 		case LightEventServiceListMyRegistrationsProcedure:
@@ -1055,6 +1259,22 @@ func (UnimplementedLightEventServiceHandler) CancelEventDate(context.Context, *c
 
 func (UnimplementedLightEventServiceHandler) ListUpcomingEventDates(context.Context, *connect.Request[v1.ListUpcomingEventDatesRequest]) (*connect.Response[v1.ListUpcomingEventDatesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.ListUpcomingEventDates is not implemented"))
+}
+
+func (UnimplementedLightEventServiceHandler) ListTags(context.Context, *connect.Request[v1.ListTagsRequest]) (*connect.Response[v1.ListTagsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.ListTags is not implemented"))
+}
+
+func (UnimplementedLightEventServiceHandler) CreateTag(context.Context, *connect.Request[v1.CreateTagRequest]) (*connect.Response[v1.CreateTagResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.CreateTag is not implemented"))
+}
+
+func (UnimplementedLightEventServiceHandler) UpdateTag(context.Context, *connect.Request[v1.UpdateTagRequest]) (*connect.Response[v1.UpdateTagResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.UpdateTag is not implemented"))
+}
+
+func (UnimplementedLightEventServiceHandler) DeleteTag(context.Context, *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.DeleteTag is not implemented"))
 }
 
 func (UnimplementedLightEventServiceHandler) ListEventRegistrations(context.Context, *connect.Request[v1.ListEventRegistrationsRequest]) (*connect.Response[v1.ListEventRegistrationsResponse], error) {
@@ -1145,12 +1365,28 @@ func (UnimplementedLightEventServiceHandler) UpdateSettings(context.Context, *co
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.UpdateSettings is not implemented"))
 }
 
+func (UnimplementedLightEventServiceHandler) GetClientSettings(context.Context, *connect.Request[v1.GetClientSettingsRequest]) (*connect.Response[v1.GetClientSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.GetClientSettings is not implemented"))
+}
+
+func (UnimplementedLightEventServiceHandler) UpdateClientSettings(context.Context, *connect.Request[v1.UpdateClientSettingsRequest]) (*connect.Response[v1.UpdateClientSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.UpdateClientSettings is not implemented"))
+}
+
+func (UnimplementedLightEventServiceHandler) GetClientConfig(context.Context, *connect.Request[v1.GetClientConfigRequest]) (*connect.Response[v1.GetClientConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.GetClientConfig is not implemented"))
+}
+
 func (UnimplementedLightEventServiceHandler) BeginVerification(context.Context, *connect.Request[v1.BeginVerificationRequest]) (*connect.Response[v1.BeginVerificationResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.BeginVerification is not implemented"))
 }
 
 func (UnimplementedLightEventServiceHandler) CompleteVerification(context.Context, *connect.Request[v1.CompleteVerificationRequest]) (*connect.Response[v1.CompleteVerificationResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.CompleteVerification is not implemented"))
+}
+
+func (UnimplementedLightEventServiceHandler) GetMyProfile(context.Context, *connect.Request[v1.GetMyProfileRequest]) (*connect.Response[v1.GetMyProfileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("lightevent.v1.LightEventService.GetMyProfile is not implemented"))
 }
 
 func (UnimplementedLightEventServiceHandler) Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error) {

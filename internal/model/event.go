@@ -16,6 +16,8 @@ type EventInput struct {
 	Closed      bool
 	Capacity    int64
 	Dates       []EventDateInput
+	// Tags are unique tag names, in the order given.
+	Tags []string
 }
 
 // EventDateInput is a validated event date. UID is empty for new dates.
@@ -47,6 +49,21 @@ func Event(msg *lighteventv1.Event) (*EventInput, error) {
 	}
 	in.Hidden = msg.Hidden
 	in.Closed = msg.Closed
+
+	if len(msg.Tags) > MaxEventTags {
+		return nil, invalid("event.tags", fmt.Sprintf("event can have at most %d tags", MaxEventTags))
+	}
+	seenTags := make(map[string]bool, len(msg.Tags))
+	for i, t := range msg.Tags {
+		name, err := TagName(fmt.Sprintf("event.tags[%d]", i), t)
+		if err != nil {
+			return nil, err
+		}
+		if !seenTags[name] {
+			seenTags[name] = true
+			in.Tags = append(in.Tags, name)
+		}
+	}
 
 	if len(msg.Dates) == 0 {
 		return nil, invalid("event.dates", "event must have at least one date")
