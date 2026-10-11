@@ -6,10 +6,14 @@ import { logout } from "../lib/rpc"
 import logo from "../static/lightevent.svg"
 
 const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
-  clsx("rounded-md px-3 py-1.5 whitespace-nowrap transition-colors", {
-    "bg-white text-gray-900": isActive,
-    "text-white/90 hover:bg-white/10 hover:text-white": !isActive,
-  })
+  clsx(
+    "block rounded-full px-4 py-1.5 font-medium whitespace-nowrap transition-colors",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+    {
+      "bg-white text-gray-900 shadow-sm": isActive,
+      "text-white/90 hover:bg-white/10 hover:text-white": !isActive,
+    },
+  )
 
 export default function Root() {
   const identity = useIdentity()
@@ -25,7 +29,7 @@ export default function Root() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-4">
             <img src={logo} alt="LightEvent" className="hidden h-5 brightness-0 invert sm:block" />
-            <nav aria-label="Main" className="-mx-1 overflow-x-auto">
+            <nav aria-label="Main" className="-mx-1 overflow-x-auto p-1">
               <ul className="flex gap-1">
                 <li>
                   <NavLink to="/" end className={navLinkClassName}>
@@ -57,7 +61,7 @@ export default function Root() {
             <button
               type="button"
               onClick={() => logout()}
-              className="rounded-md px-3 py-1.5 text-white/90 hover:bg-white/10 hover:text-white"
+              className="rounded-full px-4 py-1.5 font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Sign out
             </button>
