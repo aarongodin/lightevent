@@ -139,9 +139,9 @@ func TestCleanup(t *testing.T) {
 	ctx := context.Background()
 	user, err := a.Store.Queries.GetUserByUsername(ctx, "admin-user")
 	require.NoError(t, err)
-	_, _, err = access.CreateSession(ctx, a.Store.Queries, access.SessionKindUser, user.Uid, time.Now().Add(-2*time.Hour), time.Hour)
+	_, _, err = access.CreateSession(ctx, a.Store.Queries, access.SessionKindUser, user.Uid, time.Now().UTC().Add(-2*time.Hour), time.Hour)
 	require.NoError(t, err)
-	_, _, err = access.CreateSession(ctx, a.Store.Queries, access.SessionKindUser, user.Uid, time.Now(), time.Hour)
+	_, _, err = access.CreateSession(ctx, a.Store.Queries, access.SessionKindUser, user.Uid, time.Now().UTC(), time.Hour)
 	require.NoError(t, err)
 
 	a.Cleanup(ctx)
