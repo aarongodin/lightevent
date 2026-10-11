@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
     "target": "ES2022",
+    "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["jest", "node"]
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "types": ["node"]
   },
-  "include": ["src", "test-api"]
+  "include": ["playwright.config.ts", "tests", "scripts"]
 }
