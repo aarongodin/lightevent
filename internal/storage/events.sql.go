@@ -99,16 +99,26 @@ WHERE
     ELSE e.archived_at IS NULL
   END)
   AND (CAST(?3 AS TEXT) = '' OR instr(lower(e.name), lower(CAST(?3 AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(?3 AS TEXT))) > 0)
+  AND (CAST(?4 AS TEXT) = '[]' OR EXISTS (
+    SELECT 1 FROM event_tags et INNER JOIN tags t ON t.id = et.tag_id
+    WHERE et.event_id = e.id AND t.name IN (SELECT value FROM json_each(CAST(?4 AS TEXT)))
+  ))
 `
 
 type CountEventsParams struct {
 	Now    time.Time
 	Filter string
 	Search string
+	Tags   string
 }
 
 func (q *Queries) CountEvents(ctx context.Context, arg CountEventsParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countEvents, arg.Now, arg.Filter, arg.Search)
+	row := q.db.QueryRowContext(ctx, countEvents,
+		arg.Now,
+		arg.Filter,
+		arg.Search,
+		arg.Tags,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -125,15 +135,20 @@ INNER JOIN (
 ) nd ON nd.event_id = e.id
 WHERE e.hidden = 0 AND e.archived_at IS NULL
   AND (CAST(?2 AS TEXT) = '' OR instr(lower(e.name), lower(CAST(?2 AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(?2 AS TEXT))) > 0)
+  AND (CAST(?3 AS TEXT) = '[]' OR EXISTS (
+    SELECT 1 FROM event_tags et INNER JOIN tags t ON t.id = et.tag_id
+    WHERE et.event_id = e.id AND t.name IN (SELECT value FROM json_each(CAST(?3 AS TEXT)))
+  ))
 `
 
 type CountPublicEventsParams struct {
 	Now    time.Time
 	Search string
+	Tags   string
 }
 
 func (q *Queries) CountPublicEvents(ctx context.Context, arg CountPublicEventsParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countPublicEvents, arg.Now, arg.Search)
+	row := q.db.QueryRowContext(ctx, countPublicEvents, arg.Now, arg.Search, arg.Tags)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -352,25 +367,32 @@ WHERE
     ELSE e.archived_at IS NULL
   END)
   AND (CAST(?3 AS TEXT) = '' OR instr(lower(e.name), lower(CAST(?3 AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(?3 AS TEXT))) > 0)
+  AND (CAST(?4 AS TEXT) = '[]' OR EXISTS (
+    SELECT 1 FROM event_tags et INNER JOIN tags t ON t.id = et.tag_id
+    WHERE et.event_id = e.id AND t.name IN (SELECT value FROM json_each(CAST(?4 AS TEXT)))
+  ))
 ORDER BY nd.next_value IS NULL, nd.next_value, e.created_at DESC, e.id DESC
-LIMIT ?5 OFFSET ?4
+LIMIT ?6 OFFSET ?5
 `
 
 type ListEventsParams struct {
 	Now    time.Time
 	Filter string
 	Search string
+	Tags   string
 	Offset int64
 	Limit  int64
 }
 
 // Lists events for administrators. The filter is one of 'upcoming', 'past', 'archived' or 'all'.
-// Events are ordered by their next upcoming date, then by most recently created.
+// Events are ordered by their next upcoming date, then by most recently created. tags is a JSON array of tag
+// names; when it is not empty, only events with at least one of the tags are listed.
 func (q *Queries) ListEvents(ctx context.Context, arg ListEventsParams) ([]Event, error) {
 	rows, err := q.db.QueryContext(ctx, listEvents,
 		arg.Now,
 		arg.Filter,
 		arg.Search,
+		arg.Tags,
 		arg.Offset,
 		arg.Limit,
 	)
@@ -417,13 +439,18 @@ INNER JOIN (
 ) nd ON nd.event_id = e.id
 WHERE e.hidden = 0 AND e.archived_at IS NULL
   AND (CAST(?2 AS TEXT) = '' OR instr(lower(e.name), lower(CAST(?2 AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(?2 AS TEXT))) > 0)
+  AND (CAST(?3 AS TEXT) = '[]' OR EXISTS (
+    SELECT 1 FROM event_tags et INNER JOIN tags t ON t.id = et.tag_id
+    WHERE et.event_id = e.id AND t.name IN (SELECT value FROM json_each(CAST(?3 AS TEXT)))
+  ))
 ORDER BY nd.next_value, e.id
-LIMIT ?4 OFFSET ?3
+LIMIT ?5 OFFSET ?4
 `
 
 type ListPublicEventsParams struct {
 	Now    time.Time
 	Search string
+	Tags   string
 	Offset int64
 	Limit  int64
 }
@@ -434,6 +461,7 @@ func (q *Queries) ListPublicEvents(ctx context.Context, arg ListPublicEventsPara
 	rows, err := q.db.QueryContext(ctx, listPublicEvents,
 		arg.Now,
 		arg.Search,
+		arg.Tags,
 		arg.Offset,
 		arg.Limit,
 	)

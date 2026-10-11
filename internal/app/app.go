@@ -12,6 +12,7 @@ import (
 	"github.com/aarongodin/lightevent/internal/access"
 	"github.com/aarongodin/lightevent/internal/config"
 	"github.com/aarongodin/lightevent/internal/gen/lightevent/v1/lighteventv1connect"
+	"github.com/aarongodin/lightevent/internal/model"
 	"github.com/aarongodin/lightevent/internal/notifications"
 	"github.com/aarongodin/lightevent/internal/provider/email"
 	"github.com/aarongodin/lightevent/internal/server"
@@ -39,12 +40,22 @@ type Options struct {
 	Sender email.Sender
 	// AdminUI is the file system of the built admin UI.
 	AdminUI fs.FS
+	// ClientApp is the file system of the built client app.
+	ClientApp fs.FS
 	// Now overrides the clock.
 	Now func() time.Time
 }
 
 // New opens storage, creates the bootstrap user if needed and builds the HTTP handler.
 func New(ctx context.Context, rc *config.RuntimeConfig, opts Options) (*App, error) {
+	for i, o := range rc.ClientAllowedOrigins {
+		origin, err := model.Origin("CLIENT_ALLOWED_ORIGINS", o)
+		if err != nil {
+			return nil, err
+		}
+		rc.ClientAllowedOrigins[i] = origin
+	}
+
 	now := opts.Now
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
@@ -76,7 +87,7 @@ func New(ctx context.Context, rc *config.RuntimeConfig, opts Options) (*App, err
 		Server:   server.New(store, rc, notifier, server.WithClock(now)),
 		now:      now,
 	}
-	if a.handler, err = a.buildHandler(opts.AdminUI); err != nil {
+	if a.handler, err = a.buildHandler(opts.AdminUI, opts.ClientApp); err != nil {
 		store.Close()
 		return nil, err
 	}
@@ -88,7 +99,7 @@ func (a *App) Handler() http.Handler {
 	return a.handler
 }
 
-func (a *App) buildHandler(adminUI fs.FS) (http.Handler, error) {
+func (a *App) buildHandler(adminUI, clientApp fs.FS) (http.Handler, error) {
 	mux := http.NewServeMux()
 
 	auth := access.NewAuthenticator(a.Store.Queries, a.now)
@@ -113,12 +124,17 @@ func (a *App) buildHandler(adminUI fs.FS) (http.Handler, error) {
 		w.Write([]byte("ok")) //nolint:errcheck
 	})
 
+	if clientApp != nil {
+		mux.Handle("GET /client/"+web.ClientBundleFile, web.ClientBundle(clientApp))
+	}
+
 	if adminUI != nil {
 		mux.Handle("/", web.SPA(adminUI))
 	}
 
-	// Rejects cross-origin state-changing browser requests (CSRF) using Sec-Fetch-Site / Origin.
-	var h http.Handler = http.NewCrossOriginProtection().Handler(mux)
+	// Rejects cross-origin state-changing browser requests (CSRF) using Sec-Fetch-Site / Origin, except API
+	// requests from websites that embed the client app.
+	var h http.Handler = web.CORS(a.Server.AllowedOrigin, mux, http.NewCrossOriginProtection().Handler(mux))
 	h = web.MaxBodyBytes(maxRequestBytes, h)
 	h = access.ClientIPMiddleware(a.rc.TrustProxyHeaders, h)
 	h = web.SecurityHeaders(a.rc.CookieSecure, h)

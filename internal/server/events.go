@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -13,8 +14,13 @@ import (
 	"github.com/aarongodin/lightevent/internal/storage"
 )
 
-// eventWithDates translates an event and loads its dates (sorted ascending) with registration counts.
+// eventWithDates translates an event and loads its dates (sorted ascending) with registration counts, and
+// its tags.
 func eventWithDates(ctx context.Context, q *storage.Queries, rec storage.Event) (*lighteventv1.Event, error) {
+	tags, err := q.ListTagNamesByEventID(ctx, rec.ID)
+	if err != nil {
+		return nil, err
+	}
 	dates, err := q.ListEventDatesByEventID(ctx, rec.ID)
 	if err != nil {
 		return nil, err
@@ -28,6 +34,7 @@ func eventWithDates(ctx context.Context, q *storage.Queries, rec storage.Event) 
 		byDate[c.EventDateID] = c.OnceCount + c.SeriesCount
 	}
 	event := translateEvent(rec)
+	event.Tags = tags
 	for _, d := range dates {
 		ed := translateEventDate(d)
 		ed.RegistrationCount = int32(byDate[d.ID])
@@ -54,26 +61,46 @@ func eventFilterString(f lighteventv1.EventFilter) string {
 	}
 }
 
+// tagsFilter returns the JSON array of tag names used to filter events.
+func tagsFilter(names []string) (string, error) {
+	if len(names) > model.MaxEventTags {
+		return "", model.ErrValidationFailed{Field: "tags", Reason: fmt.Sprintf("must have at most %d tags", model.MaxEventTags)}
+	}
+	normalized := make([]string, 0, len(names))
+	for i, name := range names {
+		v, err := model.TagName(fmt.Sprintf("tags[%d]", i), name)
+		if err != nil {
+			return "", err
+		}
+		normalized = append(normalized, v)
+	}
+	b, err := json.Marshal(normalized)
+	return string(b), err
+}
+
 func (s *Server) ListEvents(ctx context.Context, req *connect.Request[lighteventv1.ListEventsRequest]) (*connect.Response[lighteventv1.ListEventsResponse], error) {
 	limit := pageLimit(req.Msg.Limit, 50, 200)
 	offset := pageOffset(req.Msg.Offset)
 	now := s.Now()
+	tags, err := tagsFilter(req.Msg.Tags)
+	if err != nil {
+		return nil, errorResponse(ctx, err, "events")
+	}
 
 	var (
 		recs  []storage.Event
 		total int64
-		err   error
 	)
 	if identity(ctx).IsAdmin() {
 		filter := eventFilterString(req.Msg.Filter)
-		recs, err = s.q.ListEvents(ctx, storage.ListEventsParams{Filter: filter, Now: now, Search: req.Msg.Search, Limit: limit, Offset: offset})
+		recs, err = s.q.ListEvents(ctx, storage.ListEventsParams{Filter: filter, Now: now, Search: req.Msg.Search, Tags: tags, Limit: limit, Offset: offset})
 		if err == nil {
-			total, err = s.q.CountEvents(ctx, storage.CountEventsParams{Filter: filter, Now: now, Search: req.Msg.Search})
+			total, err = s.q.CountEvents(ctx, storage.CountEventsParams{Filter: filter, Now: now, Search: req.Msg.Search, Tags: tags})
 		}
 	} else {
-		recs, err = s.q.ListPublicEvents(ctx, storage.ListPublicEventsParams{Now: now, Search: req.Msg.Search, Limit: limit, Offset: offset})
+		recs, err = s.q.ListPublicEvents(ctx, storage.ListPublicEventsParams{Now: now, Search: req.Msg.Search, Tags: tags, Limit: limit, Offset: offset})
 		if err == nil {
-			total, err = s.q.CountPublicEvents(ctx, storage.CountPublicEventsParams{Now: now, Search: req.Msg.Search})
+			total, err = s.q.CountPublicEvents(ctx, storage.CountPublicEventsParams{Now: now, Search: req.Msg.Search, Tags: tags})
 		}
 	}
 	if err != nil {
@@ -136,6 +163,9 @@ func (s *Server) CreateEvent(ctx context.Context, req *connect.Request[lighteven
 			if _, err := q.CreateEventDate(ctx, storage.CreateEventDateParams{Uid: secret.UID(), EventID: rec.ID, Value: d.Value}); err != nil {
 				return err
 			}
+		}
+		if err := setEventTags(ctx, q, rec.ID, in.Tags); err != nil {
+			return err
 		}
 		event, err = eventWithDates(ctx, q, rec)
 		return err
@@ -225,6 +255,10 @@ func (s *Server) UpdateEvent(ctx context.Context, req *connect.Request[lighteven
 					return err
 				}
 			}
+		}
+
+		if err := setEventTags(ctx, q, current.ID, in.Tags); err != nil {
+			return err
 		}
 
 		event, err = eventWithDates(ctx, q, updated)

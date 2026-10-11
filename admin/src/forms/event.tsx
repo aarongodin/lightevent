@@ -1,4 +1,4 @@
-import { useMutation } from "@connectrpc/connect-query"
+import { useMutation, useQuery } from "@connectrpc/connect-query"
 import { useFieldArray, useForm } from "react-hook-form"
 import { useNavigate } from "react-router"
 
@@ -23,6 +23,7 @@ type FormValues = {
   capacity: number
   hidden: boolean
   closed: boolean
+  tags: string[]
   dates: DateValue[]
 }
 
@@ -30,7 +31,16 @@ const emptyDate: DateValue = { uid: "", value: "", cancelled: false, registratio
 
 function defaultValues(event?: Evt): FormValues {
   if (!event) {
-    return { name: "", title: "", description: "", capacity: 0, hidden: false, closed: false, dates: [emptyDate] }
+    return {
+      name: "",
+      title: "",
+      description: "",
+      capacity: 0,
+      hidden: false,
+      closed: false,
+      tags: [],
+      dates: [emptyDate],
+    }
   }
   return {
     name: event.name,
@@ -39,6 +49,7 @@ function defaultValues(event?: Evt): FormValues {
     capacity: event.capacity,
     hidden: event.hidden,
     closed: event.closed,
+    tags: event.tags,
     dates: event.dates.map((d) => ({
       uid: d.uid,
       value: toDateTimeLocal(d.value),
@@ -75,6 +86,7 @@ export function EventForm({ event }: EventFormProps) {
   const { fields, append, remove } = useFieldArray({ control, name: "dates" })
   const errors = formState.errors
   const capacity = watch("capacity")
+  const tags = useQuery(LightEventService.method.listTags, {})
 
   async function onSubmit(values: FormValues) {
     const payload = {
@@ -84,6 +96,7 @@ export function EventForm({ event }: EventFormProps) {
       capacity: Number(values.capacity) || 0,
       hidden: values.hidden,
       closed: values.closed,
+      tags: values.tags,
       dates: values.dates.map((d) => ({ uid: d.uid, value: fromDateTimeLocal(d.value) })),
     }
     try {
@@ -178,6 +191,28 @@ export function EventForm({ event }: EventFormProps) {
                 })}
               />
             </Field>
+            <fieldset className="grid gap-2">
+              <legend className="mb-1.5 text-sm font-medium text-gray-800">Tags</legend>
+              {tags.data?.tags.length ? (
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                  {tags.data.tags.map((tag) => (
+                    <label key={tag.name} className="flex items-center gap-2 text-sm text-gray-800">
+                      <input
+                        type="checkbox"
+                        value={tag.name}
+                        className="size-4 rounded border-gray-300 text-blue-600"
+                        {...register("tags")}
+                      />
+                      {tag.label}
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  {tags.isPending ? "Loading tags…" : "No tags yet. Add tags in Settings to let members filter events."}
+                </p>
+              )}
+            </fieldset>
             <Checkbox
               id="hidden"
               label="Hidden"

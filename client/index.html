@@ -3,19 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/2.0.0/modern-normalize.min.css" integrity="sha512-4xo8blKMVCiXpTaLzQSLSw3KFOVPWhm/TRtuPVc4WG6kUgjH6J03IBuG7JZPkcWMxJ5huwaBpOpnwYElP/m6wg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <title>LightEvent Client</title>
+    <title>LightEvent client playground</title>
     <style>
-      .container {
-        width: 100%;
-        padding: 30px;
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 48rem;
+        margin: 0 auto;
+        padding: 2rem 1rem;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div id="root"></div>
-    </div>
-    <script type="module" src="./src/previewer.ts"></script>
+    <h1>LightEvent client playground</h1>
+    <p>
+      This page stands in for a website that embeds the client app. It talks to the server at
+      <code>VITE_LIGHTEVENT_URL</code> (default <code>http://localhost:8080</code>), which must allow this origin in
+      <code>CLIENT_ALLOWED_ORIGINS</code>.
+    </p>
+    <div id="events"></div>
+    <script type="module" src="./src/playground.ts"></script>
   </body>
 </html>

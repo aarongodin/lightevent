@@ -145,10 +145,12 @@ type Event struct {
 	// Series registrations count against every date of the event.
 	Capacity int32 `protobuf:"varint,6,opt,name=capacity,proto3" json:"capacity,omitempty"`
 	// archived is read-only here; use SetEventArchived to change it.
-	Archived      bool         `protobuf:"varint,7,opt,name=archived,proto3" json:"archived,omitempty"`
-	Dates         []*EventDate `protobuf:"bytes,8,rep,name=dates,proto3" json:"dates,omitempty"`
-	CreatedAt     string       `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string       `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Archived  bool         `protobuf:"varint,7,opt,name=archived,proto3" json:"archived,omitempty"`
+	Dates     []*EventDate `protobuf:"bytes,8,rep,name=dates,proto3" json:"dates,omitempty"`
+	CreatedAt string       `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt string       `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// tags are the names of the event's tags. On create and update this is the complete list.
+	Tags          []string `protobuf:"bytes,11,rep,name=tags,proto3" json:"tags,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -251,6 +253,13 @@ func (x *Event) GetUpdatedAt() string {
 		return x.UpdatedAt
 	}
 	return ""
+}
+
+func (x *Event) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
 }
 
 type EventDate struct {
@@ -826,6 +835,68 @@ func (x *APIKey) GetLastUsedAt() string {
 	return ""
 }
 
+type Tag struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// name is the unique, URL-safe identifier of the tag. It cannot be changed after creation.
+	Name  string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Label string `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	// event_count is the number of events with the tag. Read-only, and only counted for administrators.
+	EventCount    int32 `protobuf:"varint,3,opt,name=event_count,json=eventCount,proto3" json:"event_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Tag) Reset() {
+	*x = Tag{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Tag) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Tag) ProtoMessage() {}
+
+func (x *Tag) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Tag.ProtoReflect.Descriptor instead.
+func (*Tag) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Tag) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Tag) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *Tag) GetEventCount() int32 {
+	if x != nil {
+		return x.EventCount
+	}
+	return 0
+}
+
 type AppSettings struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// organization_name is used in emails sent to members.
@@ -840,7 +911,7 @@ type AppSettings struct {
 
 func (x *AppSettings) Reset() {
 	*x = AppSettings{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[8]
+	mi := &file_lightevent_v1_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -852,7 +923,7 @@ func (x *AppSettings) String() string {
 func (*AppSettings) ProtoMessage() {}
 
 func (x *AppSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[8]
+	mi := &file_lightevent_v1_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -865,7 +936,7 @@ func (x *AppSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppSettings.ProtoReflect.Descriptor instead.
 func (*AppSettings) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{8}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AppSettings) GetOrganizationName() string {
@@ -889,6 +960,149 @@ func (x *AppSettings) GetTimezone() string {
 	return ""
 }
 
+type ClientSettings struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// allowed_origins are the origins (e.g. "https://www.example.com") of websites that embed the client app.
+	// The API accepts cross-origin requests from these origins only.
+	AllowedOrigins []string `protobuf:"bytes,1,rep,name=allowed_origins,json=allowedOrigins,proto3" json:"allowed_origins,omitempty"`
+	// show_remaining_spots shows members how many spots are left on dates of events with a capacity.
+	ShowRemainingSpots bool `protobuf:"varint,2,opt,name=show_remaining_spots,json=showRemainingSpots,proto3" json:"show_remaining_spots,omitempty"`
+	// disable_series_registration only lets members register for single dates, not every date of an event.
+	DisableSeriesRegistration bool `protobuf:"varint,3,opt,name=disable_series_registration,json=disableSeriesRegistration,proto3" json:"disable_series_registration,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *ClientSettings) Reset() {
+	*x = ClientSettings{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClientSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClientSettings) ProtoMessage() {}
+
+func (x *ClientSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClientSettings.ProtoReflect.Descriptor instead.
+func (*ClientSettings) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ClientSettings) GetAllowedOrigins() []string {
+	if x != nil {
+		return x.AllowedOrigins
+	}
+	return nil
+}
+
+func (x *ClientSettings) GetShowRemainingSpots() bool {
+	if x != nil {
+		return x.ShowRemainingSpots
+	}
+	return false
+}
+
+func (x *ClientSettings) GetDisableSeriesRegistration() bool {
+	if x != nil {
+		return x.DisableSeriesRegistration
+	}
+	return false
+}
+
+// ClientConfig is the public configuration of the client app.
+type ClientConfig struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	OrganizationName string                 `protobuf:"bytes,1,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	// timezone is the IANA timezone used to show event dates. Empty means the visitor's timezone.
+	Timezone                  string `protobuf:"bytes,2,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	ShowRemainingSpots        bool   `protobuf:"varint,3,opt,name=show_remaining_spots,json=showRemainingSpots,proto3" json:"show_remaining_spots,omitempty"`
+	SeriesRegistrationEnabled bool   `protobuf:"varint,4,opt,name=series_registration_enabled,json=seriesRegistrationEnabled,proto3" json:"series_registration_enabled,omitempty"`
+	// tags are all tags that are assigned to at least one event visible to members.
+	Tags          []*Tag `protobuf:"bytes,5,rep,name=tags,proto3" json:"tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClientConfig) Reset() {
+	*x = ClientConfig{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClientConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClientConfig) ProtoMessage() {}
+
+func (x *ClientConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClientConfig.ProtoReflect.Descriptor instead.
+func (*ClientConfig) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ClientConfig) GetOrganizationName() string {
+	if x != nil {
+		return x.OrganizationName
+	}
+	return ""
+}
+
+func (x *ClientConfig) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+func (x *ClientConfig) GetShowRemainingSpots() bool {
+	if x != nil {
+		return x.ShowRemainingSpots
+	}
+	return false
+}
+
+func (x *ClientConfig) GetSeriesRegistrationEnabled() bool {
+	if x != nil {
+		return x.SeriesRegistrationEnabled
+	}
+	return false
+}
+
+func (x *ClientConfig) GetTags() []*Tag {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
 type PingRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -897,7 +1111,7 @@ type PingRequest struct {
 
 func (x *PingRequest) Reset() {
 	*x = PingRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[9]
+	mi := &file_lightevent_v1_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -909,7 +1123,7 @@ func (x *PingRequest) String() string {
 func (*PingRequest) ProtoMessage() {}
 
 func (x *PingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[9]
+	mi := &file_lightevent_v1_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -922,7 +1136,7 @@ func (x *PingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingRequest.ProtoReflect.Descriptor instead.
 func (*PingRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{9}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{12}
 }
 
 type PingResponse struct {
@@ -937,7 +1151,7 @@ type PingResponse struct {
 
 func (x *PingResponse) Reset() {
 	*x = PingResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[10]
+	mi := &file_lightevent_v1_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -949,7 +1163,7 @@ func (x *PingResponse) String() string {
 func (*PingResponse) ProtoMessage() {}
 
 func (x *PingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[10]
+	mi := &file_lightevent_v1_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -962,7 +1176,7 @@ func (x *PingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingResponse.ProtoReflect.Descriptor instead.
 func (*PingResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{10}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PingResponse) GetSubjectUid() string {
@@ -992,15 +1206,17 @@ type ListEventsRequest struct {
 	Filter EventFilter `protobuf:"varint,1,opt,name=filter,proto3,enum=lightevent.v1.EventFilter" json:"filter,omitempty"`
 	Search string      `protobuf:"bytes,2,opt,name=search,proto3" json:"search,omitempty"`
 	// limit defaults to 50 and is capped at 200.
-	Limit         int32 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        int32 `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit  int32 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset int32 `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
+	// tags limits the results to events that have at least one of the tags.
+	Tags          []string `protobuf:"bytes,5,rep,name=tags,proto3" json:"tags,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListEventsRequest) Reset() {
 	*x = ListEventsRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[11]
+	mi := &file_lightevent_v1_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1012,7 +1228,7 @@ func (x *ListEventsRequest) String() string {
 func (*ListEventsRequest) ProtoMessage() {}
 
 func (x *ListEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[11]
+	mi := &file_lightevent_v1_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1025,7 +1241,7 @@ func (x *ListEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEventsRequest.ProtoReflect.Descriptor instead.
 func (*ListEventsRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{11}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListEventsRequest) GetFilter() EventFilter {
@@ -1056,6 +1272,13 @@ func (x *ListEventsRequest) GetOffset() int32 {
 	return 0
 }
 
+func (x *ListEventsRequest) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
 type ListEventsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Events        []*Event               `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
@@ -1066,7 +1289,7 @@ type ListEventsResponse struct {
 
 func (x *ListEventsResponse) Reset() {
 	*x = ListEventsResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[12]
+	mi := &file_lightevent_v1_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1078,7 +1301,7 @@ func (x *ListEventsResponse) String() string {
 func (*ListEventsResponse) ProtoMessage() {}
 
 func (x *ListEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[12]
+	mi := &file_lightevent_v1_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1091,7 +1314,7 @@ func (x *ListEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEventsResponse.ProtoReflect.Descriptor instead.
 func (*ListEventsResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{12}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListEventsResponse) GetEvents() []*Event {
@@ -1117,7 +1340,7 @@ type GetEventRequest struct {
 
 func (x *GetEventRequest) Reset() {
 	*x = GetEventRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[13]
+	mi := &file_lightevent_v1_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1129,7 +1352,7 @@ func (x *GetEventRequest) String() string {
 func (*GetEventRequest) ProtoMessage() {}
 
 func (x *GetEventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[13]
+	mi := &file_lightevent_v1_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1142,7 +1365,7 @@ func (x *GetEventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEventRequest.ProtoReflect.Descriptor instead.
 func (*GetEventRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{13}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetEventRequest) GetName() string {
@@ -1161,7 +1384,7 @@ type GetEventResponse struct {
 
 func (x *GetEventResponse) Reset() {
 	*x = GetEventResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[14]
+	mi := &file_lightevent_v1_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1173,7 +1396,7 @@ func (x *GetEventResponse) String() string {
 func (*GetEventResponse) ProtoMessage() {}
 
 func (x *GetEventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[14]
+	mi := &file_lightevent_v1_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1186,7 +1409,7 @@ func (x *GetEventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEventResponse.ProtoReflect.Descriptor instead.
 func (*GetEventResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{14}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetEventResponse) GetEvent() *Event {
@@ -1205,7 +1428,7 @@ type CreateEventRequest struct {
 
 func (x *CreateEventRequest) Reset() {
 	*x = CreateEventRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[15]
+	mi := &file_lightevent_v1_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1217,7 +1440,7 @@ func (x *CreateEventRequest) String() string {
 func (*CreateEventRequest) ProtoMessage() {}
 
 func (x *CreateEventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[15]
+	mi := &file_lightevent_v1_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1230,7 +1453,7 @@ func (x *CreateEventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEventRequest.ProtoReflect.Descriptor instead.
 func (*CreateEventRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{15}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CreateEventRequest) GetEvent() *Event {
@@ -1249,7 +1472,7 @@ type CreateEventResponse struct {
 
 func (x *CreateEventResponse) Reset() {
 	*x = CreateEventResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[16]
+	mi := &file_lightevent_v1_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1261,7 +1484,7 @@ func (x *CreateEventResponse) String() string {
 func (*CreateEventResponse) ProtoMessage() {}
 
 func (x *CreateEventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[16]
+	mi := &file_lightevent_v1_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1274,7 +1497,7 @@ func (x *CreateEventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateEventResponse.ProtoReflect.Descriptor instead.
 func (*CreateEventResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{16}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CreateEventResponse) GetEvent() *Event {
@@ -1295,7 +1518,7 @@ type UpdateEventRequest struct {
 
 func (x *UpdateEventRequest) Reset() {
 	*x = UpdateEventRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[17]
+	mi := &file_lightevent_v1_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1307,7 +1530,7 @@ func (x *UpdateEventRequest) String() string {
 func (*UpdateEventRequest) ProtoMessage() {}
 
 func (x *UpdateEventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[17]
+	mi := &file_lightevent_v1_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1320,7 +1543,7 @@ func (x *UpdateEventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEventRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEventRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{17}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *UpdateEventRequest) GetEvent() *Event {
@@ -1339,7 +1562,7 @@ type UpdateEventResponse struct {
 
 func (x *UpdateEventResponse) Reset() {
 	*x = UpdateEventResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[18]
+	mi := &file_lightevent_v1_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1351,7 +1574,7 @@ func (x *UpdateEventResponse) String() string {
 func (*UpdateEventResponse) ProtoMessage() {}
 
 func (x *UpdateEventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[18]
+	mi := &file_lightevent_v1_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1364,7 +1587,7 @@ func (x *UpdateEventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEventResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEventResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{18}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdateEventResponse) GetEvent() *Event {
@@ -1384,7 +1607,7 @@ type SetEventArchivedRequest struct {
 
 func (x *SetEventArchivedRequest) Reset() {
 	*x = SetEventArchivedRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[19]
+	mi := &file_lightevent_v1_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1396,7 +1619,7 @@ func (x *SetEventArchivedRequest) String() string {
 func (*SetEventArchivedRequest) ProtoMessage() {}
 
 func (x *SetEventArchivedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[19]
+	mi := &file_lightevent_v1_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1409,7 +1632,7 @@ func (x *SetEventArchivedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetEventArchivedRequest.ProtoReflect.Descriptor instead.
 func (*SetEventArchivedRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{19}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SetEventArchivedRequest) GetName() string {
@@ -1435,7 +1658,7 @@ type SetEventArchivedResponse struct {
 
 func (x *SetEventArchivedResponse) Reset() {
 	*x = SetEventArchivedResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[20]
+	mi := &file_lightevent_v1_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1447,7 +1670,7 @@ func (x *SetEventArchivedResponse) String() string {
 func (*SetEventArchivedResponse) ProtoMessage() {}
 
 func (x *SetEventArchivedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[20]
+	mi := &file_lightevent_v1_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1460,7 +1683,7 @@ func (x *SetEventArchivedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetEventArchivedResponse.ProtoReflect.Descriptor instead.
 func (*SetEventArchivedResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{20}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *SetEventArchivedResponse) GetEvent() *Event {
@@ -1480,7 +1703,7 @@ type DeleteEventRequest struct {
 
 func (x *DeleteEventRequest) Reset() {
 	*x = DeleteEventRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[21]
+	mi := &file_lightevent_v1_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1492,7 +1715,7 @@ func (x *DeleteEventRequest) String() string {
 func (*DeleteEventRequest) ProtoMessage() {}
 
 func (x *DeleteEventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[21]
+	mi := &file_lightevent_v1_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1505,7 +1728,7 @@ func (x *DeleteEventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEventRequest.ProtoReflect.Descriptor instead.
 func (*DeleteEventRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{21}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *DeleteEventRequest) GetName() string {
@@ -1523,7 +1746,7 @@ type DeleteEventResponse struct {
 
 func (x *DeleteEventResponse) Reset() {
 	*x = DeleteEventResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[22]
+	mi := &file_lightevent_v1_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1535,7 +1758,7 @@ func (x *DeleteEventResponse) String() string {
 func (*DeleteEventResponse) ProtoMessage() {}
 
 func (x *DeleteEventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[22]
+	mi := &file_lightevent_v1_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1548,7 +1771,7 @@ func (x *DeleteEventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEventResponse.ProtoReflect.Descriptor instead.
 func (*DeleteEventResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{22}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{25}
 }
 
 type CancelEventDateRequest struct {
@@ -1560,7 +1783,7 @@ type CancelEventDateRequest struct {
 
 func (x *CancelEventDateRequest) Reset() {
 	*x = CancelEventDateRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[23]
+	mi := &file_lightevent_v1_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1572,7 +1795,7 @@ func (x *CancelEventDateRequest) String() string {
 func (*CancelEventDateRequest) ProtoMessage() {}
 
 func (x *CancelEventDateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[23]
+	mi := &file_lightevent_v1_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1585,7 +1808,7 @@ func (x *CancelEventDateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelEventDateRequest.ProtoReflect.Descriptor instead.
 func (*CancelEventDateRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{23}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *CancelEventDateRequest) GetEventDateUid() string {
@@ -1604,7 +1827,7 @@ type CancelEventDateResponse struct {
 
 func (x *CancelEventDateResponse) Reset() {
 	*x = CancelEventDateResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[24]
+	mi := &file_lightevent_v1_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1616,7 +1839,7 @@ func (x *CancelEventDateResponse) String() string {
 func (*CancelEventDateResponse) ProtoMessage() {}
 
 func (x *CancelEventDateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[24]
+	mi := &file_lightevent_v1_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1629,7 +1852,7 @@ func (x *CancelEventDateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelEventDateResponse.ProtoReflect.Descriptor instead.
 func (*CancelEventDateResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{24}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *CancelEventDateResponse) GetEventDate() *EventDate {
@@ -1649,7 +1872,7 @@ type ListUpcomingEventDatesRequest struct {
 
 func (x *ListUpcomingEventDatesRequest) Reset() {
 	*x = ListUpcomingEventDatesRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[25]
+	mi := &file_lightevent_v1_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1661,7 +1884,7 @@ func (x *ListUpcomingEventDatesRequest) String() string {
 func (*ListUpcomingEventDatesRequest) ProtoMessage() {}
 
 func (x *ListUpcomingEventDatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[25]
+	mi := &file_lightevent_v1_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1674,7 +1897,7 @@ func (x *ListUpcomingEventDatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUpcomingEventDatesRequest.ProtoReflect.Descriptor instead.
 func (*ListUpcomingEventDatesRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{25}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListUpcomingEventDatesRequest) GetLimit() int32 {
@@ -1697,7 +1920,7 @@ type EventDateSummary struct {
 
 func (x *EventDateSummary) Reset() {
 	*x = EventDateSummary{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[26]
+	mi := &file_lightevent_v1_service_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1709,7 +1932,7 @@ func (x *EventDateSummary) String() string {
 func (*EventDateSummary) ProtoMessage() {}
 
 func (x *EventDateSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[26]
+	mi := &file_lightevent_v1_service_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1722,7 +1945,7 @@ func (x *EventDateSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventDateSummary.ProtoReflect.Descriptor instead.
 func (*EventDateSummary) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{26}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *EventDateSummary) GetEventDate() *EventDate {
@@ -1762,7 +1985,7 @@ type ListUpcomingEventDatesResponse struct {
 
 func (x *ListUpcomingEventDatesResponse) Reset() {
 	*x = ListUpcomingEventDatesResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[27]
+	mi := &file_lightevent_v1_service_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1774,7 +1997,7 @@ func (x *ListUpcomingEventDatesResponse) String() string {
 func (*ListUpcomingEventDatesResponse) ProtoMessage() {}
 
 func (x *ListUpcomingEventDatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[27]
+	mi := &file_lightevent_v1_service_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1787,7 +2010,7 @@ func (x *ListUpcomingEventDatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUpcomingEventDatesResponse.ProtoReflect.Descriptor instead.
 func (*ListUpcomingEventDatesResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{27}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListUpcomingEventDatesResponse) GetEventDates() []*EventDateSummary {
@@ -1795,6 +2018,344 @@ func (x *ListUpcomingEventDatesResponse) GetEventDates() []*EventDateSummary {
 		return x.EventDates
 	}
 	return nil
+}
+
+type ListTagsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTagsRequest) Reset() {
+	*x = ListTagsRequest{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTagsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTagsRequest) ProtoMessage() {}
+
+func (x *ListTagsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTagsRequest.ProtoReflect.Descriptor instead.
+func (*ListTagsRequest) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{31}
+}
+
+type ListTagsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tags          []*Tag                 `protobuf:"bytes,1,rep,name=tags,proto3" json:"tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTagsResponse) Reset() {
+	*x = ListTagsResponse{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTagsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTagsResponse) ProtoMessage() {}
+
+func (x *ListTagsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTagsResponse.ProtoReflect.Descriptor instead.
+func (*ListTagsResponse) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ListTagsResponse) GetTags() []*Tag {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+type CreateTagRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tag           *Tag                   `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateTagRequest) Reset() {
+	*x = CreateTagRequest{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateTagRequest) ProtoMessage() {}
+
+func (x *CreateTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateTagRequest.ProtoReflect.Descriptor instead.
+func (*CreateTagRequest) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *CreateTagRequest) GetTag() *Tag {
+	if x != nil {
+		return x.Tag
+	}
+	return nil
+}
+
+type CreateTagResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tag           *Tag                   `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateTagResponse) Reset() {
+	*x = CreateTagResponse{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateTagResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateTagResponse) ProtoMessage() {}
+
+func (x *CreateTagResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateTagResponse.ProtoReflect.Descriptor instead.
+func (*CreateTagResponse) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *CreateTagResponse) GetTag() *Tag {
+	if x != nil {
+		return x.Tag
+	}
+	return nil
+}
+
+type UpdateTagRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// tag.name identifies the tag to update; only the label can change.
+	Tag           *Tag `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateTagRequest) Reset() {
+	*x = UpdateTagRequest{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateTagRequest) ProtoMessage() {}
+
+func (x *UpdateTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateTagRequest.ProtoReflect.Descriptor instead.
+func (*UpdateTagRequest) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *UpdateTagRequest) GetTag() *Tag {
+	if x != nil {
+		return x.Tag
+	}
+	return nil
+}
+
+type UpdateTagResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tag           *Tag                   `protobuf:"bytes,1,opt,name=tag,proto3" json:"tag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateTagResponse) Reset() {
+	*x = UpdateTagResponse{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateTagResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateTagResponse) ProtoMessage() {}
+
+func (x *UpdateTagResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateTagResponse.ProtoReflect.Descriptor instead.
+func (*UpdateTagResponse) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *UpdateTagResponse) GetTag() *Tag {
+	if x != nil {
+		return x.Tag
+	}
+	return nil
+}
+
+type DeleteTagRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// name of the tag, which is removed from all events.
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteTagRequest) Reset() {
+	*x = DeleteTagRequest{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteTagRequest) ProtoMessage() {}
+
+func (x *DeleteTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteTagRequest.ProtoReflect.Descriptor instead.
+func (*DeleteTagRequest) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *DeleteTagRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeleteTagResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteTagResponse) Reset() {
+	*x = DeleteTagResponse{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteTagResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteTagResponse) ProtoMessage() {}
+
+func (x *DeleteTagResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteTagResponse.ProtoReflect.Descriptor instead.
+func (*DeleteTagResponse) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{38}
 }
 
 type ListEventRegistrationsRequest struct {
@@ -1806,7 +2367,7 @@ type ListEventRegistrationsRequest struct {
 
 func (x *ListEventRegistrationsRequest) Reset() {
 	*x = ListEventRegistrationsRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[28]
+	mi := &file_lightevent_v1_service_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1818,7 +2379,7 @@ func (x *ListEventRegistrationsRequest) String() string {
 func (*ListEventRegistrationsRequest) ProtoMessage() {}
 
 func (x *ListEventRegistrationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[28]
+	mi := &file_lightevent_v1_service_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1831,7 +2392,7 @@ func (x *ListEventRegistrationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEventRegistrationsRequest.ProtoReflect.Descriptor instead.
 func (*ListEventRegistrationsRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{28}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListEventRegistrationsRequest) GetEventName() string {
@@ -1850,7 +2411,7 @@ type ListEventRegistrationsResponse struct {
 
 func (x *ListEventRegistrationsResponse) Reset() {
 	*x = ListEventRegistrationsResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[29]
+	mi := &file_lightevent_v1_service_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1862,7 +2423,7 @@ func (x *ListEventRegistrationsResponse) String() string {
 func (*ListEventRegistrationsResponse) ProtoMessage() {}
 
 func (x *ListEventRegistrationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[29]
+	mi := &file_lightevent_v1_service_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1875,7 +2436,7 @@ func (x *ListEventRegistrationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEventRegistrationsResponse.ProtoReflect.Descriptor instead.
 func (*ListEventRegistrationsResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{29}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListEventRegistrationsResponse) GetRegistrations() []*Registration {
@@ -1894,7 +2455,7 @@ type GetRegistrationRequest struct {
 
 func (x *GetRegistrationRequest) Reset() {
 	*x = GetRegistrationRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[30]
+	mi := &file_lightevent_v1_service_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1906,7 +2467,7 @@ func (x *GetRegistrationRequest) String() string {
 func (*GetRegistrationRequest) ProtoMessage() {}
 
 func (x *GetRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[30]
+	mi := &file_lightevent_v1_service_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1919,7 +2480,7 @@ func (x *GetRegistrationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRegistrationRequest.ProtoReflect.Descriptor instead.
 func (*GetRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{30}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetRegistrationRequest) GetConfCode() string {
@@ -1938,7 +2499,7 @@ type GetRegistrationResponse struct {
 
 func (x *GetRegistrationResponse) Reset() {
 	*x = GetRegistrationResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[31]
+	mi := &file_lightevent_v1_service_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1950,7 +2511,7 @@ func (x *GetRegistrationResponse) String() string {
 func (*GetRegistrationResponse) ProtoMessage() {}
 
 func (x *GetRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[31]
+	mi := &file_lightevent_v1_service_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1963,7 +2524,7 @@ func (x *GetRegistrationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRegistrationResponse.ProtoReflect.Descriptor instead.
 func (*GetRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{31}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GetRegistrationResponse) GetRegistration() *Registration {
@@ -1985,7 +2546,7 @@ type CreateRegistrationRequest struct {
 
 func (x *CreateRegistrationRequest) Reset() {
 	*x = CreateRegistrationRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[32]
+	mi := &file_lightevent_v1_service_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1997,7 +2558,7 @@ func (x *CreateRegistrationRequest) String() string {
 func (*CreateRegistrationRequest) ProtoMessage() {}
 
 func (x *CreateRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[32]
+	mi := &file_lightevent_v1_service_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2010,7 +2571,7 @@ func (x *CreateRegistrationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRegistrationRequest.ProtoReflect.Descriptor instead.
 func (*CreateRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{32}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *CreateRegistrationRequest) GetMemberUid() string {
@@ -2043,7 +2604,7 @@ type CreateRegistrationResponse struct {
 
 func (x *CreateRegistrationResponse) Reset() {
 	*x = CreateRegistrationResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[33]
+	mi := &file_lightevent_v1_service_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2055,7 +2616,7 @@ func (x *CreateRegistrationResponse) String() string {
 func (*CreateRegistrationResponse) ProtoMessage() {}
 
 func (x *CreateRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[33]
+	mi := &file_lightevent_v1_service_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2068,7 +2629,7 @@ func (x *CreateRegistrationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRegistrationResponse.ProtoReflect.Descriptor instead.
 func (*CreateRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{33}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *CreateRegistrationResponse) GetRegistration() *Registration {
@@ -2089,7 +2650,7 @@ type DeleteRegistrationRequest struct {
 
 func (x *DeleteRegistrationRequest) Reset() {
 	*x = DeleteRegistrationRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[34]
+	mi := &file_lightevent_v1_service_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2101,7 +2662,7 @@ func (x *DeleteRegistrationRequest) String() string {
 func (*DeleteRegistrationRequest) ProtoMessage() {}
 
 func (x *DeleteRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[34]
+	mi := &file_lightevent_v1_service_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2114,7 +2675,7 @@ func (x *DeleteRegistrationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRegistrationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{34}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *DeleteRegistrationRequest) GetConfCode() string {
@@ -2139,7 +2700,7 @@ type DeleteRegistrationResponse struct {
 
 func (x *DeleteRegistrationResponse) Reset() {
 	*x = DeleteRegistrationResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[35]
+	mi := &file_lightevent_v1_service_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2151,7 +2712,7 @@ func (x *DeleteRegistrationResponse) String() string {
 func (*DeleteRegistrationResponse) ProtoMessage() {}
 
 func (x *DeleteRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[35]
+	mi := &file_lightevent_v1_service_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2164,7 +2725,7 @@ func (x *DeleteRegistrationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRegistrationResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{35}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{46}
 }
 
 type CreateMemberRequest struct {
@@ -2178,7 +2739,7 @@ type CreateMemberRequest struct {
 
 func (x *CreateMemberRequest) Reset() {
 	*x = CreateMemberRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[36]
+	mi := &file_lightevent_v1_service_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2190,7 +2751,7 @@ func (x *CreateMemberRequest) String() string {
 func (*CreateMemberRequest) ProtoMessage() {}
 
 func (x *CreateMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[36]
+	mi := &file_lightevent_v1_service_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2203,7 +2764,7 @@ func (x *CreateMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMemberRequest.ProtoReflect.Descriptor instead.
 func (*CreateMemberRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{36}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *CreateMemberRequest) GetEmail() string {
@@ -2236,7 +2797,7 @@ type CreateMemberResponse struct {
 
 func (x *CreateMemberResponse) Reset() {
 	*x = CreateMemberResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[37]
+	mi := &file_lightevent_v1_service_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2248,7 +2809,7 @@ func (x *CreateMemberResponse) String() string {
 func (*CreateMemberResponse) ProtoMessage() {}
 
 func (x *CreateMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[37]
+	mi := &file_lightevent_v1_service_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2261,7 +2822,7 @@ func (x *CreateMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMemberResponse.ProtoReflect.Descriptor instead.
 func (*CreateMemberResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{37}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *CreateMemberResponse) GetMember() *Member {
@@ -2284,7 +2845,7 @@ type ListMembersRequest struct {
 
 func (x *ListMembersRequest) Reset() {
 	*x = ListMembersRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[38]
+	mi := &file_lightevent_v1_service_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2296,7 +2857,7 @@ func (x *ListMembersRequest) String() string {
 func (*ListMembersRequest) ProtoMessage() {}
 
 func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[38]
+	mi := &file_lightevent_v1_service_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2309,7 +2870,7 @@ func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListMembersRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{38}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *ListMembersRequest) GetSearch() string {
@@ -2343,7 +2904,7 @@ type ListMembersResponse struct {
 
 func (x *ListMembersResponse) Reset() {
 	*x = ListMembersResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[39]
+	mi := &file_lightevent_v1_service_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2355,7 +2916,7 @@ func (x *ListMembersResponse) String() string {
 func (*ListMembersResponse) ProtoMessage() {}
 
 func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[39]
+	mi := &file_lightevent_v1_service_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2368,7 +2929,7 @@ func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListMembersResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{39}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ListMembersResponse) GetMembers() []*Member {
@@ -2394,7 +2955,7 @@ type GetMemberRequest struct {
 
 func (x *GetMemberRequest) Reset() {
 	*x = GetMemberRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[40]
+	mi := &file_lightevent_v1_service_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2406,7 +2967,7 @@ func (x *GetMemberRequest) String() string {
 func (*GetMemberRequest) ProtoMessage() {}
 
 func (x *GetMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[40]
+	mi := &file_lightevent_v1_service_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2419,7 +2980,7 @@ func (x *GetMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberRequest.ProtoReflect.Descriptor instead.
 func (*GetMemberRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{40}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetMemberRequest) GetUid() string {
@@ -2438,7 +2999,7 @@ type GetMemberResponse struct {
 
 func (x *GetMemberResponse) Reset() {
 	*x = GetMemberResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[41]
+	mi := &file_lightevent_v1_service_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2450,7 +3011,7 @@ func (x *GetMemberResponse) String() string {
 func (*GetMemberResponse) ProtoMessage() {}
 
 func (x *GetMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[41]
+	mi := &file_lightevent_v1_service_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2463,7 +3024,7 @@ func (x *GetMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberResponse.ProtoReflect.Descriptor instead.
 func (*GetMemberResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{41}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetMemberResponse) GetMember() *Member {
@@ -2485,7 +3046,7 @@ type UpdateMemberRequest struct {
 
 func (x *UpdateMemberRequest) Reset() {
 	*x = UpdateMemberRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[42]
+	mi := &file_lightevent_v1_service_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2497,7 +3058,7 @@ func (x *UpdateMemberRequest) String() string {
 func (*UpdateMemberRequest) ProtoMessage() {}
 
 func (x *UpdateMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[42]
+	mi := &file_lightevent_v1_service_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2510,7 +3071,7 @@ func (x *UpdateMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMemberRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMemberRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{42}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *UpdateMemberRequest) GetUid() string {
@@ -2550,7 +3111,7 @@ type UpdateMemberResponse struct {
 
 func (x *UpdateMemberResponse) Reset() {
 	*x = UpdateMemberResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[43]
+	mi := &file_lightevent_v1_service_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2562,7 +3123,7 @@ func (x *UpdateMemberResponse) String() string {
 func (*UpdateMemberResponse) ProtoMessage() {}
 
 func (x *UpdateMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[43]
+	mi := &file_lightevent_v1_service_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2575,7 +3136,7 @@ func (x *UpdateMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMemberResponse.ProtoReflect.Descriptor instead.
 func (*UpdateMemberResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{43}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *UpdateMemberResponse) GetMember() *Member {
@@ -2595,7 +3156,7 @@ type DeleteMemberRequest struct {
 
 func (x *DeleteMemberRequest) Reset() {
 	*x = DeleteMemberRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[44]
+	mi := &file_lightevent_v1_service_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2607,7 +3168,7 @@ func (x *DeleteMemberRequest) String() string {
 func (*DeleteMemberRequest) ProtoMessage() {}
 
 func (x *DeleteMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[44]
+	mi := &file_lightevent_v1_service_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2620,7 +3181,7 @@ func (x *DeleteMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMemberRequest.ProtoReflect.Descriptor instead.
 func (*DeleteMemberRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{44}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *DeleteMemberRequest) GetUid() string {
@@ -2638,7 +3199,7 @@ type DeleteMemberResponse struct {
 
 func (x *DeleteMemberResponse) Reset() {
 	*x = DeleteMemberResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[45]
+	mi := &file_lightevent_v1_service_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2650,7 +3211,7 @@ func (x *DeleteMemberResponse) String() string {
 func (*DeleteMemberResponse) ProtoMessage() {}
 
 func (x *DeleteMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[45]
+	mi := &file_lightevent_v1_service_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2663,7 +3224,7 @@ func (x *DeleteMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMemberResponse.ProtoReflect.Descriptor instead.
 func (*DeleteMemberResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{45}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{56}
 }
 
 type ListMemberRegistrationsRequest struct {
@@ -2675,7 +3236,7 @@ type ListMemberRegistrationsRequest struct {
 
 func (x *ListMemberRegistrationsRequest) Reset() {
 	*x = ListMemberRegistrationsRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[46]
+	mi := &file_lightevent_v1_service_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2687,7 +3248,7 @@ func (x *ListMemberRegistrationsRequest) String() string {
 func (*ListMemberRegistrationsRequest) ProtoMessage() {}
 
 func (x *ListMemberRegistrationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[46]
+	mi := &file_lightevent_v1_service_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2700,7 +3261,7 @@ func (x *ListMemberRegistrationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemberRegistrationsRequest.ProtoReflect.Descriptor instead.
 func (*ListMemberRegistrationsRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{46}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ListMemberRegistrationsRequest) GetMemberUid() string {
@@ -2719,7 +3280,7 @@ type ListMemberRegistrationsResponse struct {
 
 func (x *ListMemberRegistrationsResponse) Reset() {
 	*x = ListMemberRegistrationsResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[47]
+	mi := &file_lightevent_v1_service_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2731,7 +3292,7 @@ func (x *ListMemberRegistrationsResponse) String() string {
 func (*ListMemberRegistrationsResponse) ProtoMessage() {}
 
 func (x *ListMemberRegistrationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[47]
+	mi := &file_lightevent_v1_service_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2744,7 +3305,7 @@ func (x *ListMemberRegistrationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemberRegistrationsResponse.ProtoReflect.Descriptor instead.
 func (*ListMemberRegistrationsResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{47}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ListMemberRegistrationsResponse) GetRegistrations() []*Registration {
@@ -2767,7 +3328,7 @@ type CreateUserRequest struct {
 
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[48]
+	mi := &file_lightevent_v1_service_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2779,7 +3340,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[48]
+	mi := &file_lightevent_v1_service_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2792,7 +3353,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{48}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *CreateUserRequest) GetUsername() string {
@@ -2839,7 +3400,7 @@ type CreateUserResponse struct {
 
 func (x *CreateUserResponse) Reset() {
 	*x = CreateUserResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[49]
+	mi := &file_lightevent_v1_service_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2851,7 +3412,7 @@ func (x *CreateUserResponse) String() string {
 func (*CreateUserResponse) ProtoMessage() {}
 
 func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[49]
+	mi := &file_lightevent_v1_service_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2864,7 +3425,7 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{49}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *CreateUserResponse) GetUser() *User {
@@ -2887,7 +3448,7 @@ type UpdateUserRequest struct {
 
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[50]
+	mi := &file_lightevent_v1_service_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2899,7 +3460,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[50]
+	mi := &file_lightevent_v1_service_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2912,7 +3473,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{50}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *UpdateUserRequest) GetUid() string {
@@ -2959,7 +3520,7 @@ type UpdateUserResponse struct {
 
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[51]
+	mi := &file_lightevent_v1_service_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2971,7 +3532,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[51]
+	mi := &file_lightevent_v1_service_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2984,7 +3545,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{51}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *UpdateUserResponse) GetUser() *User {
@@ -3006,7 +3567,7 @@ type SetUserPasswordRequest struct {
 
 func (x *SetUserPasswordRequest) Reset() {
 	*x = SetUserPasswordRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[52]
+	mi := &file_lightevent_v1_service_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3018,7 +3579,7 @@ func (x *SetUserPasswordRequest) String() string {
 func (*SetUserPasswordRequest) ProtoMessage() {}
 
 func (x *SetUserPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[52]
+	mi := &file_lightevent_v1_service_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3031,7 +3592,7 @@ func (x *SetUserPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetUserPasswordRequest.ProtoReflect.Descriptor instead.
 func (*SetUserPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{52}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *SetUserPasswordRequest) GetUid() string {
@@ -3063,7 +3624,7 @@ type SetUserPasswordResponse struct {
 
 func (x *SetUserPasswordResponse) Reset() {
 	*x = SetUserPasswordResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[53]
+	mi := &file_lightevent_v1_service_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3075,7 +3636,7 @@ func (x *SetUserPasswordResponse) String() string {
 func (*SetUserPasswordResponse) ProtoMessage() {}
 
 func (x *SetUserPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[53]
+	mi := &file_lightevent_v1_service_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3088,7 +3649,7 @@ func (x *SetUserPasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetUserPasswordResponse.ProtoReflect.Descriptor instead.
 func (*SetUserPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{53}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{64}
 }
 
 type ListUsersRequest struct {
@@ -3099,7 +3660,7 @@ type ListUsersRequest struct {
 
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[54]
+	mi := &file_lightevent_v1_service_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3111,7 +3672,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[54]
+	mi := &file_lightevent_v1_service_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3124,7 +3685,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{54}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{65}
 }
 
 type ListUsersResponse struct {
@@ -3136,7 +3697,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[55]
+	mi := &file_lightevent_v1_service_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3148,7 +3709,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[55]
+	mi := &file_lightevent_v1_service_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3161,7 +3722,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{55}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ListUsersResponse) GetUsers() []*User {
@@ -3180,7 +3741,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[56]
+	mi := &file_lightevent_v1_service_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3192,7 +3753,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[56]
+	mi := &file_lightevent_v1_service_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3205,7 +3766,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{56}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *DeleteUserRequest) GetUid() string {
@@ -3223,7 +3784,7 @@ type DeleteUserResponse struct {
 
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[57]
+	mi := &file_lightevent_v1_service_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3235,7 +3796,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[57]
+	mi := &file_lightevent_v1_service_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3248,7 +3809,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{57}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{68}
 }
 
 type ListSessionsRequest struct {
@@ -3263,7 +3824,7 @@ type ListSessionsRequest struct {
 
 func (x *ListSessionsRequest) Reset() {
 	*x = ListSessionsRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[58]
+	mi := &file_lightevent_v1_service_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3275,7 +3836,7 @@ func (x *ListSessionsRequest) String() string {
 func (*ListSessionsRequest) ProtoMessage() {}
 
 func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[58]
+	mi := &file_lightevent_v1_service_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3288,7 +3849,7 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{58}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ListSessionsRequest) GetKind() string {
@@ -3314,7 +3875,7 @@ type ListSessionsResponse struct {
 
 func (x *ListSessionsResponse) Reset() {
 	*x = ListSessionsResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[59]
+	mi := &file_lightevent_v1_service_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3326,7 +3887,7 @@ func (x *ListSessionsResponse) String() string {
 func (*ListSessionsResponse) ProtoMessage() {}
 
 func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[59]
+	mi := &file_lightevent_v1_service_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3339,7 +3900,7 @@ func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{59}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ListSessionsResponse) GetSessions() []*Session {
@@ -3358,7 +3919,7 @@ type RevokeSessionRequest struct {
 
 func (x *RevokeSessionRequest) Reset() {
 	*x = RevokeSessionRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[60]
+	mi := &file_lightevent_v1_service_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3370,7 +3931,7 @@ func (x *RevokeSessionRequest) String() string {
 func (*RevokeSessionRequest) ProtoMessage() {}
 
 func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[60]
+	mi := &file_lightevent_v1_service_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3383,7 +3944,7 @@ func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionRequest.ProtoReflect.Descriptor instead.
 func (*RevokeSessionRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{60}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *RevokeSessionRequest) GetUid() string {
@@ -3401,7 +3962,7 @@ type RevokeSessionResponse struct {
 
 func (x *RevokeSessionResponse) Reset() {
 	*x = RevokeSessionResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[61]
+	mi := &file_lightevent_v1_service_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3413,7 +3974,7 @@ func (x *RevokeSessionResponse) String() string {
 func (*RevokeSessionResponse) ProtoMessage() {}
 
 func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[61]
+	mi := &file_lightevent_v1_service_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3426,7 +3987,7 @@ func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionResponse.ProtoReflect.Descriptor instead.
 func (*RevokeSessionResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{61}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{72}
 }
 
 type CreateAPIKeyRequest struct {
@@ -3438,7 +3999,7 @@ type CreateAPIKeyRequest struct {
 
 func (x *CreateAPIKeyRequest) Reset() {
 	*x = CreateAPIKeyRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[62]
+	mi := &file_lightevent_v1_service_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3450,7 +4011,7 @@ func (x *CreateAPIKeyRequest) String() string {
 func (*CreateAPIKeyRequest) ProtoMessage() {}
 
 func (x *CreateAPIKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[62]
+	mi := &file_lightevent_v1_service_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3463,7 +4024,7 @@ func (x *CreateAPIKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAPIKeyRequest.ProtoReflect.Descriptor instead.
 func (*CreateAPIKeyRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{62}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *CreateAPIKeyRequest) GetName() string {
@@ -3484,7 +4045,7 @@ type CreateAPIKeyResponse struct {
 
 func (x *CreateAPIKeyResponse) Reset() {
 	*x = CreateAPIKeyResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[63]
+	mi := &file_lightevent_v1_service_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3496,7 +4057,7 @@ func (x *CreateAPIKeyResponse) String() string {
 func (*CreateAPIKeyResponse) ProtoMessage() {}
 
 func (x *CreateAPIKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[63]
+	mi := &file_lightevent_v1_service_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3509,7 +4070,7 @@ func (x *CreateAPIKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAPIKeyResponse.ProtoReflect.Descriptor instead.
 func (*CreateAPIKeyResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{63}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *CreateAPIKeyResponse) GetApiKey() *APIKey {
@@ -3534,7 +4095,7 @@ type ListAPIKeysRequest struct {
 
 func (x *ListAPIKeysRequest) Reset() {
 	*x = ListAPIKeysRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[64]
+	mi := &file_lightevent_v1_service_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3546,7 +4107,7 @@ func (x *ListAPIKeysRequest) String() string {
 func (*ListAPIKeysRequest) ProtoMessage() {}
 
 func (x *ListAPIKeysRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[64]
+	mi := &file_lightevent_v1_service_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3559,7 +4120,7 @@ func (x *ListAPIKeysRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAPIKeysRequest.ProtoReflect.Descriptor instead.
 func (*ListAPIKeysRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{64}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{75}
 }
 
 type ListAPIKeysResponse struct {
@@ -3571,7 +4132,7 @@ type ListAPIKeysResponse struct {
 
 func (x *ListAPIKeysResponse) Reset() {
 	*x = ListAPIKeysResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[65]
+	mi := &file_lightevent_v1_service_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3583,7 +4144,7 @@ func (x *ListAPIKeysResponse) String() string {
 func (*ListAPIKeysResponse) ProtoMessage() {}
 
 func (x *ListAPIKeysResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[65]
+	mi := &file_lightevent_v1_service_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3596,7 +4157,7 @@ func (x *ListAPIKeysResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAPIKeysResponse.ProtoReflect.Descriptor instead.
 func (*ListAPIKeysResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{65}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *ListAPIKeysResponse) GetApiKeys() []*APIKey {
@@ -3615,7 +4176,7 @@ type DeleteAPIKeyRequest struct {
 
 func (x *DeleteAPIKeyRequest) Reset() {
 	*x = DeleteAPIKeyRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[66]
+	mi := &file_lightevent_v1_service_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3627,7 +4188,7 @@ func (x *DeleteAPIKeyRequest) String() string {
 func (*DeleteAPIKeyRequest) ProtoMessage() {}
 
 func (x *DeleteAPIKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[66]
+	mi := &file_lightevent_v1_service_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3640,7 +4201,7 @@ func (x *DeleteAPIKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAPIKeyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAPIKeyRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{66}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *DeleteAPIKeyRequest) GetUid() string {
@@ -3658,7 +4219,7 @@ type DeleteAPIKeyResponse struct {
 
 func (x *DeleteAPIKeyResponse) Reset() {
 	*x = DeleteAPIKeyResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[67]
+	mi := &file_lightevent_v1_service_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3670,7 +4231,7 @@ func (x *DeleteAPIKeyResponse) String() string {
 func (*DeleteAPIKeyResponse) ProtoMessage() {}
 
 func (x *DeleteAPIKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[67]
+	mi := &file_lightevent_v1_service_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3683,7 +4244,7 @@ func (x *DeleteAPIKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAPIKeyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAPIKeyResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{67}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{78}
 }
 
 type GetSettingsRequest struct {
@@ -3694,7 +4255,7 @@ type GetSettingsRequest struct {
 
 func (x *GetSettingsRequest) Reset() {
 	*x = GetSettingsRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[68]
+	mi := &file_lightevent_v1_service_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3706,7 +4267,7 @@ func (x *GetSettingsRequest) String() string {
 func (*GetSettingsRequest) ProtoMessage() {}
 
 func (x *GetSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[68]
+	mi := &file_lightevent_v1_service_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3719,7 +4280,7 @@ func (x *GetSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSettingsRequest.ProtoReflect.Descriptor instead.
 func (*GetSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{68}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{79}
 }
 
 type GetSettingsResponse struct {
@@ -3731,7 +4292,7 @@ type GetSettingsResponse struct {
 
 func (x *GetSettingsResponse) Reset() {
 	*x = GetSettingsResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[69]
+	mi := &file_lightevent_v1_service_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3743,7 +4304,7 @@ func (x *GetSettingsResponse) String() string {
 func (*GetSettingsResponse) ProtoMessage() {}
 
 func (x *GetSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[69]
+	mi := &file_lightevent_v1_service_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3756,7 +4317,7 @@ func (x *GetSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSettingsResponse.ProtoReflect.Descriptor instead.
 func (*GetSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{69}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *GetSettingsResponse) GetSettings() *AppSettings {
@@ -3775,7 +4336,7 @@ type UpdateSettingsRequest struct {
 
 func (x *UpdateSettingsRequest) Reset() {
 	*x = UpdateSettingsRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[70]
+	mi := &file_lightevent_v1_service_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3787,7 +4348,7 @@ func (x *UpdateSettingsRequest) String() string {
 func (*UpdateSettingsRequest) ProtoMessage() {}
 
 func (x *UpdateSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[70]
+	mi := &file_lightevent_v1_service_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3800,7 +4361,7 @@ func (x *UpdateSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSettingsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{70}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *UpdateSettingsRequest) GetSettings() *AppSettings {
@@ -3819,7 +4380,7 @@ type UpdateSettingsResponse struct {
 
 func (x *UpdateSettingsResponse) Reset() {
 	*x = UpdateSettingsResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[71]
+	mi := &file_lightevent_v1_service_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3831,7 +4392,7 @@ func (x *UpdateSettingsResponse) String() string {
 func (*UpdateSettingsResponse) ProtoMessage() {}
 
 func (x *UpdateSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[71]
+	mi := &file_lightevent_v1_service_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3844,12 +4405,260 @@ func (x *UpdateSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSettingsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{71}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *UpdateSettingsResponse) GetSettings() *AppSettings {
 	if x != nil {
 		return x.Settings
+	}
+	return nil
+}
+
+type GetClientSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClientSettingsRequest) Reset() {
+	*x = GetClientSettingsRequest{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[83]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClientSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClientSettingsRequest) ProtoMessage() {}
+
+func (x *GetClientSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[83]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClientSettingsRequest.ProtoReflect.Descriptor instead.
+func (*GetClientSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{83}
+}
+
+type GetClientSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *ClientSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClientSettingsResponse) Reset() {
+	*x = GetClientSettingsResponse{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[84]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClientSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClientSettingsResponse) ProtoMessage() {}
+
+func (x *GetClientSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[84]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClientSettingsResponse.ProtoReflect.Descriptor instead.
+func (*GetClientSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{84}
+}
+
+func (x *GetClientSettingsResponse) GetSettings() *ClientSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+type UpdateClientSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *ClientSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateClientSettingsRequest) Reset() {
+	*x = UpdateClientSettingsRequest{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[85]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateClientSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateClientSettingsRequest) ProtoMessage() {}
+
+func (x *UpdateClientSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[85]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateClientSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateClientSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{85}
+}
+
+func (x *UpdateClientSettingsRequest) GetSettings() *ClientSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+type UpdateClientSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *ClientSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateClientSettingsResponse) Reset() {
+	*x = UpdateClientSettingsResponse{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[86]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateClientSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateClientSettingsResponse) ProtoMessage() {}
+
+func (x *UpdateClientSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[86]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateClientSettingsResponse.ProtoReflect.Descriptor instead.
+func (*UpdateClientSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{86}
+}
+
+func (x *UpdateClientSettingsResponse) GetSettings() *ClientSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+type GetClientConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClientConfigRequest) Reset() {
+	*x = GetClientConfigRequest{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[87]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClientConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClientConfigRequest) ProtoMessage() {}
+
+func (x *GetClientConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[87]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClientConfigRequest.ProtoReflect.Descriptor instead.
+func (*GetClientConfigRequest) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{87}
+}
+
+type GetClientConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Config        *ClientConfig          `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClientConfigResponse) Reset() {
+	*x = GetClientConfigResponse{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[88]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClientConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClientConfigResponse) ProtoMessage() {}
+
+func (x *GetClientConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[88]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClientConfigResponse.ProtoReflect.Descriptor instead.
+func (*GetClientConfigResponse) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{88}
+}
+
+func (x *GetClientConfigResponse) GetConfig() *ClientConfig {
+	if x != nil {
+		return x.Config
 	}
 	return nil
 }
@@ -3863,7 +4672,7 @@ type BeginVerificationRequest struct {
 
 func (x *BeginVerificationRequest) Reset() {
 	*x = BeginVerificationRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[72]
+	mi := &file_lightevent_v1_service_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3875,7 +4684,7 @@ func (x *BeginVerificationRequest) String() string {
 func (*BeginVerificationRequest) ProtoMessage() {}
 
 func (x *BeginVerificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[72]
+	mi := &file_lightevent_v1_service_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3888,7 +4697,7 @@ func (x *BeginVerificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BeginVerificationRequest.ProtoReflect.Descriptor instead.
 func (*BeginVerificationRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{72}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *BeginVerificationRequest) GetEmail() string {
@@ -3908,7 +4717,7 @@ type BeginVerificationResponse struct {
 
 func (x *BeginVerificationResponse) Reset() {
 	*x = BeginVerificationResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[73]
+	mi := &file_lightevent_v1_service_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3920,7 +4729,7 @@ func (x *BeginVerificationResponse) String() string {
 func (*BeginVerificationResponse) ProtoMessage() {}
 
 func (x *BeginVerificationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[73]
+	mi := &file_lightevent_v1_service_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3933,7 +4742,7 @@ func (x *BeginVerificationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BeginVerificationResponse.ProtoReflect.Descriptor instead.
 func (*BeginVerificationResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{73}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *BeginVerificationResponse) GetKey() string {
@@ -3953,7 +4762,7 @@ type CompleteVerificationRequest struct {
 
 func (x *CompleteVerificationRequest) Reset() {
 	*x = CompleteVerificationRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[74]
+	mi := &file_lightevent_v1_service_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3965,7 +4774,7 @@ func (x *CompleteVerificationRequest) String() string {
 func (*CompleteVerificationRequest) ProtoMessage() {}
 
 func (x *CompleteVerificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[74]
+	mi := &file_lightevent_v1_service_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3978,7 +4787,7 @@ func (x *CompleteVerificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteVerificationRequest.ProtoReflect.Descriptor instead.
 func (*CompleteVerificationRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{74}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *CompleteVerificationRequest) GetKey() string {
@@ -3996,15 +4805,18 @@ func (x *CompleteVerificationRequest) GetCode() string {
 }
 
 type CompleteVerificationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Member        *Member                `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Member *Member                `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	// session_token authenticates the member as "Authorization: Bearer <session_token>". It is used by the
+	// client app, which runs on other origins where the session cookie is not available.
+	SessionToken  string `protobuf:"bytes,2,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CompleteVerificationResponse) Reset() {
 	*x = CompleteVerificationResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[75]
+	mi := &file_lightevent_v1_service_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4016,7 +4828,7 @@ func (x *CompleteVerificationResponse) String() string {
 func (*CompleteVerificationResponse) ProtoMessage() {}
 
 func (x *CompleteVerificationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[75]
+	mi := &file_lightevent_v1_service_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4029,10 +4841,97 @@ func (x *CompleteVerificationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteVerificationResponse.ProtoReflect.Descriptor instead.
 func (*CompleteVerificationResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{75}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *CompleteVerificationResponse) GetMember() *Member {
+	if x != nil {
+		return x.Member
+	}
+	return nil
+}
+
+func (x *CompleteVerificationResponse) GetSessionToken() string {
+	if x != nil {
+		return x.SessionToken
+	}
+	return ""
+}
+
+type GetMyProfileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyProfileRequest) Reset() {
+	*x = GetMyProfileRequest{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[93]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyProfileRequest) ProtoMessage() {}
+
+func (x *GetMyProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[93]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyProfileRequest.ProtoReflect.Descriptor instead.
+func (*GetMyProfileRequest) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{93}
+}
+
+type GetMyProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Member        *Member                `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyProfileResponse) Reset() {
+	*x = GetMyProfileResponse{}
+	mi := &file_lightevent_v1_service_proto_msgTypes[94]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyProfileResponse) ProtoMessage() {}
+
+func (x *GetMyProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_lightevent_v1_service_proto_msgTypes[94]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyProfileResponse.ProtoReflect.Descriptor instead.
+func (*GetMyProfileResponse) Descriptor() ([]byte, []int) {
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{94}
+}
+
+func (x *GetMyProfileResponse) GetMember() *Member {
 	if x != nil {
 		return x.Member
 	}
@@ -4051,7 +4950,7 @@ type RegisterRequest struct {
 
 func (x *RegisterRequest) Reset() {
 	*x = RegisterRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[76]
+	mi := &file_lightevent_v1_service_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4063,7 +4962,7 @@ func (x *RegisterRequest) String() string {
 func (*RegisterRequest) ProtoMessage() {}
 
 func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[76]
+	mi := &file_lightevent_v1_service_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4076,7 +4975,7 @@ func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
 func (*RegisterRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{76}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *RegisterRequest) GetRegistration() *RegistrationInput {
@@ -4109,7 +5008,7 @@ type RegisterResponse struct {
 
 func (x *RegisterResponse) Reset() {
 	*x = RegisterResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[77]
+	mi := &file_lightevent_v1_service_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4121,7 +5020,7 @@ func (x *RegisterResponse) String() string {
 func (*RegisterResponse) ProtoMessage() {}
 
 func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[77]
+	mi := &file_lightevent_v1_service_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4134,7 +5033,7 @@ func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
 func (*RegisterResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{77}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *RegisterResponse) GetRegistration() *Registration {
@@ -4152,7 +5051,7 @@ type ListMyRegistrationsRequest struct {
 
 func (x *ListMyRegistrationsRequest) Reset() {
 	*x = ListMyRegistrationsRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[78]
+	mi := &file_lightevent_v1_service_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4164,7 +5063,7 @@ func (x *ListMyRegistrationsRequest) String() string {
 func (*ListMyRegistrationsRequest) ProtoMessage() {}
 
 func (x *ListMyRegistrationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[78]
+	mi := &file_lightevent_v1_service_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4177,7 +5076,7 @@ func (x *ListMyRegistrationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyRegistrationsRequest.ProtoReflect.Descriptor instead.
 func (*ListMyRegistrationsRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{78}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{97}
 }
 
 type ListMyRegistrationsResponse struct {
@@ -4189,7 +5088,7 @@ type ListMyRegistrationsResponse struct {
 
 func (x *ListMyRegistrationsResponse) Reset() {
 	*x = ListMyRegistrationsResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[79]
+	mi := &file_lightevent_v1_service_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4201,7 +5100,7 @@ func (x *ListMyRegistrationsResponse) String() string {
 func (*ListMyRegistrationsResponse) ProtoMessage() {}
 
 func (x *ListMyRegistrationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[79]
+	mi := &file_lightevent_v1_service_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4214,7 +5113,7 @@ func (x *ListMyRegistrationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyRegistrationsResponse.ProtoReflect.Descriptor instead.
 func (*ListMyRegistrationsResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{79}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *ListMyRegistrationsResponse) GetRegistrations() []*Registration {
@@ -4233,7 +5132,7 @@ type CancelMyRegistrationRequest struct {
 
 func (x *CancelMyRegistrationRequest) Reset() {
 	*x = CancelMyRegistrationRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[80]
+	mi := &file_lightevent_v1_service_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4245,7 +5144,7 @@ func (x *CancelMyRegistrationRequest) String() string {
 func (*CancelMyRegistrationRequest) ProtoMessage() {}
 
 func (x *CancelMyRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[80]
+	mi := &file_lightevent_v1_service_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4258,7 +5157,7 @@ func (x *CancelMyRegistrationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelMyRegistrationRequest.ProtoReflect.Descriptor instead.
 func (*CancelMyRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{80}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *CancelMyRegistrationRequest) GetConfCode() string {
@@ -4276,7 +5175,7 @@ type CancelMyRegistrationResponse struct {
 
 func (x *CancelMyRegistrationResponse) Reset() {
 	*x = CancelMyRegistrationResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[81]
+	mi := &file_lightevent_v1_service_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4288,7 +5187,7 @@ func (x *CancelMyRegistrationResponse) String() string {
 func (*CancelMyRegistrationResponse) ProtoMessage() {}
 
 func (x *CancelMyRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[81]
+	mi := &file_lightevent_v1_service_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4301,7 +5200,7 @@ func (x *CancelMyRegistrationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelMyRegistrationResponse.ProtoReflect.Descriptor instead.
 func (*CancelMyRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{81}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{100}
 }
 
 type EndMemberSessionRequest struct {
@@ -4312,7 +5211,7 @@ type EndMemberSessionRequest struct {
 
 func (x *EndMemberSessionRequest) Reset() {
 	*x = EndMemberSessionRequest{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[82]
+	mi := &file_lightevent_v1_service_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4324,7 +5223,7 @@ func (x *EndMemberSessionRequest) String() string {
 func (*EndMemberSessionRequest) ProtoMessage() {}
 
 func (x *EndMemberSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[82]
+	mi := &file_lightevent_v1_service_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4337,7 +5236,7 @@ func (x *EndMemberSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndMemberSessionRequest.ProtoReflect.Descriptor instead.
 func (*EndMemberSessionRequest) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{82}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{101}
 }
 
 type EndMemberSessionResponse struct {
@@ -4348,7 +5247,7 @@ type EndMemberSessionResponse struct {
 
 func (x *EndMemberSessionResponse) Reset() {
 	*x = EndMemberSessionResponse{}
-	mi := &file_lightevent_v1_service_proto_msgTypes[83]
+	mi := &file_lightevent_v1_service_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4360,7 +5259,7 @@ func (x *EndMemberSessionResponse) String() string {
 func (*EndMemberSessionResponse) ProtoMessage() {}
 
 func (x *EndMemberSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lightevent_v1_service_proto_msgTypes[83]
+	mi := &file_lightevent_v1_service_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4373,14 +5272,14 @@ func (x *EndMemberSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndMemberSessionResponse.ProtoReflect.Descriptor instead.
 func (*EndMemberSessionResponse) Descriptor() ([]byte, []int) {
-	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{83}
+	return file_lightevent_v1_service_proto_rawDescGZIP(), []int{102}
 }
 
 var File_lightevent_v1_service_proto protoreflect.FileDescriptor
 
 const file_lightevent_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1blightevent/v1/service.proto\x12\rlightevent.v1\"\xa9\x02\n" +
+	"\x1blightevent/v1/service.proto\x12\rlightevent.v1\"\xbd\x02\n" +
 	"\x05Event\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
@@ -4394,7 +5293,8 @@ const file_lightevent_v1_service_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAt\"\x80\x01\n" +
+	" \x01(\tR\tupdatedAt\x12\x12\n" +
+	"\x04tags\x18\v \x03(\tR\x04tags\"\x80\x01\n" +
 	"\tEventDate\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\x12\x1c\n" +
@@ -4457,22 +5357,38 @@ const file_lightevent_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x04 \x01(\tR\tcreatedAt\x12 \n" +
 	"\flast_used_at\x18\x05 \x01(\tR\n" +
-	"lastUsedAt\"{\n" +
+	"lastUsedAt\"P\n" +
+	"\x03Tag\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\x12\x1f\n" +
+	"\vevent_count\x18\x03 \x01(\x05R\n" +
+	"eventCount\"{\n" +
 	"\vAppSettings\x12+\n" +
 	"\x11organization_name\x18\x01 \x01(\tR\x10organizationName\x12#\n" +
 	"\rsupport_email\x18\x02 \x01(\tR\fsupportEmail\x12\x1a\n" +
-	"\btimezone\x18\x03 \x01(\tR\btimezone\"\r\n" +
+	"\btimezone\x18\x03 \x01(\tR\btimezone\"\xab\x01\n" +
+	"\x0eClientSettings\x12'\n" +
+	"\x0fallowed_origins\x18\x01 \x03(\tR\x0eallowedOrigins\x120\n" +
+	"\x14show_remaining_spots\x18\x02 \x01(\bR\x12showRemainingSpots\x12>\n" +
+	"\x1bdisable_series_registration\x18\x03 \x01(\bR\x19disableSeriesRegistration\"\xf1\x01\n" +
+	"\fClientConfig\x12+\n" +
+	"\x11organization_name\x18\x01 \x01(\tR\x10organizationName\x12\x1a\n" +
+	"\btimezone\x18\x02 \x01(\tR\btimezone\x120\n" +
+	"\x14show_remaining_spots\x18\x03 \x01(\bR\x12showRemainingSpots\x12>\n" +
+	"\x1bseries_registration_enabled\x18\x04 \x01(\bR\x19seriesRegistrationEnabled\x12&\n" +
+	"\x04tags\x18\x05 \x03(\v2\x12.lightevent.v1.TagR\x04tags\"\r\n" +
 	"\vPingRequest\"j\n" +
 	"\fPingResponse\x12\x1f\n" +
 	"\vsubject_uid\x18\x01 \x01(\tR\n" +
 	"subjectUid\x12\x16\n" +
 	"\x06scheme\x18\x02 \x01(\tR\x06scheme\x12!\n" +
-	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"\x8d\x01\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"\xa1\x01\n" +
 	"\x11ListEventsRequest\x122\n" +
 	"\x06filter\x18\x01 \x01(\x0e2\x1a.lightevent.v1.EventFilterR\x06filter\x12\x16\n" +
 	"\x06search\x18\x02 \x01(\tR\x06search\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x04 \x01(\x05R\x06offset\"X\n" +
+	"\x06offset\x18\x04 \x01(\x05R\x06offset\x12\x12\n" +
+	"\x04tags\x18\x05 \x03(\tR\x04tags\"X\n" +
 	"\x12ListEventsResponse\x12,\n" +
 	"\x06events\x18\x01 \x03(\v2\x14.lightevent.v1.EventR\x06events\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"%\n" +
@@ -4512,7 +5428,21 @@ const file_lightevent_v1_service_proto_rawDesc = "" +
 	"\fseries_count\x18\x04 \x01(\x05R\vseriesCount\"b\n" +
 	"\x1eListUpcomingEventDatesResponse\x12@\n" +
 	"\vevent_dates\x18\x01 \x03(\v2\x1f.lightevent.v1.EventDateSummaryR\n" +
-	"eventDates\">\n" +
+	"eventDates\"\x11\n" +
+	"\x0fListTagsRequest\":\n" +
+	"\x10ListTagsResponse\x12&\n" +
+	"\x04tags\x18\x01 \x03(\v2\x12.lightevent.v1.TagR\x04tags\"8\n" +
+	"\x10CreateTagRequest\x12$\n" +
+	"\x03tag\x18\x01 \x01(\v2\x12.lightevent.v1.TagR\x03tag\"9\n" +
+	"\x11CreateTagResponse\x12$\n" +
+	"\x03tag\x18\x01 \x01(\v2\x12.lightevent.v1.TagR\x03tag\"8\n" +
+	"\x10UpdateTagRequest\x12$\n" +
+	"\x03tag\x18\x01 \x01(\v2\x12.lightevent.v1.TagR\x03tag\"9\n" +
+	"\x11UpdateTagResponse\x12$\n" +
+	"\x03tag\x18\x01 \x01(\v2\x12.lightevent.v1.TagR\x03tag\"&\n" +
+	"\x10DeleteTagRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"\x13\n" +
+	"\x11DeleteTagResponse\">\n" +
 	"\x1dListEventRegistrationsRequest\x12\x1d\n" +
 	"\n" +
 	"event_name\x18\x01 \x01(\tR\teventName\"c\n" +
@@ -4631,15 +5561,29 @@ const file_lightevent_v1_service_proto_rawDesc = "" +
 	"\x15UpdateSettingsRequest\x126\n" +
 	"\bsettings\x18\x01 \x01(\v2\x1a.lightevent.v1.AppSettingsR\bsettings\"P\n" +
 	"\x16UpdateSettingsResponse\x126\n" +
-	"\bsettings\x18\x01 \x01(\v2\x1a.lightevent.v1.AppSettingsR\bsettings\"0\n" +
+	"\bsettings\x18\x01 \x01(\v2\x1a.lightevent.v1.AppSettingsR\bsettings\"\x1a\n" +
+	"\x18GetClientSettingsRequest\"V\n" +
+	"\x19GetClientSettingsResponse\x129\n" +
+	"\bsettings\x18\x01 \x01(\v2\x1d.lightevent.v1.ClientSettingsR\bsettings\"X\n" +
+	"\x1bUpdateClientSettingsRequest\x129\n" +
+	"\bsettings\x18\x01 \x01(\v2\x1d.lightevent.v1.ClientSettingsR\bsettings\"Y\n" +
+	"\x1cUpdateClientSettingsResponse\x129\n" +
+	"\bsettings\x18\x01 \x01(\v2\x1d.lightevent.v1.ClientSettingsR\bsettings\"\x18\n" +
+	"\x16GetClientConfigRequest\"N\n" +
+	"\x17GetClientConfigResponse\x123\n" +
+	"\x06config\x18\x01 \x01(\v2\x1b.lightevent.v1.ClientConfigR\x06config\"0\n" +
 	"\x18BeginVerificationRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\"-\n" +
 	"\x19BeginVerificationResponse\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\"C\n" +
 	"\x1bCompleteVerificationRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\tR\x04code\"M\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\"r\n" +
 	"\x1cCompleteVerificationResponse\x12-\n" +
+	"\x06member\x18\x01 \x01(\v2\x15.lightevent.v1.MemberR\x06member\x12#\n" +
+	"\rsession_token\x18\x02 \x01(\tR\fsessionToken\"\x15\n" +
+	"\x13GetMyProfileRequest\"E\n" +
+	"\x14GetMyProfileResponse\x12-\n" +
 	"\x06member\x18\x01 \x01(\v2\x15.lightevent.v1.MemberR\x06member\"\xba\x01\n" +
 	"\x0fRegisterRequest\x12D\n" +
 	"\fregistration\x18\x01 \x01(\v2 .lightevent.v1.RegistrationInputR\fregistration\x12\"\n" +
@@ -4668,7 +5612,7 @@ const file_lightevent_v1_service_proto_rawDesc = "" +
 	"\x15EVENT_FILTER_UPCOMING\x10\x01\x12\x15\n" +
 	"\x11EVENT_FILTER_PAST\x10\x02\x12\x19\n" +
 	"\x15EVENT_FILTER_ARCHIVED\x10\x03\x12\x14\n" +
-	"\x10EVENT_FILTER_ALL\x10\x042\x95\x1b\n" +
+	"\x10EVENT_FILTER_ALL\x10\x042\xe6 \n" +
 	"\x11LightEventService\x12?\n" +
 	"\x04Ping\x12\x1a.lightevent.v1.PingRequest\x1a\x1b.lightevent.v1.PingResponse\x12Q\n" +
 	"\n" +
@@ -4679,7 +5623,11 @@ const file_lightevent_v1_service_proto_rawDesc = "" +
 	"\x10SetEventArchived\x12&.lightevent.v1.SetEventArchivedRequest\x1a'.lightevent.v1.SetEventArchivedResponse\x12T\n" +
 	"\vDeleteEvent\x12!.lightevent.v1.DeleteEventRequest\x1a\".lightevent.v1.DeleteEventResponse\x12`\n" +
 	"\x0fCancelEventDate\x12%.lightevent.v1.CancelEventDateRequest\x1a&.lightevent.v1.CancelEventDateResponse\x12u\n" +
-	"\x16ListUpcomingEventDates\x12,.lightevent.v1.ListUpcomingEventDatesRequest\x1a-.lightevent.v1.ListUpcomingEventDatesResponse\x12u\n" +
+	"\x16ListUpcomingEventDates\x12,.lightevent.v1.ListUpcomingEventDatesRequest\x1a-.lightevent.v1.ListUpcomingEventDatesResponse\x12K\n" +
+	"\bListTags\x12\x1e.lightevent.v1.ListTagsRequest\x1a\x1f.lightevent.v1.ListTagsResponse\x12N\n" +
+	"\tCreateTag\x12\x1f.lightevent.v1.CreateTagRequest\x1a .lightevent.v1.CreateTagResponse\x12N\n" +
+	"\tUpdateTag\x12\x1f.lightevent.v1.UpdateTagRequest\x1a .lightevent.v1.UpdateTagResponse\x12N\n" +
+	"\tDeleteTag\x12\x1f.lightevent.v1.DeleteTagRequest\x1a .lightevent.v1.DeleteTagResponse\x12u\n" +
 	"\x16ListEventRegistrations\x12,.lightevent.v1.ListEventRegistrationsRequest\x1a-.lightevent.v1.ListEventRegistrationsResponse\x12`\n" +
 	"\x0fGetRegistration\x12%.lightevent.v1.GetRegistrationRequest\x1a&.lightevent.v1.GetRegistrationResponse\x12i\n" +
 	"\x12CreateRegistration\x12(.lightevent.v1.CreateRegistrationRequest\x1a).lightevent.v1.CreateRegistrationResponse\x12i\n" +
@@ -4705,8 +5653,12 @@ const file_lightevent_v1_service_proto_rawDesc = "" +
 	"\fDeleteAPIKey\x12\".lightevent.v1.DeleteAPIKeyRequest\x1a#.lightevent.v1.DeleteAPIKeyResponse\x12T\n" +
 	"\vGetSettings\x12!.lightevent.v1.GetSettingsRequest\x1a\".lightevent.v1.GetSettingsResponse\x12]\n" +
 	"\x0eUpdateSettings\x12$.lightevent.v1.UpdateSettingsRequest\x1a%.lightevent.v1.UpdateSettingsResponse\x12f\n" +
+	"\x11GetClientSettings\x12'.lightevent.v1.GetClientSettingsRequest\x1a(.lightevent.v1.GetClientSettingsResponse\x12o\n" +
+	"\x14UpdateClientSettings\x12*.lightevent.v1.UpdateClientSettingsRequest\x1a+.lightevent.v1.UpdateClientSettingsResponse\x12`\n" +
+	"\x0fGetClientConfig\x12%.lightevent.v1.GetClientConfigRequest\x1a&.lightevent.v1.GetClientConfigResponse\x12f\n" +
 	"\x11BeginVerification\x12'.lightevent.v1.BeginVerificationRequest\x1a(.lightevent.v1.BeginVerificationResponse\x12o\n" +
-	"\x14CompleteVerification\x12*.lightevent.v1.CompleteVerificationRequest\x1a+.lightevent.v1.CompleteVerificationResponse\x12K\n" +
+	"\x14CompleteVerification\x12*.lightevent.v1.CompleteVerificationRequest\x1a+.lightevent.v1.CompleteVerificationResponse\x12W\n" +
+	"\fGetMyProfile\x12\".lightevent.v1.GetMyProfileRequest\x1a#.lightevent.v1.GetMyProfileResponse\x12K\n" +
 	"\bRegister\x12\x1e.lightevent.v1.RegisterRequest\x1a\x1f.lightevent.v1.RegisterResponse\x12l\n" +
 	"\x13ListMyRegistrations\x12).lightevent.v1.ListMyRegistrationsRequest\x1a*.lightevent.v1.ListMyRegistrationsResponse\x12o\n" +
 	"\x14CancelMyRegistration\x12*.lightevent.v1.CancelMyRegistrationRequest\x1a+.lightevent.v1.CancelMyRegistrationResponse\x12c\n" +
@@ -4725,7 +5677,7 @@ func file_lightevent_v1_service_proto_rawDescGZIP() []byte {
 }
 
 var file_lightevent_v1_service_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_lightevent_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 84)
+var file_lightevent_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 103)
 var file_lightevent_v1_service_proto_goTypes = []any{
 	(RegistrationKind)(0),                   // 0: lightevent.v1.RegistrationKind
 	(EventFilter)(0),                        // 1: lightevent.v1.EventFilter
@@ -4737,202 +5689,248 @@ var file_lightevent_v1_service_proto_goTypes = []any{
 	(*User)(nil),                            // 7: lightevent.v1.User
 	(*Session)(nil),                         // 8: lightevent.v1.Session
 	(*APIKey)(nil),                          // 9: lightevent.v1.APIKey
-	(*AppSettings)(nil),                     // 10: lightevent.v1.AppSettings
-	(*PingRequest)(nil),                     // 11: lightevent.v1.PingRequest
-	(*PingResponse)(nil),                    // 12: lightevent.v1.PingResponse
-	(*ListEventsRequest)(nil),               // 13: lightevent.v1.ListEventsRequest
-	(*ListEventsResponse)(nil),              // 14: lightevent.v1.ListEventsResponse
-	(*GetEventRequest)(nil),                 // 15: lightevent.v1.GetEventRequest
-	(*GetEventResponse)(nil),                // 16: lightevent.v1.GetEventResponse
-	(*CreateEventRequest)(nil),              // 17: lightevent.v1.CreateEventRequest
-	(*CreateEventResponse)(nil),             // 18: lightevent.v1.CreateEventResponse
-	(*UpdateEventRequest)(nil),              // 19: lightevent.v1.UpdateEventRequest
-	(*UpdateEventResponse)(nil),             // 20: lightevent.v1.UpdateEventResponse
-	(*SetEventArchivedRequest)(nil),         // 21: lightevent.v1.SetEventArchivedRequest
-	(*SetEventArchivedResponse)(nil),        // 22: lightevent.v1.SetEventArchivedResponse
-	(*DeleteEventRequest)(nil),              // 23: lightevent.v1.DeleteEventRequest
-	(*DeleteEventResponse)(nil),             // 24: lightevent.v1.DeleteEventResponse
-	(*CancelEventDateRequest)(nil),          // 25: lightevent.v1.CancelEventDateRequest
-	(*CancelEventDateResponse)(nil),         // 26: lightevent.v1.CancelEventDateResponse
-	(*ListUpcomingEventDatesRequest)(nil),   // 27: lightevent.v1.ListUpcomingEventDatesRequest
-	(*EventDateSummary)(nil),                // 28: lightevent.v1.EventDateSummary
-	(*ListUpcomingEventDatesResponse)(nil),  // 29: lightevent.v1.ListUpcomingEventDatesResponse
-	(*ListEventRegistrationsRequest)(nil),   // 30: lightevent.v1.ListEventRegistrationsRequest
-	(*ListEventRegistrationsResponse)(nil),  // 31: lightevent.v1.ListEventRegistrationsResponse
-	(*GetRegistrationRequest)(nil),          // 32: lightevent.v1.GetRegistrationRequest
-	(*GetRegistrationResponse)(nil),         // 33: lightevent.v1.GetRegistrationResponse
-	(*CreateRegistrationRequest)(nil),       // 34: lightevent.v1.CreateRegistrationRequest
-	(*CreateRegistrationResponse)(nil),      // 35: lightevent.v1.CreateRegistrationResponse
-	(*DeleteRegistrationRequest)(nil),       // 36: lightevent.v1.DeleteRegistrationRequest
-	(*DeleteRegistrationResponse)(nil),      // 37: lightevent.v1.DeleteRegistrationResponse
-	(*CreateMemberRequest)(nil),             // 38: lightevent.v1.CreateMemberRequest
-	(*CreateMemberResponse)(nil),            // 39: lightevent.v1.CreateMemberResponse
-	(*ListMembersRequest)(nil),              // 40: lightevent.v1.ListMembersRequest
-	(*ListMembersResponse)(nil),             // 41: lightevent.v1.ListMembersResponse
-	(*GetMemberRequest)(nil),                // 42: lightevent.v1.GetMemberRequest
-	(*GetMemberResponse)(nil),               // 43: lightevent.v1.GetMemberResponse
-	(*UpdateMemberRequest)(nil),             // 44: lightevent.v1.UpdateMemberRequest
-	(*UpdateMemberResponse)(nil),            // 45: lightevent.v1.UpdateMemberResponse
-	(*DeleteMemberRequest)(nil),             // 46: lightevent.v1.DeleteMemberRequest
-	(*DeleteMemberResponse)(nil),            // 47: lightevent.v1.DeleteMemberResponse
-	(*ListMemberRegistrationsRequest)(nil),  // 48: lightevent.v1.ListMemberRegistrationsRequest
-	(*ListMemberRegistrationsResponse)(nil), // 49: lightevent.v1.ListMemberRegistrationsResponse
-	(*CreateUserRequest)(nil),               // 50: lightevent.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),              // 51: lightevent.v1.CreateUserResponse
-	(*UpdateUserRequest)(nil),               // 52: lightevent.v1.UpdateUserRequest
-	(*UpdateUserResponse)(nil),              // 53: lightevent.v1.UpdateUserResponse
-	(*SetUserPasswordRequest)(nil),          // 54: lightevent.v1.SetUserPasswordRequest
-	(*SetUserPasswordResponse)(nil),         // 55: lightevent.v1.SetUserPasswordResponse
-	(*ListUsersRequest)(nil),                // 56: lightevent.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),               // 57: lightevent.v1.ListUsersResponse
-	(*DeleteUserRequest)(nil),               // 58: lightevent.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),              // 59: lightevent.v1.DeleteUserResponse
-	(*ListSessionsRequest)(nil),             // 60: lightevent.v1.ListSessionsRequest
-	(*ListSessionsResponse)(nil),            // 61: lightevent.v1.ListSessionsResponse
-	(*RevokeSessionRequest)(nil),            // 62: lightevent.v1.RevokeSessionRequest
-	(*RevokeSessionResponse)(nil),           // 63: lightevent.v1.RevokeSessionResponse
-	(*CreateAPIKeyRequest)(nil),             // 64: lightevent.v1.CreateAPIKeyRequest
-	(*CreateAPIKeyResponse)(nil),            // 65: lightevent.v1.CreateAPIKeyResponse
-	(*ListAPIKeysRequest)(nil),              // 66: lightevent.v1.ListAPIKeysRequest
-	(*ListAPIKeysResponse)(nil),             // 67: lightevent.v1.ListAPIKeysResponse
-	(*DeleteAPIKeyRequest)(nil),             // 68: lightevent.v1.DeleteAPIKeyRequest
-	(*DeleteAPIKeyResponse)(nil),            // 69: lightevent.v1.DeleteAPIKeyResponse
-	(*GetSettingsRequest)(nil),              // 70: lightevent.v1.GetSettingsRequest
-	(*GetSettingsResponse)(nil),             // 71: lightevent.v1.GetSettingsResponse
-	(*UpdateSettingsRequest)(nil),           // 72: lightevent.v1.UpdateSettingsRequest
-	(*UpdateSettingsResponse)(nil),          // 73: lightevent.v1.UpdateSettingsResponse
-	(*BeginVerificationRequest)(nil),        // 74: lightevent.v1.BeginVerificationRequest
-	(*BeginVerificationResponse)(nil),       // 75: lightevent.v1.BeginVerificationResponse
-	(*CompleteVerificationRequest)(nil),     // 76: lightevent.v1.CompleteVerificationRequest
-	(*CompleteVerificationResponse)(nil),    // 77: lightevent.v1.CompleteVerificationResponse
-	(*RegisterRequest)(nil),                 // 78: lightevent.v1.RegisterRequest
-	(*RegisterResponse)(nil),                // 79: lightevent.v1.RegisterResponse
-	(*ListMyRegistrationsRequest)(nil),      // 80: lightevent.v1.ListMyRegistrationsRequest
-	(*ListMyRegistrationsResponse)(nil),     // 81: lightevent.v1.ListMyRegistrationsResponse
-	(*CancelMyRegistrationRequest)(nil),     // 82: lightevent.v1.CancelMyRegistrationRequest
-	(*CancelMyRegistrationResponse)(nil),    // 83: lightevent.v1.CancelMyRegistrationResponse
-	(*EndMemberSessionRequest)(nil),         // 84: lightevent.v1.EndMemberSessionRequest
-	(*EndMemberSessionResponse)(nil),        // 85: lightevent.v1.EndMemberSessionResponse
+	(*Tag)(nil),                             // 10: lightevent.v1.Tag
+	(*AppSettings)(nil),                     // 11: lightevent.v1.AppSettings
+	(*ClientSettings)(nil),                  // 12: lightevent.v1.ClientSettings
+	(*ClientConfig)(nil),                    // 13: lightevent.v1.ClientConfig
+	(*PingRequest)(nil),                     // 14: lightevent.v1.PingRequest
+	(*PingResponse)(nil),                    // 15: lightevent.v1.PingResponse
+	(*ListEventsRequest)(nil),               // 16: lightevent.v1.ListEventsRequest
+	(*ListEventsResponse)(nil),              // 17: lightevent.v1.ListEventsResponse
+	(*GetEventRequest)(nil),                 // 18: lightevent.v1.GetEventRequest
+	(*GetEventResponse)(nil),                // 19: lightevent.v1.GetEventResponse
+	(*CreateEventRequest)(nil),              // 20: lightevent.v1.CreateEventRequest
+	(*CreateEventResponse)(nil),             // 21: lightevent.v1.CreateEventResponse
+	(*UpdateEventRequest)(nil),              // 22: lightevent.v1.UpdateEventRequest
+	(*UpdateEventResponse)(nil),             // 23: lightevent.v1.UpdateEventResponse
+	(*SetEventArchivedRequest)(nil),         // 24: lightevent.v1.SetEventArchivedRequest
+	(*SetEventArchivedResponse)(nil),        // 25: lightevent.v1.SetEventArchivedResponse
+	(*DeleteEventRequest)(nil),              // 26: lightevent.v1.DeleteEventRequest
+	(*DeleteEventResponse)(nil),             // 27: lightevent.v1.DeleteEventResponse
+	(*CancelEventDateRequest)(nil),          // 28: lightevent.v1.CancelEventDateRequest
+	(*CancelEventDateResponse)(nil),         // 29: lightevent.v1.CancelEventDateResponse
+	(*ListUpcomingEventDatesRequest)(nil),   // 30: lightevent.v1.ListUpcomingEventDatesRequest
+	(*EventDateSummary)(nil),                // 31: lightevent.v1.EventDateSummary
+	(*ListUpcomingEventDatesResponse)(nil),  // 32: lightevent.v1.ListUpcomingEventDatesResponse
+	(*ListTagsRequest)(nil),                 // 33: lightevent.v1.ListTagsRequest
+	(*ListTagsResponse)(nil),                // 34: lightevent.v1.ListTagsResponse
+	(*CreateTagRequest)(nil),                // 35: lightevent.v1.CreateTagRequest
+	(*CreateTagResponse)(nil),               // 36: lightevent.v1.CreateTagResponse
+	(*UpdateTagRequest)(nil),                // 37: lightevent.v1.UpdateTagRequest
+	(*UpdateTagResponse)(nil),               // 38: lightevent.v1.UpdateTagResponse
+	(*DeleteTagRequest)(nil),                // 39: lightevent.v1.DeleteTagRequest
+	(*DeleteTagResponse)(nil),               // 40: lightevent.v1.DeleteTagResponse
+	(*ListEventRegistrationsRequest)(nil),   // 41: lightevent.v1.ListEventRegistrationsRequest
+	(*ListEventRegistrationsResponse)(nil),  // 42: lightevent.v1.ListEventRegistrationsResponse
+	(*GetRegistrationRequest)(nil),          // 43: lightevent.v1.GetRegistrationRequest
+	(*GetRegistrationResponse)(nil),         // 44: lightevent.v1.GetRegistrationResponse
+	(*CreateRegistrationRequest)(nil),       // 45: lightevent.v1.CreateRegistrationRequest
+	(*CreateRegistrationResponse)(nil),      // 46: lightevent.v1.CreateRegistrationResponse
+	(*DeleteRegistrationRequest)(nil),       // 47: lightevent.v1.DeleteRegistrationRequest
+	(*DeleteRegistrationResponse)(nil),      // 48: lightevent.v1.DeleteRegistrationResponse
+	(*CreateMemberRequest)(nil),             // 49: lightevent.v1.CreateMemberRequest
+	(*CreateMemberResponse)(nil),            // 50: lightevent.v1.CreateMemberResponse
+	(*ListMembersRequest)(nil),              // 51: lightevent.v1.ListMembersRequest
+	(*ListMembersResponse)(nil),             // 52: lightevent.v1.ListMembersResponse
+	(*GetMemberRequest)(nil),                // 53: lightevent.v1.GetMemberRequest
+	(*GetMemberResponse)(nil),               // 54: lightevent.v1.GetMemberResponse
+	(*UpdateMemberRequest)(nil),             // 55: lightevent.v1.UpdateMemberRequest
+	(*UpdateMemberResponse)(nil),            // 56: lightevent.v1.UpdateMemberResponse
+	(*DeleteMemberRequest)(nil),             // 57: lightevent.v1.DeleteMemberRequest
+	(*DeleteMemberResponse)(nil),            // 58: lightevent.v1.DeleteMemberResponse
+	(*ListMemberRegistrationsRequest)(nil),  // 59: lightevent.v1.ListMemberRegistrationsRequest
+	(*ListMemberRegistrationsResponse)(nil), // 60: lightevent.v1.ListMemberRegistrationsResponse
+	(*CreateUserRequest)(nil),               // 61: lightevent.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),              // 62: lightevent.v1.CreateUserResponse
+	(*UpdateUserRequest)(nil),               // 63: lightevent.v1.UpdateUserRequest
+	(*UpdateUserResponse)(nil),              // 64: lightevent.v1.UpdateUserResponse
+	(*SetUserPasswordRequest)(nil),          // 65: lightevent.v1.SetUserPasswordRequest
+	(*SetUserPasswordResponse)(nil),         // 66: lightevent.v1.SetUserPasswordResponse
+	(*ListUsersRequest)(nil),                // 67: lightevent.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),               // 68: lightevent.v1.ListUsersResponse
+	(*DeleteUserRequest)(nil),               // 69: lightevent.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),              // 70: lightevent.v1.DeleteUserResponse
+	(*ListSessionsRequest)(nil),             // 71: lightevent.v1.ListSessionsRequest
+	(*ListSessionsResponse)(nil),            // 72: lightevent.v1.ListSessionsResponse
+	(*RevokeSessionRequest)(nil),            // 73: lightevent.v1.RevokeSessionRequest
+	(*RevokeSessionResponse)(nil),           // 74: lightevent.v1.RevokeSessionResponse
+	(*CreateAPIKeyRequest)(nil),             // 75: lightevent.v1.CreateAPIKeyRequest
+	(*CreateAPIKeyResponse)(nil),            // 76: lightevent.v1.CreateAPIKeyResponse
+	(*ListAPIKeysRequest)(nil),              // 77: lightevent.v1.ListAPIKeysRequest
+	(*ListAPIKeysResponse)(nil),             // 78: lightevent.v1.ListAPIKeysResponse
+	(*DeleteAPIKeyRequest)(nil),             // 79: lightevent.v1.DeleteAPIKeyRequest
+	(*DeleteAPIKeyResponse)(nil),            // 80: lightevent.v1.DeleteAPIKeyResponse
+	(*GetSettingsRequest)(nil),              // 81: lightevent.v1.GetSettingsRequest
+	(*GetSettingsResponse)(nil),             // 82: lightevent.v1.GetSettingsResponse
+	(*UpdateSettingsRequest)(nil),           // 83: lightevent.v1.UpdateSettingsRequest
+	(*UpdateSettingsResponse)(nil),          // 84: lightevent.v1.UpdateSettingsResponse
+	(*GetClientSettingsRequest)(nil),        // 85: lightevent.v1.GetClientSettingsRequest
+	(*GetClientSettingsResponse)(nil),       // 86: lightevent.v1.GetClientSettingsResponse
+	(*UpdateClientSettingsRequest)(nil),     // 87: lightevent.v1.UpdateClientSettingsRequest
+	(*UpdateClientSettingsResponse)(nil),    // 88: lightevent.v1.UpdateClientSettingsResponse
+	(*GetClientConfigRequest)(nil),          // 89: lightevent.v1.GetClientConfigRequest
+	(*GetClientConfigResponse)(nil),         // 90: lightevent.v1.GetClientConfigResponse
+	(*BeginVerificationRequest)(nil),        // 91: lightevent.v1.BeginVerificationRequest
+	(*BeginVerificationResponse)(nil),       // 92: lightevent.v1.BeginVerificationResponse
+	(*CompleteVerificationRequest)(nil),     // 93: lightevent.v1.CompleteVerificationRequest
+	(*CompleteVerificationResponse)(nil),    // 94: lightevent.v1.CompleteVerificationResponse
+	(*GetMyProfileRequest)(nil),             // 95: lightevent.v1.GetMyProfileRequest
+	(*GetMyProfileResponse)(nil),            // 96: lightevent.v1.GetMyProfileResponse
+	(*RegisterRequest)(nil),                 // 97: lightevent.v1.RegisterRequest
+	(*RegisterResponse)(nil),                // 98: lightevent.v1.RegisterResponse
+	(*ListMyRegistrationsRequest)(nil),      // 99: lightevent.v1.ListMyRegistrationsRequest
+	(*ListMyRegistrationsResponse)(nil),     // 100: lightevent.v1.ListMyRegistrationsResponse
+	(*CancelMyRegistrationRequest)(nil),     // 101: lightevent.v1.CancelMyRegistrationRequest
+	(*CancelMyRegistrationResponse)(nil),    // 102: lightevent.v1.CancelMyRegistrationResponse
+	(*EndMemberSessionRequest)(nil),         // 103: lightevent.v1.EndMemberSessionRequest
+	(*EndMemberSessionResponse)(nil),        // 104: lightevent.v1.EndMemberSessionResponse
 }
 var file_lightevent_v1_service_proto_depIdxs = []int32{
-	3,  // 0: lightevent.v1.Event.dates:type_name -> lightevent.v1.EventDate
-	0,  // 1: lightevent.v1.Registration.kind:type_name -> lightevent.v1.RegistrationKind
-	3,  // 2: lightevent.v1.Registration.event_date:type_name -> lightevent.v1.EventDate
-	6,  // 3: lightevent.v1.Registration.member:type_name -> lightevent.v1.Member
-	0,  // 4: lightevent.v1.RegistrationInput.kind:type_name -> lightevent.v1.RegistrationKind
-	1,  // 5: lightevent.v1.ListEventsRequest.filter:type_name -> lightevent.v1.EventFilter
-	2,  // 6: lightevent.v1.ListEventsResponse.events:type_name -> lightevent.v1.Event
-	2,  // 7: lightevent.v1.GetEventResponse.event:type_name -> lightevent.v1.Event
-	2,  // 8: lightevent.v1.CreateEventRequest.event:type_name -> lightevent.v1.Event
-	2,  // 9: lightevent.v1.CreateEventResponse.event:type_name -> lightevent.v1.Event
-	2,  // 10: lightevent.v1.UpdateEventRequest.event:type_name -> lightevent.v1.Event
-	2,  // 11: lightevent.v1.UpdateEventResponse.event:type_name -> lightevent.v1.Event
-	2,  // 12: lightevent.v1.SetEventArchivedResponse.event:type_name -> lightevent.v1.Event
-	3,  // 13: lightevent.v1.CancelEventDateResponse.event_date:type_name -> lightevent.v1.EventDate
-	3,  // 14: lightevent.v1.EventDateSummary.event_date:type_name -> lightevent.v1.EventDate
-	2,  // 15: lightevent.v1.EventDateSummary.event:type_name -> lightevent.v1.Event
-	28, // 16: lightevent.v1.ListUpcomingEventDatesResponse.event_dates:type_name -> lightevent.v1.EventDateSummary
-	4,  // 17: lightevent.v1.ListEventRegistrationsResponse.registrations:type_name -> lightevent.v1.Registration
-	4,  // 18: lightevent.v1.GetRegistrationResponse.registration:type_name -> lightevent.v1.Registration
-	5,  // 19: lightevent.v1.CreateRegistrationRequest.registration:type_name -> lightevent.v1.RegistrationInput
-	4,  // 20: lightevent.v1.CreateRegistrationResponse.registration:type_name -> lightevent.v1.Registration
-	6,  // 21: lightevent.v1.CreateMemberResponse.member:type_name -> lightevent.v1.Member
-	6,  // 22: lightevent.v1.ListMembersResponse.members:type_name -> lightevent.v1.Member
-	6,  // 23: lightevent.v1.GetMemberResponse.member:type_name -> lightevent.v1.Member
-	6,  // 24: lightevent.v1.UpdateMemberResponse.member:type_name -> lightevent.v1.Member
-	4,  // 25: lightevent.v1.ListMemberRegistrationsResponse.registrations:type_name -> lightevent.v1.Registration
-	7,  // 26: lightevent.v1.CreateUserResponse.user:type_name -> lightevent.v1.User
-	7,  // 27: lightevent.v1.UpdateUserResponse.user:type_name -> lightevent.v1.User
-	7,  // 28: lightevent.v1.ListUsersResponse.users:type_name -> lightevent.v1.User
-	8,  // 29: lightevent.v1.ListSessionsResponse.sessions:type_name -> lightevent.v1.Session
-	9,  // 30: lightevent.v1.CreateAPIKeyResponse.api_key:type_name -> lightevent.v1.APIKey
-	9,  // 31: lightevent.v1.ListAPIKeysResponse.api_keys:type_name -> lightevent.v1.APIKey
-	10, // 32: lightevent.v1.GetSettingsResponse.settings:type_name -> lightevent.v1.AppSettings
-	10, // 33: lightevent.v1.UpdateSettingsRequest.settings:type_name -> lightevent.v1.AppSettings
-	10, // 34: lightevent.v1.UpdateSettingsResponse.settings:type_name -> lightevent.v1.AppSettings
-	6,  // 35: lightevent.v1.CompleteVerificationResponse.member:type_name -> lightevent.v1.Member
-	5,  // 36: lightevent.v1.RegisterRequest.registration:type_name -> lightevent.v1.RegistrationInput
-	4,  // 37: lightevent.v1.RegisterResponse.registration:type_name -> lightevent.v1.Registration
-	4,  // 38: lightevent.v1.ListMyRegistrationsResponse.registrations:type_name -> lightevent.v1.Registration
-	11, // 39: lightevent.v1.LightEventService.Ping:input_type -> lightevent.v1.PingRequest
-	13, // 40: lightevent.v1.LightEventService.ListEvents:input_type -> lightevent.v1.ListEventsRequest
-	15, // 41: lightevent.v1.LightEventService.GetEvent:input_type -> lightevent.v1.GetEventRequest
-	17, // 42: lightevent.v1.LightEventService.CreateEvent:input_type -> lightevent.v1.CreateEventRequest
-	19, // 43: lightevent.v1.LightEventService.UpdateEvent:input_type -> lightevent.v1.UpdateEventRequest
-	21, // 44: lightevent.v1.LightEventService.SetEventArchived:input_type -> lightevent.v1.SetEventArchivedRequest
-	23, // 45: lightevent.v1.LightEventService.DeleteEvent:input_type -> lightevent.v1.DeleteEventRequest
-	25, // 46: lightevent.v1.LightEventService.CancelEventDate:input_type -> lightevent.v1.CancelEventDateRequest
-	27, // 47: lightevent.v1.LightEventService.ListUpcomingEventDates:input_type -> lightevent.v1.ListUpcomingEventDatesRequest
-	30, // 48: lightevent.v1.LightEventService.ListEventRegistrations:input_type -> lightevent.v1.ListEventRegistrationsRequest
-	32, // 49: lightevent.v1.LightEventService.GetRegistration:input_type -> lightevent.v1.GetRegistrationRequest
-	34, // 50: lightevent.v1.LightEventService.CreateRegistration:input_type -> lightevent.v1.CreateRegistrationRequest
-	36, // 51: lightevent.v1.LightEventService.DeleteRegistration:input_type -> lightevent.v1.DeleteRegistrationRequest
-	38, // 52: lightevent.v1.LightEventService.CreateMember:input_type -> lightevent.v1.CreateMemberRequest
-	40, // 53: lightevent.v1.LightEventService.ListMembers:input_type -> lightevent.v1.ListMembersRequest
-	42, // 54: lightevent.v1.LightEventService.GetMember:input_type -> lightevent.v1.GetMemberRequest
-	44, // 55: lightevent.v1.LightEventService.UpdateMember:input_type -> lightevent.v1.UpdateMemberRequest
-	46, // 56: lightevent.v1.LightEventService.DeleteMember:input_type -> lightevent.v1.DeleteMemberRequest
-	48, // 57: lightevent.v1.LightEventService.ListMemberRegistrations:input_type -> lightevent.v1.ListMemberRegistrationsRequest
-	50, // 58: lightevent.v1.LightEventService.CreateUser:input_type -> lightevent.v1.CreateUserRequest
-	52, // 59: lightevent.v1.LightEventService.UpdateUser:input_type -> lightevent.v1.UpdateUserRequest
-	54, // 60: lightevent.v1.LightEventService.SetUserPassword:input_type -> lightevent.v1.SetUserPasswordRequest
-	56, // 61: lightevent.v1.LightEventService.ListUsers:input_type -> lightevent.v1.ListUsersRequest
-	58, // 62: lightevent.v1.LightEventService.DeleteUser:input_type -> lightevent.v1.DeleteUserRequest
-	60, // 63: lightevent.v1.LightEventService.ListSessions:input_type -> lightevent.v1.ListSessionsRequest
-	62, // 64: lightevent.v1.LightEventService.RevokeSession:input_type -> lightevent.v1.RevokeSessionRequest
-	64, // 65: lightevent.v1.LightEventService.CreateAPIKey:input_type -> lightevent.v1.CreateAPIKeyRequest
-	66, // 66: lightevent.v1.LightEventService.ListAPIKeys:input_type -> lightevent.v1.ListAPIKeysRequest
-	68, // 67: lightevent.v1.LightEventService.DeleteAPIKey:input_type -> lightevent.v1.DeleteAPIKeyRequest
-	70, // 68: lightevent.v1.LightEventService.GetSettings:input_type -> lightevent.v1.GetSettingsRequest
-	72, // 69: lightevent.v1.LightEventService.UpdateSettings:input_type -> lightevent.v1.UpdateSettingsRequest
-	74, // 70: lightevent.v1.LightEventService.BeginVerification:input_type -> lightevent.v1.BeginVerificationRequest
-	76, // 71: lightevent.v1.LightEventService.CompleteVerification:input_type -> lightevent.v1.CompleteVerificationRequest
-	78, // 72: lightevent.v1.LightEventService.Register:input_type -> lightevent.v1.RegisterRequest
-	80, // 73: lightevent.v1.LightEventService.ListMyRegistrations:input_type -> lightevent.v1.ListMyRegistrationsRequest
-	82, // 74: lightevent.v1.LightEventService.CancelMyRegistration:input_type -> lightevent.v1.CancelMyRegistrationRequest
-	84, // 75: lightevent.v1.LightEventService.EndMemberSession:input_type -> lightevent.v1.EndMemberSessionRequest
-	12, // 76: lightevent.v1.LightEventService.Ping:output_type -> lightevent.v1.PingResponse
-	14, // 77: lightevent.v1.LightEventService.ListEvents:output_type -> lightevent.v1.ListEventsResponse
-	16, // 78: lightevent.v1.LightEventService.GetEvent:output_type -> lightevent.v1.GetEventResponse
-	18, // 79: lightevent.v1.LightEventService.CreateEvent:output_type -> lightevent.v1.CreateEventResponse
-	20, // 80: lightevent.v1.LightEventService.UpdateEvent:output_type -> lightevent.v1.UpdateEventResponse
-	22, // 81: lightevent.v1.LightEventService.SetEventArchived:output_type -> lightevent.v1.SetEventArchivedResponse
-	24, // 82: lightevent.v1.LightEventService.DeleteEvent:output_type -> lightevent.v1.DeleteEventResponse
-	26, // 83: lightevent.v1.LightEventService.CancelEventDate:output_type -> lightevent.v1.CancelEventDateResponse
-	29, // 84: lightevent.v1.LightEventService.ListUpcomingEventDates:output_type -> lightevent.v1.ListUpcomingEventDatesResponse
-	31, // 85: lightevent.v1.LightEventService.ListEventRegistrations:output_type -> lightevent.v1.ListEventRegistrationsResponse
-	33, // 86: lightevent.v1.LightEventService.GetRegistration:output_type -> lightevent.v1.GetRegistrationResponse
-	35, // 87: lightevent.v1.LightEventService.CreateRegistration:output_type -> lightevent.v1.CreateRegistrationResponse
-	37, // 88: lightevent.v1.LightEventService.DeleteRegistration:output_type -> lightevent.v1.DeleteRegistrationResponse
-	39, // 89: lightevent.v1.LightEventService.CreateMember:output_type -> lightevent.v1.CreateMemberResponse
-	41, // 90: lightevent.v1.LightEventService.ListMembers:output_type -> lightevent.v1.ListMembersResponse
-	43, // 91: lightevent.v1.LightEventService.GetMember:output_type -> lightevent.v1.GetMemberResponse
-	45, // 92: lightevent.v1.LightEventService.UpdateMember:output_type -> lightevent.v1.UpdateMemberResponse
-	47, // 93: lightevent.v1.LightEventService.DeleteMember:output_type -> lightevent.v1.DeleteMemberResponse
-	49, // 94: lightevent.v1.LightEventService.ListMemberRegistrations:output_type -> lightevent.v1.ListMemberRegistrationsResponse
-	51, // 95: lightevent.v1.LightEventService.CreateUser:output_type -> lightevent.v1.CreateUserResponse
-	53, // 96: lightevent.v1.LightEventService.UpdateUser:output_type -> lightevent.v1.UpdateUserResponse
-	55, // 97: lightevent.v1.LightEventService.SetUserPassword:output_type -> lightevent.v1.SetUserPasswordResponse
-	57, // 98: lightevent.v1.LightEventService.ListUsers:output_type -> lightevent.v1.ListUsersResponse
-	59, // 99: lightevent.v1.LightEventService.DeleteUser:output_type -> lightevent.v1.DeleteUserResponse
-	61, // 100: lightevent.v1.LightEventService.ListSessions:output_type -> lightevent.v1.ListSessionsResponse
-	63, // 101: lightevent.v1.LightEventService.RevokeSession:output_type -> lightevent.v1.RevokeSessionResponse
-	65, // 102: lightevent.v1.LightEventService.CreateAPIKey:output_type -> lightevent.v1.CreateAPIKeyResponse
-	67, // 103: lightevent.v1.LightEventService.ListAPIKeys:output_type -> lightevent.v1.ListAPIKeysResponse
-	69, // 104: lightevent.v1.LightEventService.DeleteAPIKey:output_type -> lightevent.v1.DeleteAPIKeyResponse
-	71, // 105: lightevent.v1.LightEventService.GetSettings:output_type -> lightevent.v1.GetSettingsResponse
-	73, // 106: lightevent.v1.LightEventService.UpdateSettings:output_type -> lightevent.v1.UpdateSettingsResponse
-	75, // 107: lightevent.v1.LightEventService.BeginVerification:output_type -> lightevent.v1.BeginVerificationResponse
-	77, // 108: lightevent.v1.LightEventService.CompleteVerification:output_type -> lightevent.v1.CompleteVerificationResponse
-	79, // 109: lightevent.v1.LightEventService.Register:output_type -> lightevent.v1.RegisterResponse
-	81, // 110: lightevent.v1.LightEventService.ListMyRegistrations:output_type -> lightevent.v1.ListMyRegistrationsResponse
-	83, // 111: lightevent.v1.LightEventService.CancelMyRegistration:output_type -> lightevent.v1.CancelMyRegistrationResponse
-	85, // 112: lightevent.v1.LightEventService.EndMemberSession:output_type -> lightevent.v1.EndMemberSessionResponse
-	76, // [76:113] is the sub-list for method output_type
-	39, // [39:76] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	3,   // 0: lightevent.v1.Event.dates:type_name -> lightevent.v1.EventDate
+	0,   // 1: lightevent.v1.Registration.kind:type_name -> lightevent.v1.RegistrationKind
+	3,   // 2: lightevent.v1.Registration.event_date:type_name -> lightevent.v1.EventDate
+	6,   // 3: lightevent.v1.Registration.member:type_name -> lightevent.v1.Member
+	0,   // 4: lightevent.v1.RegistrationInput.kind:type_name -> lightevent.v1.RegistrationKind
+	10,  // 5: lightevent.v1.ClientConfig.tags:type_name -> lightevent.v1.Tag
+	1,   // 6: lightevent.v1.ListEventsRequest.filter:type_name -> lightevent.v1.EventFilter
+	2,   // 7: lightevent.v1.ListEventsResponse.events:type_name -> lightevent.v1.Event
+	2,   // 8: lightevent.v1.GetEventResponse.event:type_name -> lightevent.v1.Event
+	2,   // 9: lightevent.v1.CreateEventRequest.event:type_name -> lightevent.v1.Event
+	2,   // 10: lightevent.v1.CreateEventResponse.event:type_name -> lightevent.v1.Event
+	2,   // 11: lightevent.v1.UpdateEventRequest.event:type_name -> lightevent.v1.Event
+	2,   // 12: lightevent.v1.UpdateEventResponse.event:type_name -> lightevent.v1.Event
+	2,   // 13: lightevent.v1.SetEventArchivedResponse.event:type_name -> lightevent.v1.Event
+	3,   // 14: lightevent.v1.CancelEventDateResponse.event_date:type_name -> lightevent.v1.EventDate
+	3,   // 15: lightevent.v1.EventDateSummary.event_date:type_name -> lightevent.v1.EventDate
+	2,   // 16: lightevent.v1.EventDateSummary.event:type_name -> lightevent.v1.Event
+	31,  // 17: lightevent.v1.ListUpcomingEventDatesResponse.event_dates:type_name -> lightevent.v1.EventDateSummary
+	10,  // 18: lightevent.v1.ListTagsResponse.tags:type_name -> lightevent.v1.Tag
+	10,  // 19: lightevent.v1.CreateTagRequest.tag:type_name -> lightevent.v1.Tag
+	10,  // 20: lightevent.v1.CreateTagResponse.tag:type_name -> lightevent.v1.Tag
+	10,  // 21: lightevent.v1.UpdateTagRequest.tag:type_name -> lightevent.v1.Tag
+	10,  // 22: lightevent.v1.UpdateTagResponse.tag:type_name -> lightevent.v1.Tag
+	4,   // 23: lightevent.v1.ListEventRegistrationsResponse.registrations:type_name -> lightevent.v1.Registration
+	4,   // 24: lightevent.v1.GetRegistrationResponse.registration:type_name -> lightevent.v1.Registration
+	5,   // 25: lightevent.v1.CreateRegistrationRequest.registration:type_name -> lightevent.v1.RegistrationInput
+	4,   // 26: lightevent.v1.CreateRegistrationResponse.registration:type_name -> lightevent.v1.Registration
+	6,   // 27: lightevent.v1.CreateMemberResponse.member:type_name -> lightevent.v1.Member
+	6,   // 28: lightevent.v1.ListMembersResponse.members:type_name -> lightevent.v1.Member
+	6,   // 29: lightevent.v1.GetMemberResponse.member:type_name -> lightevent.v1.Member
+	6,   // 30: lightevent.v1.UpdateMemberResponse.member:type_name -> lightevent.v1.Member
+	4,   // 31: lightevent.v1.ListMemberRegistrationsResponse.registrations:type_name -> lightevent.v1.Registration
+	7,   // 32: lightevent.v1.CreateUserResponse.user:type_name -> lightevent.v1.User
+	7,   // 33: lightevent.v1.UpdateUserResponse.user:type_name -> lightevent.v1.User
+	7,   // 34: lightevent.v1.ListUsersResponse.users:type_name -> lightevent.v1.User
+	8,   // 35: lightevent.v1.ListSessionsResponse.sessions:type_name -> lightevent.v1.Session
+	9,   // 36: lightevent.v1.CreateAPIKeyResponse.api_key:type_name -> lightevent.v1.APIKey
+	9,   // 37: lightevent.v1.ListAPIKeysResponse.api_keys:type_name -> lightevent.v1.APIKey
+	11,  // 38: lightevent.v1.GetSettingsResponse.settings:type_name -> lightevent.v1.AppSettings
+	11,  // 39: lightevent.v1.UpdateSettingsRequest.settings:type_name -> lightevent.v1.AppSettings
+	11,  // 40: lightevent.v1.UpdateSettingsResponse.settings:type_name -> lightevent.v1.AppSettings
+	12,  // 41: lightevent.v1.GetClientSettingsResponse.settings:type_name -> lightevent.v1.ClientSettings
+	12,  // 42: lightevent.v1.UpdateClientSettingsRequest.settings:type_name -> lightevent.v1.ClientSettings
+	12,  // 43: lightevent.v1.UpdateClientSettingsResponse.settings:type_name -> lightevent.v1.ClientSettings
+	13,  // 44: lightevent.v1.GetClientConfigResponse.config:type_name -> lightevent.v1.ClientConfig
+	6,   // 45: lightevent.v1.CompleteVerificationResponse.member:type_name -> lightevent.v1.Member
+	6,   // 46: lightevent.v1.GetMyProfileResponse.member:type_name -> lightevent.v1.Member
+	5,   // 47: lightevent.v1.RegisterRequest.registration:type_name -> lightevent.v1.RegistrationInput
+	4,   // 48: lightevent.v1.RegisterResponse.registration:type_name -> lightevent.v1.Registration
+	4,   // 49: lightevent.v1.ListMyRegistrationsResponse.registrations:type_name -> lightevent.v1.Registration
+	14,  // 50: lightevent.v1.LightEventService.Ping:input_type -> lightevent.v1.PingRequest
+	16,  // 51: lightevent.v1.LightEventService.ListEvents:input_type -> lightevent.v1.ListEventsRequest
+	18,  // 52: lightevent.v1.LightEventService.GetEvent:input_type -> lightevent.v1.GetEventRequest
+	20,  // 53: lightevent.v1.LightEventService.CreateEvent:input_type -> lightevent.v1.CreateEventRequest
+	22,  // 54: lightevent.v1.LightEventService.UpdateEvent:input_type -> lightevent.v1.UpdateEventRequest
+	24,  // 55: lightevent.v1.LightEventService.SetEventArchived:input_type -> lightevent.v1.SetEventArchivedRequest
+	26,  // 56: lightevent.v1.LightEventService.DeleteEvent:input_type -> lightevent.v1.DeleteEventRequest
+	28,  // 57: lightevent.v1.LightEventService.CancelEventDate:input_type -> lightevent.v1.CancelEventDateRequest
+	30,  // 58: lightevent.v1.LightEventService.ListUpcomingEventDates:input_type -> lightevent.v1.ListUpcomingEventDatesRequest
+	33,  // 59: lightevent.v1.LightEventService.ListTags:input_type -> lightevent.v1.ListTagsRequest
+	35,  // 60: lightevent.v1.LightEventService.CreateTag:input_type -> lightevent.v1.CreateTagRequest
+	37,  // 61: lightevent.v1.LightEventService.UpdateTag:input_type -> lightevent.v1.UpdateTagRequest
+	39,  // 62: lightevent.v1.LightEventService.DeleteTag:input_type -> lightevent.v1.DeleteTagRequest
+	41,  // 63: lightevent.v1.LightEventService.ListEventRegistrations:input_type -> lightevent.v1.ListEventRegistrationsRequest
+	43,  // 64: lightevent.v1.LightEventService.GetRegistration:input_type -> lightevent.v1.GetRegistrationRequest
+	45,  // 65: lightevent.v1.LightEventService.CreateRegistration:input_type -> lightevent.v1.CreateRegistrationRequest
+	47,  // 66: lightevent.v1.LightEventService.DeleteRegistration:input_type -> lightevent.v1.DeleteRegistrationRequest
+	49,  // 67: lightevent.v1.LightEventService.CreateMember:input_type -> lightevent.v1.CreateMemberRequest
+	51,  // 68: lightevent.v1.LightEventService.ListMembers:input_type -> lightevent.v1.ListMembersRequest
+	53,  // 69: lightevent.v1.LightEventService.GetMember:input_type -> lightevent.v1.GetMemberRequest
+	55,  // 70: lightevent.v1.LightEventService.UpdateMember:input_type -> lightevent.v1.UpdateMemberRequest
+	57,  // 71: lightevent.v1.LightEventService.DeleteMember:input_type -> lightevent.v1.DeleteMemberRequest
+	59,  // 72: lightevent.v1.LightEventService.ListMemberRegistrations:input_type -> lightevent.v1.ListMemberRegistrationsRequest
+	61,  // 73: lightevent.v1.LightEventService.CreateUser:input_type -> lightevent.v1.CreateUserRequest
+	63,  // 74: lightevent.v1.LightEventService.UpdateUser:input_type -> lightevent.v1.UpdateUserRequest
+	65,  // 75: lightevent.v1.LightEventService.SetUserPassword:input_type -> lightevent.v1.SetUserPasswordRequest
+	67,  // 76: lightevent.v1.LightEventService.ListUsers:input_type -> lightevent.v1.ListUsersRequest
+	69,  // 77: lightevent.v1.LightEventService.DeleteUser:input_type -> lightevent.v1.DeleteUserRequest
+	71,  // 78: lightevent.v1.LightEventService.ListSessions:input_type -> lightevent.v1.ListSessionsRequest
+	73,  // 79: lightevent.v1.LightEventService.RevokeSession:input_type -> lightevent.v1.RevokeSessionRequest
+	75,  // 80: lightevent.v1.LightEventService.CreateAPIKey:input_type -> lightevent.v1.CreateAPIKeyRequest
+	77,  // 81: lightevent.v1.LightEventService.ListAPIKeys:input_type -> lightevent.v1.ListAPIKeysRequest
+	79,  // 82: lightevent.v1.LightEventService.DeleteAPIKey:input_type -> lightevent.v1.DeleteAPIKeyRequest
+	81,  // 83: lightevent.v1.LightEventService.GetSettings:input_type -> lightevent.v1.GetSettingsRequest
+	83,  // 84: lightevent.v1.LightEventService.UpdateSettings:input_type -> lightevent.v1.UpdateSettingsRequest
+	85,  // 85: lightevent.v1.LightEventService.GetClientSettings:input_type -> lightevent.v1.GetClientSettingsRequest
+	87,  // 86: lightevent.v1.LightEventService.UpdateClientSettings:input_type -> lightevent.v1.UpdateClientSettingsRequest
+	89,  // 87: lightevent.v1.LightEventService.GetClientConfig:input_type -> lightevent.v1.GetClientConfigRequest
+	91,  // 88: lightevent.v1.LightEventService.BeginVerification:input_type -> lightevent.v1.BeginVerificationRequest
+	93,  // 89: lightevent.v1.LightEventService.CompleteVerification:input_type -> lightevent.v1.CompleteVerificationRequest
+	95,  // 90: lightevent.v1.LightEventService.GetMyProfile:input_type -> lightevent.v1.GetMyProfileRequest
+	97,  // 91: lightevent.v1.LightEventService.Register:input_type -> lightevent.v1.RegisterRequest
+	99,  // 92: lightevent.v1.LightEventService.ListMyRegistrations:input_type -> lightevent.v1.ListMyRegistrationsRequest
+	101, // 93: lightevent.v1.LightEventService.CancelMyRegistration:input_type -> lightevent.v1.CancelMyRegistrationRequest
+	103, // 94: lightevent.v1.LightEventService.EndMemberSession:input_type -> lightevent.v1.EndMemberSessionRequest
+	15,  // 95: lightevent.v1.LightEventService.Ping:output_type -> lightevent.v1.PingResponse
+	17,  // 96: lightevent.v1.LightEventService.ListEvents:output_type -> lightevent.v1.ListEventsResponse
+	19,  // 97: lightevent.v1.LightEventService.GetEvent:output_type -> lightevent.v1.GetEventResponse
+	21,  // 98: lightevent.v1.LightEventService.CreateEvent:output_type -> lightevent.v1.CreateEventResponse
+	23,  // 99: lightevent.v1.LightEventService.UpdateEvent:output_type -> lightevent.v1.UpdateEventResponse
+	25,  // 100: lightevent.v1.LightEventService.SetEventArchived:output_type -> lightevent.v1.SetEventArchivedResponse
+	27,  // 101: lightevent.v1.LightEventService.DeleteEvent:output_type -> lightevent.v1.DeleteEventResponse
+	29,  // 102: lightevent.v1.LightEventService.CancelEventDate:output_type -> lightevent.v1.CancelEventDateResponse
+	32,  // 103: lightevent.v1.LightEventService.ListUpcomingEventDates:output_type -> lightevent.v1.ListUpcomingEventDatesResponse
+	34,  // 104: lightevent.v1.LightEventService.ListTags:output_type -> lightevent.v1.ListTagsResponse
+	36,  // 105: lightevent.v1.LightEventService.CreateTag:output_type -> lightevent.v1.CreateTagResponse
+	38,  // 106: lightevent.v1.LightEventService.UpdateTag:output_type -> lightevent.v1.UpdateTagResponse
+	40,  // 107: lightevent.v1.LightEventService.DeleteTag:output_type -> lightevent.v1.DeleteTagResponse
+	42,  // 108: lightevent.v1.LightEventService.ListEventRegistrations:output_type -> lightevent.v1.ListEventRegistrationsResponse
+	44,  // 109: lightevent.v1.LightEventService.GetRegistration:output_type -> lightevent.v1.GetRegistrationResponse
+	46,  // 110: lightevent.v1.LightEventService.CreateRegistration:output_type -> lightevent.v1.CreateRegistrationResponse
+	48,  // 111: lightevent.v1.LightEventService.DeleteRegistration:output_type -> lightevent.v1.DeleteRegistrationResponse
+	50,  // 112: lightevent.v1.LightEventService.CreateMember:output_type -> lightevent.v1.CreateMemberResponse
+	52,  // 113: lightevent.v1.LightEventService.ListMembers:output_type -> lightevent.v1.ListMembersResponse
+	54,  // 114: lightevent.v1.LightEventService.GetMember:output_type -> lightevent.v1.GetMemberResponse
+	56,  // 115: lightevent.v1.LightEventService.UpdateMember:output_type -> lightevent.v1.UpdateMemberResponse
+	58,  // 116: lightevent.v1.LightEventService.DeleteMember:output_type -> lightevent.v1.DeleteMemberResponse
+	60,  // 117: lightevent.v1.LightEventService.ListMemberRegistrations:output_type -> lightevent.v1.ListMemberRegistrationsResponse
+	62,  // 118: lightevent.v1.LightEventService.CreateUser:output_type -> lightevent.v1.CreateUserResponse
+	64,  // 119: lightevent.v1.LightEventService.UpdateUser:output_type -> lightevent.v1.UpdateUserResponse
+	66,  // 120: lightevent.v1.LightEventService.SetUserPassword:output_type -> lightevent.v1.SetUserPasswordResponse
+	68,  // 121: lightevent.v1.LightEventService.ListUsers:output_type -> lightevent.v1.ListUsersResponse
+	70,  // 122: lightevent.v1.LightEventService.DeleteUser:output_type -> lightevent.v1.DeleteUserResponse
+	72,  // 123: lightevent.v1.LightEventService.ListSessions:output_type -> lightevent.v1.ListSessionsResponse
+	74,  // 124: lightevent.v1.LightEventService.RevokeSession:output_type -> lightevent.v1.RevokeSessionResponse
+	76,  // 125: lightevent.v1.LightEventService.CreateAPIKey:output_type -> lightevent.v1.CreateAPIKeyResponse
+	78,  // 126: lightevent.v1.LightEventService.ListAPIKeys:output_type -> lightevent.v1.ListAPIKeysResponse
+	80,  // 127: lightevent.v1.LightEventService.DeleteAPIKey:output_type -> lightevent.v1.DeleteAPIKeyResponse
+	82,  // 128: lightevent.v1.LightEventService.GetSettings:output_type -> lightevent.v1.GetSettingsResponse
+	84,  // 129: lightevent.v1.LightEventService.UpdateSettings:output_type -> lightevent.v1.UpdateSettingsResponse
+	86,  // 130: lightevent.v1.LightEventService.GetClientSettings:output_type -> lightevent.v1.GetClientSettingsResponse
+	88,  // 131: lightevent.v1.LightEventService.UpdateClientSettings:output_type -> lightevent.v1.UpdateClientSettingsResponse
+	90,  // 132: lightevent.v1.LightEventService.GetClientConfig:output_type -> lightevent.v1.GetClientConfigResponse
+	92,  // 133: lightevent.v1.LightEventService.BeginVerification:output_type -> lightevent.v1.BeginVerificationResponse
+	94,  // 134: lightevent.v1.LightEventService.CompleteVerification:output_type -> lightevent.v1.CompleteVerificationResponse
+	96,  // 135: lightevent.v1.LightEventService.GetMyProfile:output_type -> lightevent.v1.GetMyProfileResponse
+	98,  // 136: lightevent.v1.LightEventService.Register:output_type -> lightevent.v1.RegisterResponse
+	100, // 137: lightevent.v1.LightEventService.ListMyRegistrations:output_type -> lightevent.v1.ListMyRegistrationsResponse
+	102, // 138: lightevent.v1.LightEventService.CancelMyRegistration:output_type -> lightevent.v1.CancelMyRegistrationResponse
+	104, // 139: lightevent.v1.LightEventService.EndMemberSession:output_type -> lightevent.v1.EndMemberSessionResponse
+	95,  // [95:140] is the sub-list for method output_type
+	50,  // [50:95] is the sub-list for method input_type
+	50,  // [50:50] is the sub-list for extension type_name
+	50,  // [50:50] is the sub-list for extension extendee
+	0,   // [0:50] is the sub-list for field type_name
 }
 
 func init() { file_lightevent_v1_service_proto_init() }
@@ -4942,16 +5940,16 @@ func file_lightevent_v1_service_proto_init() {
 	}
 	file_lightevent_v1_service_proto_msgTypes[2].OneofWrappers = []any{}
 	file_lightevent_v1_service_proto_msgTypes[3].OneofWrappers = []any{}
-	file_lightevent_v1_service_proto_msgTypes[42].OneofWrappers = []any{}
-	file_lightevent_v1_service_proto_msgTypes[50].OneofWrappers = []any{}
-	file_lightevent_v1_service_proto_msgTypes[76].OneofWrappers = []any{}
+	file_lightevent_v1_service_proto_msgTypes[53].OneofWrappers = []any{}
+	file_lightevent_v1_service_proto_msgTypes[61].OneofWrappers = []any{}
+	file_lightevent_v1_service_proto_msgTypes[95].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_lightevent_v1_service_proto_rawDesc), len(file_lightevent_v1_service_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   84,
+			NumMessages:   103,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

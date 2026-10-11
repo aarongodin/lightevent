@@ -21,6 +21,12 @@ service LightEventService {
   rpc CancelEventDate(CancelEventDateRequest) returns (CancelEventDateResponse);
   rpc ListUpcomingEventDates(ListUpcomingEventDatesRequest) returns (ListUpcomingEventDatesResponse);
 
+  // Tags are admin-defined labels assigned to events, which members use to filter events in the client app.
+  rpc ListTags(ListTagsRequest) returns (ListTagsResponse);
+  rpc CreateTag(CreateTagRequest) returns (CreateTagResponse);
+  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagResponse);
+  rpc DeleteTag(DeleteTagRequest) returns (DeleteTagResponse);
+
   // Registrations (admin)
   rpc ListEventRegistrations(ListEventRegistrationsRequest) returns (ListEventRegistrationsResponse);
   rpc GetRegistration(GetRegistrationRequest) returns (GetRegistrationResponse);
@@ -54,10 +60,16 @@ service LightEventService {
   // Settings (admin)
   rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse);
   rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse);
+  rpc GetClientSettings(GetClientSettingsRequest) returns (GetClientSettingsResponse);
+  rpc UpdateClientSettings(UpdateClientSettingsRequest) returns (UpdateClientSettingsResponse);
+
+  // GetClientConfig returns the public configuration of the client app.
+  rpc GetClientConfig(GetClientConfigRequest) returns (GetClientConfigResponse);
 
   // Member self-service (used by the client app)
   rpc BeginVerification(BeginVerificationRequest) returns (BeginVerificationResponse);
   rpc CompleteVerification(CompleteVerificationRequest) returns (CompleteVerificationResponse);
+  rpc GetMyProfile(GetMyProfileRequest) returns (GetMyProfileResponse);
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc ListMyRegistrations(ListMyRegistrationsRequest) returns (ListMyRegistrationsResponse);
   rpc CancelMyRegistration(CancelMyRegistrationRequest) returns (CancelMyRegistrationResponse);
@@ -105,6 +117,8 @@ message Event {
   repeated EventDate dates = 8;
   string created_at = 9;
   string updated_at = 10;
+  // tags are the names of the event's tags. On create and update this is the complete list.
+  repeated string tags = 11;
 }
 
 message EventDate {
@@ -176,6 +190,14 @@ message APIKey {
   string last_used_at = 5;
 }
 
+message Tag {
+  // name is the unique, URL-safe identifier of the tag. It cannot be changed after creation.
+  string name = 1;
+  string label = 2;
+  // event_count is the number of events with the tag. Read-only, and only counted for administrators.
+  int32 event_count = 3;
+}
+
 message AppSettings {
   // organization_name is used in emails sent to members.
   string organization_name = 1;
@@ -183,6 +205,27 @@ message AppSettings {
   string support_email = 2;
   // timezone is an IANA timezone name (e.g. "America/Chicago") used when formatting dates in emails.
   string timezone = 3;
+}
+
+message ClientSettings {
+  // allowed_origins are the origins (e.g. "https://www.example.com") of websites that embed the client app.
+  // The API accepts cross-origin requests from these origins only.
+  repeated string allowed_origins = 1;
+  // show_remaining_spots shows members how many spots are left on dates of events with a capacity.
+  bool show_remaining_spots = 2;
+  // disable_series_registration only lets members register for single dates, not every date of an event.
+  bool disable_series_registration = 3;
+}
+
+// ClientConfig is the public configuration of the client app.
+message ClientConfig {
+  string organization_name = 1;
+  // timezone is the IANA timezone used to show event dates. Empty means the visitor's timezone.
+  string timezone = 2;
+  bool show_remaining_spots = 3;
+  bool series_registration_enabled = 4;
+  // tags are all tags that are assigned to at least one event visible to members.
+  repeated Tag tags = 5;
 }
 
 // ---------------------------------------------------------------------------
@@ -204,6 +247,8 @@ message ListEventsRequest {
   // limit defaults to 50 and is capped at 200.
   int32 limit = 3;
   int32 offset = 4;
+  // tags limits the results to events that have at least one of the tags.
+  repeated string tags = 5;
 }
 message ListEventsResponse {
   repeated Event events = 1;
@@ -268,6 +313,32 @@ message EventDateSummary {
 message ListUpcomingEventDatesResponse {
   repeated EventDateSummary event_dates = 1;
 }
+
+message ListTagsRequest {}
+message ListTagsResponse {
+  repeated Tag tags = 1;
+}
+
+message CreateTagRequest {
+  Tag tag = 1;
+}
+message CreateTagResponse {
+  Tag tag = 1;
+}
+
+message UpdateTagRequest {
+  // tag.name identifies the tag to update; only the label can change.
+  Tag tag = 1;
+}
+message UpdateTagResponse {
+  Tag tag = 1;
+}
+
+message DeleteTagRequest {
+  // name of the tag, which is removed from all events.
+  string name = 1;
+}
+message DeleteTagResponse {}
 
 message ListEventRegistrationsRequest {
   string event_name = 1;
@@ -437,6 +508,23 @@ message UpdateSettingsResponse {
   AppSettings settings = 1;
 }
 
+message GetClientSettingsRequest {}
+message GetClientSettingsResponse {
+  ClientSettings settings = 1;
+}
+
+message UpdateClientSettingsRequest {
+  ClientSettings settings = 1;
+}
+message UpdateClientSettingsResponse {
+  ClientSettings settings = 1;
+}
+
+message GetClientConfigRequest {}
+message GetClientConfigResponse {
+  ClientConfig config = 1;
+}
+
 message BeginVerificationRequest {
   string email = 1;
 }
@@ -450,6 +538,14 @@ message CompleteVerificationRequest {
   string code = 2;
 }
 message CompleteVerificationResponse {
+  Member member = 1;
+  // session_token authenticates the member as "Authorization: Bearer <session_token>". It is used by the
+  // client app, which runs on other origins where the session cookie is not available.
+  string session_token = 2;
+}
+
+message GetMyProfileRequest {}
+message GetMyProfileResponse {
   Member member = 1;
 }
 

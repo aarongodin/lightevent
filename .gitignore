@@ -24,6 +24,10 @@ dist
 !admin/dist/
 admin/dist/*
 !admin/dist/.gitkeep
+# The client app is embedded the same way from client/dist
+!client/dist/
+client/dist/*
+!client/dist/.gitkeep
 .rollup.cache
 .cert
 *.pem

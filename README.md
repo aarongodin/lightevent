@@ -9,13 +9,14 @@ LightEvent is open source, self-hosted and free event management software.
 The LightEvent system is comprised of two core components:
 
 * A server application executed through the `lightevent` binary. The admin UI is embedded in the binary and served by it.
-* An embedded client application executed through JS and CSS files included on your website. *(In development.)*
+* An embedded client application, a single script included on your website, through which members browse events and register.
 
 ## Features
 
 The features are focused on a simple experience, both for customer interaction and administration.
 
 * **Events** - An event is a container for one or many event dates. Members register for a single date or for every date of an event, with an optional capacity per date.
+* **Tags** - Describe kinds of events with tags such as "Vinyasa Yoga" or "Beginner", which members use to filter events.
 * **Authentication** - Passwordless authentication for members using one-time codes sent by email. Administrators sign in with a username and password; integrations use API keys.
 * **Notifications** - Members receive verification codes and registration confirmations by email (SMTP).
 
@@ -29,7 +30,7 @@ Planned:
 
 * **Single binary** - Download a single binary to your desired OS or environment and run it however you want. Example setups for bare-metal/VPS, Docker, and Kubernetes are available, or use these as a starting point for your own solution.
 * **Embedded storage** - Uses SQLite (through a pure-Go driver, so the binary has no C dependencies) for embedded storage, so there's no DBMS to manage. Backups and replication for read-replicas could be done with [Litestream](https://litestream.io/).
-* **Tidy web footprint** - LightEvent aims at keeping the client application as small as possible to ensure fast load time.
+* **Tidy web footprint** - The client application is a single script of about 15 KB gzipped, with a build-enforced budget of 100 KB.
 * **RPC API with Connect** - Augment LightEvent with your own integrations using the API. LightEvent is built using [Connect](https://connectrpc.com), an RPC framework built on [protobuf](https://github.com/protocolbuffers/protobuf) that also accepts plain JSON over HTTP.
 
 ### GitHub Project
@@ -60,11 +61,28 @@ EMAIL_SMTP_PASSWORD=...
 EMAIL_SMTP_SENDER="Your Studio <noreply@example.com>"
 ```
 
+### Embedding the client app
+
+Add the origin of your website (for example `https://www.example.com`) under Settings → Client app in the admin UI, then add this to the page that should list your events:
+
+```html
+<div id="events"></div>
+<script src="https://events.example.com/client/lightevent-client.js"></script>
+<script>
+  LightEventClient.init({
+    baseURL: "https://events.example.com",
+    element: "#events",
+  })
+</script>
+```
+
+The app renders inside a shadow root, so your site's styles don't affect it, and it keeps its current page in the URL (`?le=/events/yoga` by default) so links, reloads and the back button work. See [the client app guide](./docs/client.md) for every option, including the other navigation modes and theming.
+
 All configuration options are documented in [`internal/config/runtime.go`](./internal/config/runtime.go) and [`.envrc-example`](./.envrc-example).
 
 ## Testing Process
 
-The server has unit tests for every package (`make test`), and the admin UI is covered by browser tests with [Playwright](https://playwright.dev/) in `e2e/` (`make test-e2e`).
+The server has unit tests for every package (`make test`), and the admin UI and client app are covered by browser tests with [Playwright](https://playwright.dev/) in `e2e/` (`make test-e2e`).
 
 ## Contributing
 

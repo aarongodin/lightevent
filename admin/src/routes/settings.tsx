@@ -6,6 +6,8 @@ import { PageTitle } from "../units/page-title"
 
 const tabs = [
   { to: "/settings/application", label: "Application" },
+  { to: "/settings/tags", label: "Tags" },
+  { to: "/settings/client", label: "Client app" },
   { to: "/settings/account", label: "Your account" },
   { to: "/settings/users", label: "Users" },
   { to: "/settings/api-keys", label: "API keys" },

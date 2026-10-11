@@ -130,7 +130,10 @@ func (s *Server) CompleteVerification(ctx context.Context, req *connect.Request[
 		return nil, errorResponse(ctx, err, "verification")
 	}
 
-	resp := connect.NewResponse(&lighteventv1.CompleteVerificationResponse{Member: translateMember(member)})
+	resp := connect.NewResponse(&lighteventv1.CompleteVerificationResponse{
+		Member:       translateMember(member),
+		SessionToken: access.MemberBearerToken(token),
+	})
 	resp.Header().Add("Set-Cookie", access.NewSessionCookie(access.SessionKindMember, token, s.rc.SessionMaxAge, s.rc.CookieSecure).String())
 	return resp, nil
 }
@@ -144,10 +147,27 @@ func (s *Server) currentMember(ctx context.Context) (storage.Member, error) {
 	return s.q.GetMemberByID(ctx, id.SubjectID)
 }
 
+func (s *Server) GetMyProfile(ctx context.Context, _ *connect.Request[lighteventv1.GetMyProfileRequest]) (*connect.Response[lighteventv1.GetMyProfileResponse], error) {
+	member, err := s.currentMember(ctx)
+	if err != nil {
+		return nil, errorResponse(ctx, err, "member")
+	}
+	return connect.NewResponse(&lighteventv1.GetMyProfileResponse{Member: translateMember(member)}), nil
+}
+
 func (s *Server) Register(ctx context.Context, req *connect.Request[lighteventv1.RegisterRequest]) (*connect.Response[lighteventv1.RegisterResponse], error) {
 	member, err := s.currentMember(ctx)
 	if err != nil {
 		return nil, errorResponse(ctx, err, "member")
+	}
+	if req.Msg.Registration.GetKind() == lighteventv1.RegistrationKind_REGISTRATION_KIND_SERIES {
+		client, err := s.loadClientSettings(ctx)
+		if err != nil {
+			return nil, errorResponse(ctx, err, "registration")
+		}
+		if client.DisableSeriesRegistration {
+			return nil, newError(connect.CodeFailedPrecondition, "registration for every date of an event is not available")
+		}
 	}
 
 	if req.Msg.FirstName != nil || req.Msg.LastName != nil {

@@ -1,25 +1,20 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "useDefineForClassFields": true,
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2023"],
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
+    "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-
-    /* Linting */
     "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "types": ["vite/client"]
   },
   "include": ["src", "vite.config.ts"]
 }

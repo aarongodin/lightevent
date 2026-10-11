@@ -30,6 +30,10 @@ type RuntimeConfig struct {
 	// Only enable it when LightEvent runs behind a reverse proxy that sets these headers.
 	TrustProxyHeaders bool `env:"TRUST_PROXY_HEADERS" envDefault:"false"`
 
+	// ClientAllowedOrigins are origins of websites that embed the client app, in addition to the allowed
+	// origins managed in the admin UI. Useful when the configuration is managed outside of LightEvent.
+	ClientAllowedOrigins []string `env:"CLIENT_ALLOWED_ORIGINS" envSeparator:","`
+
 	// BootstrapUsername and BootstrapPassword create the first user when no users exist yet.
 	BootstrapUsername string `env:"BOOTSTRAP_USERNAME"`
 	BootstrapPassword string `env:"BOOTSTRAP_PASSWORD"`

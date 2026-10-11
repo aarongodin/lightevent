@@ -30,7 +30,8 @@ SELECT COUNT(*) FROM registrations WHERE event_id = ?;
 
 -- name: ListEvents :many
 -- Lists events for administrators. The filter is one of 'upcoming', 'past', 'archived' or 'all'.
--- Events are ordered by their next upcoming date, then by most recently created.
+-- Events are ordered by their next upcoming date, then by most recently created. tags is a JSON array of tag
+-- names; when it is not empty, only events with at least one of the tags are listed.
 SELECT e.*
 FROM events e
 LEFT JOIN (
@@ -47,6 +48,10 @@ WHERE
     ELSE e.archived_at IS NULL
   END)
   AND (CAST(@search AS TEXT) = '' OR instr(lower(e.name), lower(CAST(@search AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(@search AS TEXT))) > 0)
+  AND (CAST(@tags AS TEXT) = '[]' OR EXISTS (
+    SELECT 1 FROM event_tags et INNER JOIN tags t ON t.id = et.tag_id
+    WHERE et.event_id = e.id AND t.name IN (SELECT value FROM json_each(CAST(@tags AS TEXT)))
+  ))
 ORDER BY nd.next_value IS NULL, nd.next_value, e.created_at DESC, e.id DESC
 LIMIT @limit OFFSET @offset;
 
@@ -66,7 +71,11 @@ WHERE
     WHEN 'past' THEN e.archived_at IS NULL AND nd.next_value IS NULL
     ELSE e.archived_at IS NULL
   END)
-  AND (CAST(@search AS TEXT) = '' OR instr(lower(e.name), lower(CAST(@search AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(@search AS TEXT))) > 0);
+  AND (CAST(@search AS TEXT) = '' OR instr(lower(e.name), lower(CAST(@search AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(@search AS TEXT))) > 0)
+  AND (CAST(@tags AS TEXT) = '[]' OR EXISTS (
+    SELECT 1 FROM event_tags et INNER JOIN tags t ON t.id = et.tag_id
+    WHERE et.event_id = e.id AND t.name IN (SELECT value FROM json_each(CAST(@tags AS TEXT)))
+  ));
 
 -- name: ListPublicEvents :many
 -- Lists events that are visible to members and anonymous visitors: not hidden, not archived, and with at
@@ -81,6 +90,10 @@ INNER JOIN (
 ) nd ON nd.event_id = e.id
 WHERE e.hidden = 0 AND e.archived_at IS NULL
   AND (CAST(@search AS TEXT) = '' OR instr(lower(e.name), lower(CAST(@search AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(@search AS TEXT))) > 0)
+  AND (CAST(@tags AS TEXT) = '[]' OR EXISTS (
+    SELECT 1 FROM event_tags et INNER JOIN tags t ON t.id = et.tag_id
+    WHERE et.event_id = e.id AND t.name IN (SELECT value FROM json_each(CAST(@tags AS TEXT)))
+  ))
 ORDER BY nd.next_value, e.id
 LIMIT @limit OFFSET @offset;
 
@@ -94,7 +107,11 @@ INNER JOIN (
   GROUP BY event_id
 ) nd ON nd.event_id = e.id
 WHERE e.hidden = 0 AND e.archived_at IS NULL
-  AND (CAST(@search AS TEXT) = '' OR instr(lower(e.name), lower(CAST(@search AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(@search AS TEXT))) > 0);
+  AND (CAST(@search AS TEXT) = '' OR instr(lower(e.name), lower(CAST(@search AS TEXT))) > 0 OR instr(lower(e.title), lower(CAST(@search AS TEXT))) > 0)
+  AND (CAST(@tags AS TEXT) = '[]' OR EXISTS (
+    SELECT 1 FROM event_tags et INNER JOIN tags t ON t.id = et.tag_id
+    WHERE et.event_id = e.id AND t.name IN (SELECT value FROM json_each(CAST(@tags AS TEXT)))
+  ));
 
 -- name: ListEventDatesByEventID :many
 SELECT * FROM event_dates WHERE event_id = ? ORDER BY value ASC;

@@ -15,7 +15,17 @@ const (
 
 	SessionKindUser   = "user"
 	SessionKindMember = "member"
+
+	// MemberTokenPrefix marks a member session token sent as "Authorization: Bearer <token>", which
+	// distinguishes it from an API key. The client app uses bearer tokens because it runs on other
+	// origins, where the session cookie is not available.
+	MemberTokenPrefix = "lem_"
 )
+
+// MemberBearerToken returns the bearer token for a member session token.
+func MemberBearerToken(token string) string {
+	return MemberTokenPrefix + token
+}
 
 // CreateSession stores a new session and returns the token to place in the session cookie.
 // Only the SHA-256 of the token is stored.
@@ -73,8 +83,13 @@ func sessionFromCookie(ctx context.Context, q *storage.Queries, header http.Head
 	if err != nil || c.Value == "" {
 		return nil, nil //nolint:nilerr // a missing cookie is not an error
 	}
+	return sessionFromToken(ctx, q, c.Value, kind, now)
+}
+
+// sessionFromToken returns the active session of the given kind for a session token, if any.
+func sessionFromToken(ctx context.Context, q *storage.Queries, token, kind string, now time.Time) (*storage.Session, error) {
 	sess, err := q.GetActiveSessionByTokenHash(ctx, storage.GetActiveSessionByTokenHashParams{
-		TokenHash: secret.Hash(c.Value),
+		TokenHash: secret.Hash(token),
 		Kind:      kind,
 		Now:       now,
 	})

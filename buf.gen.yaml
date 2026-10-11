@@ -10,3 +10,9 @@ plugins:
   - local: node_modules/.bin/protoc-gen-es
     out: admin/src/gen
     opt: target=ts
+  # The client app only imports the generated JSON types (type-only), so no protobuf runtime ends up in its bundle.
+  - local: node_modules/.bin/protoc-gen-es
+    out: client/src/gen
+    opt:
+      - target=ts
+      - json_types=true

@@ -77,6 +77,7 @@ export type EventInput = {
   hidden?: boolean
   closed?: boolean
   dates?: string[]
+  tags?: string[]
 }
 
 export type EventDate = { uid: string; value: string; cancelled?: boolean; registrationCount?: number }
@@ -108,9 +109,14 @@ export class Api {
         hidden: input.hidden ?? false,
         closed: input.closed ?? false,
         dates: (input.dates ?? [isoIn(10)]).map((value) => ({ value })),
+        tags: input.tags ?? [],
       },
     })
     return event
+  }
+
+  async createTag(name: string, label: string) {
+    await this.call("CreateTag", { tag: { name, label } })
   }
 
   async cancelDate(uid: string) {

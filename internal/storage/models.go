@@ -40,6 +40,11 @@ type EventDate struct {
 	Cancelled int64
 }
 
+type EventTag struct {
+	EventID int64
+	TagID   int64
+}
+
 type Member struct {
 	ID        int64
 	Uid       string
@@ -76,6 +81,14 @@ type Setting struct {
 	Name      string
 	Value     string
 	UpdatedAt time.Time
+}
+
+type Tag struct {
+	ID        int64
+	Name      string
+	Label     string
+	CreatedAt time.Time
+	UpdatedAt sql.NullTime
 }
 
 type User struct {

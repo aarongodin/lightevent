@@ -3,7 +3,8 @@
 // There are three kinds of credentials:
 //   - Users (administrators) authenticate with a username and password on the login page and receive a
 //     session cookie.
-//   - Members verify their email address with an emailed code and receive a member session cookie.
+//   - Members verify their email address with an emailed code and receive a member session, both as a
+//     cookie and as a token that the client app sends as "Authorization: Bearer lem_<token>".
 //   - API keys are sent as "Authorization: Bearer <secret>" and are intended for integrations.
 //
 // Requests without credentials are anonymous. Every RPC declares which of these schemes may call it in
@@ -31,7 +32,7 @@ type Identity struct {
 	SubjectUID string
 	// Name is the username, member email or API key name.
 	Name string
-	// SessionID is set for cookie-based (user and member) identities.
+	// SessionID is set for session-based (user and member) identities.
 	SessionID int64
 }
 

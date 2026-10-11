@@ -4,6 +4,8 @@ import { defineConfig, devices } from "@playwright/test"
 
 const port = process.env.E2E_PORT ?? "18080"
 export const baseURL = `http://127.0.0.1:${port}`
+// hostURL serves a page that embeds the client app from another origin (see scripts/host.mjs).
+export const hostURL = `http://localhost:${process.env.E2E_HOST_PORT ?? "18081"}`
 export const adminStorageState = fileURLToPath(new URL(".tmp/admin.json", import.meta.url))
 
 export default defineConfig({
@@ -36,14 +38,24 @@ export default defineConfig({
       dependencies: ["setup"],
     },
   ],
-  webServer: {
-    command: "node e2e/scripts/server.mjs",
-    cwd: "..",
-    url: `${baseURL}/healthz`,
-    // Building the admin UI and server takes a while on a cold cache.
-    timeout: 240_000,
-    reuseExistingServer: false,
-    stdout: "ignore",
-    stderr: "pipe",
-  },
+  webServer: [
+    {
+      command: "node e2e/scripts/server.mjs",
+      cwd: "..",
+      url: `${baseURL}/healthz`,
+      // Building the admin UI, client app and server takes a while on a cold cache.
+      timeout: 240_000,
+      reuseExistingServer: false,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      command: "node e2e/scripts/host.mjs",
+      cwd: "..",
+      url: hostURL,
+      reuseExistingServer: false,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+  ],
 })

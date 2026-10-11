@@ -20,12 +20,16 @@ func openTest(t *testing.T) *Storage {
 
 func TestOpenMigratesAndIsIdempotent(t *testing.T) {
 	ctx := context.Background()
+	versions, err := listVersions()
+	require.NoError(t, err)
+	latest := versions[len(versions)-1].n
+
 	file := filepath.Join(t.TempDir(), "test.sqlite3")
 	s, err := Open(ctx, file)
 	require.NoError(t, err)
 	v, err := s.CurrentVersion(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, 1, v)
+	assert.Equal(t, latest, v)
 	require.NoError(t, s.Close())
 
 	s, err = Open(ctx, file)
@@ -33,7 +37,7 @@ func TestOpenMigratesAndIsIdempotent(t *testing.T) {
 	defer s.Close()
 	v, err = s.CurrentVersion(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, 1, v)
+	assert.Equal(t, latest, v)
 }
 
 func TestPragmasApplyToEveryConnection(t *testing.T) {
